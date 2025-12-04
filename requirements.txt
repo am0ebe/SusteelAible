@@ -2,3 +2,5 @@ pdfplumber==0.11.8
 datasets==4.4.1
 transformers==4.57.1
 torch==2.9.0
+langid==1.1.6
+sacremoses==0.1.1
