@@ -4,3 +4,4 @@ transformers==4.57.1
 torch==2.9.0
 langid==1.1.6
 sacremoses==0.1.1
+spacy==3.8.11
