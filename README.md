@@ -2,6 +2,9 @@
 
 Analyzing decarbonization pathways in the EU steel industry through integrated emissions data and corporate sustainability report analysis.
 
+![net-zero wordclouds](out/n0_wordclouds.png "net-zero wordclouds")
+
+
 ## Overview
 
 This project combines **quantitative emissions analysis** with **qualitative text analysis** of ~200 corporate sustainability reports (2013–2024) to understand technology lock-in, climate commitments, and decarbonization barriers in European steel.
