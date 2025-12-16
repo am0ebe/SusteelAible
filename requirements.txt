@@ -1,8 +1,7 @@
-pdfplumber==0.11.8
 PyMuPDF==1.26.6
 datasets==4.4.1
 transformers==4.57.1
-torch==2.9.1+cu130
+torch==2.9.1
 langid==1.1.6
 sacremoses==0.1.1
 spacy==3.8.11
