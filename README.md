@@ -2,7 +2,7 @@
 
 Analyzing decarbonization pathways in the EU steel industry through integrated emissions data and corporate sustainability report analysis.
 
-![net-zero wordclouds](out/n0_wordclouds.png "net-zero wordclouds")
+![net-zero wordclouds](wordcloud.png "net-zero wordclouds")
 
 
 ## Overview
