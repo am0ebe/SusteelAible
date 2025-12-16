@@ -19,13 +19,19 @@ This project combines **quantitative emissions analysis** with **qualitative tex
 git clone git@github.com:am0ebe/SusteelAible.git
 cd SusteelAible
 
-# Create virtual environment (recommended)
-python -m venv .venv
+# Verify Python version is 3.11.x
+python --version
+
+# Create virtual environment
+python3.11 -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # .venv\Scripts\activate   # Windows
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Download spaCy language model
+python -m pip install -v  https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
 # Extract data
 unzip data.zip
@@ -37,11 +43,12 @@ unzip data.zip
 
 Want to see the original sustainability reports we analyzed?
 
+**Download reports (~1.6GB):**
+<https://github.com/am0ebe/SusteelAible/releases/download/v1.0-data/reports.zip>
+
 ```bash
-# Download reports (~1.6GB)
-wget https://github.com/am0ebe/SusteelAible/releases/download/v1.0/reports.zip
-unzip reports.zip
 # Reports will be extracted to `data/reports/`
+unzip reports.zip
 ```
 
 <!-- <details>
@@ -53,7 +60,7 @@ unzip reports.zip
 
 GPU acceleration speeds up `bert_1.ipynb` dramatically:
 
-- **With GPU:** ~2-3 hours
+- **With GPU:** ~2 hours
 - **Without GPU:** ~8+ hours (CPU fallback works, just slower)
 
 **Installation:**
@@ -101,12 +108,10 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 
 ## Project Structure
 
-After `unzip data.zip`:
-
 ```
-├── data/
+├── data/                  # After unzip data.zip
 │   ├── EDA/               # Emissions data
-│   └── reports/           # Source PDFs (only if running full pipeline)
+│   └── reports/           # Source PDFs (if downloaded reports.zip)
 ├── cache/                 # Pre-processed ClimateBERT results
 ├── out/                   # Generated plots and visualizations
 │
@@ -118,81 +123,12 @@ After `unzip data.zip`:
 │
 ├── monitor_gpu.py         # GPU monitoring utility
 └── requirements.txt
-```
-
-## Notebooks — What to Run
-
-### Emissions Analysis Track
-
-| Order | Notebook | What it does |
-|-------|----------|--------------|
-| 1 | `basic_EDA.ipynb` | Explore emissions trends, technology lock-in (Scope 1 vs 2) |
-| 2 | `baseline_model.ipynb` | Baseline model: technology explains 79% of variance |
-
-### Text Analysis Track
-
-| Order | Notebook | What it does |
-|-------|----------|--------------|
-| 1 | `bert_1.ipynb` | Process PDFs → ClimateBERT *(skip if using cache)* |
-| 2 | `bert_2.ipynb` | Analyze cached results: Talk Score, sentiment, trends |
-| 3 | `rag_barriers.ipynb` | RAG-based barrier identification *(coming soon)* |
-
-## Helper Scripts
-
-**`monitor_gpu.py`** — Real-time GPU monitoring during BERT inference
-
-```bash
-python monitor_gpu.py  # Run in separate terminal during processing
-```
-
-## Project Structure
-
-```
-├── data/                  # -> after unzip data.zip
-│   ├── EDA/               # Emissions data
-│   └── reports/           # Source PDFs (-> only if downloaded)
-├── cache/                 # Pre-processed ClimateBERT results
-├── out/                   # Generated plots and visualizations
-│
-├── basic_EDA.ipynb        # Emissions analysis
-├── baseline_model.ipynb   # Technology baseline model
-├── bert_1.ipynb           # PDF processing pipeline (optional)
-├── bert_2.ipynb           # Report analysis & visualization
-├── rag_barriers.ipynb     # RAG barrier analysis (coming soon)
-│
-├── monitor_gpu.py         # GPU monitoring utility
-└── requirements.txt
-```
-
-## Notebooks — What to Run
-
-### Emissions Analysis Track
-
-| Order | Notebook | What it does |
-|-------|----------|--------------|
-| 1 | `basic_EDA.ipynb` | Explore emissions trends, technology lock-in (Scope 1 vs 2) |
-| 2 | `baseline_model.ipynb` | Baseline model: technology explains 79% of variance |
-
-### Text Analysis Track
-
-| Order | Notebook | What it does |
-|-------|----------|--------------|
-| 1 | `bert_1.ipynb` | Process PDFs → ClimateBERT *(skip if using cache)* |
-| 2 | `bert_2.ipynb` | Analyze cached results: Talk Score, sentiment, trends |
-| 3 | `rag_barriers.ipynb` | RAG-based barrier identification *(coming soon)* |
-
-
-## Helper Scripts
-
-**`monitor_gpu.py`** — Real-time GPU monitoring during BERT inference
-
-```bash
-python monitor_gpu.py  # Run in separate terminal during processing
 ```
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.11+ (tested with 3.11.3)
+    - Install from [python.org](https://www.python.org/downloads/) if needed
 - See `requirements.txt` for full dependencies
 - Optional: NVIDIA GPU (CUDA) or Apple Silicon for faster processing
 
@@ -200,7 +136,9 @@ python monitor_gpu.py  # Run in separate terminal during processing
 
 **SuSteelAible** — December 2025
 
-[@am0ebe](https://github.com/am0ebe) · [@calluna-borealis](https://github.com/calluna-borealis) · [contributors welcome]
+[@am0ebe](https://github.com/am0ebe) · [@calluna-borealis](https://github.com/calluna-borealis) · [@dzyen](https://github.com/dzyen) · [@aposkoub92](https://github.com/aposkoub92) · [@MJR-data
+](https://github.com/MJR-data
+) · [contributors welcome]
 
 ## Contact
 

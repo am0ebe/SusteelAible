@@ -1,3 +1,5 @@
+# Python 3.11 required (tested with 3.11.3)
+# NLP | ClimateBert
 PyMuPDF==1.26.6
 datasets==4.4.1
 transformers==4.57.1
