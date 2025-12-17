@@ -4,6 +4,8 @@ cache
 nlp/cache
 out
 
+vector_db
+
 # data
 *.zip
 
@@ -11,3 +13,5 @@ out
 __pycache__
 .venv
 .python-version
+
+.env
