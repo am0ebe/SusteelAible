@@ -1,1 +1,13 @@
+# dirs
 data
+cache
+nlp/cache
+out
+
+# data
+*.zip
+
+# python stuff
+__pycache__
+.venv
+.python-version
