@@ -3,6 +3,7 @@ data
 cache
 nlp/cache
 out
+.env
 
 # data
 *.zip
@@ -11,3 +12,4 @@ out
 __pycache__
 .venv
 .python-version
+
