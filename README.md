@@ -47,7 +47,7 @@ unzip data.zip
 Want to see the original sustainability reports we analyzed?
 
 **Download reports (~1.6GB):**
-<https://github.com/am0ebe/SusteelAible/releases/download/v1.0-data/reports.zip>
+<https://github.com/am0ebe/SusteelAible/releases/download/v1.1-data/reports.zip>
 
 ```bash
 # Reports will be extracted to `data/reports/`

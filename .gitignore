@@ -11,3 +11,7 @@ out
 __pycache__
 .venv
 .python-version
+
+# misc
+.env
+vector_db
