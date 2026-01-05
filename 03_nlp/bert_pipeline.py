@@ -4,11 +4,12 @@ ClimateBERT Analysis Pipeline
 
 Processes PDF reports through ClimateBERT models for climate-related text analysis.
 
-Pipeline: Extract (shared) → Translate → Filter → Analyze (specificity, sentiment, commitment, netzero)
+Pipeline: Extract → Translate (via preprocessing) → Filter → Analyze
+
 Output: JSON files with scored climate chunks
 
 Usage:
-    from climate_bert_pipeline import ClimateBERTAnalyzer
+    from bert_pipeline import ClimateBERTAnalyzer
 
     analyzer = ClimateBERTAnalyzer()
     stats = analyzer.process_pdfs("../data/reports")
@@ -20,7 +21,6 @@ Usage:
 
 import os
 import gc
-import re
 import json
 import time
 import logging
@@ -28,20 +28,20 @@ from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Dict, Optional
-from collections import Counter
 
 import torch
 from tqdm.auto import tqdm
-from transformers import MarianMTModel, MarianTokenizer, pipeline
+from transformers import pipeline
 
-# Import shared preprocessing
 from preprocessing import (
     PDFPreprocessor,
     PreprocessingConfig,
     ProcessedDocument,
+    get_device,
+    get_gpu_info,
+    clear_gpu_memory,
 )
 
-# Suppress verbose transformer warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
 
@@ -61,10 +61,8 @@ class BERTConfig:
     # Processing
     batch_size: int = 32
 
-    # Translation
-    translate_batch_size: int = 32
-    translate_input_max_tokens: int = 512
-    translate_output_max_tokens: int = 512
+    # Translation (now handled by preprocessing)
+    translate_to_english: bool = True
 
     # GPU
     use_torch_compile: bool = True
@@ -80,21 +78,6 @@ class BERTConfig:
             detect_language=True,
         )
 
-
-# Translation model mapping
-HELSINKI_MODELS = {
-    'de': 'Helsinki-NLP/opus-mt-de-en',
-    'es': 'Helsinki-NLP/opus-mt-es-en',
-    'it': 'Helsinki-NLP/opus-mt-it-en',
-    'zh': 'Helsinki-NLP/opus-mt-zh-en',
-    'fr': 'Helsinki-NLP/opus-mt-fr-en',
-    'nl': 'Helsinki-NLP/opus-mt-nl-en',
-    'pt': 'Helsinki-NLP/opus-mt-ROMANCE-en',
-    'pl': 'Helsinki-NLP/opus-mt-pl-en',
-    'ru': 'Helsinki-NLP/opus-mt-ru-en',
-    'ja': 'Helsinki-NLP/opus-mt-ja-en',
-    'ko': 'Helsinki-NLP/opus-mt-ko-en',
-}
 
 # ClimateBERT model names
 CLIMATEBERT_MODELS = {
@@ -114,7 +97,7 @@ class ClimateBERTAnalyzer:
     """
     Processes PDF reports through ClimateBERT pipeline.
 
-    Pipeline: Extract → Translate → Filter → Analyze
+    Pipeline: Extract → Translate (shared) → Filter → Analyze
     """
 
     def __init__(self, config: Optional[BERTConfig] = None):
@@ -123,24 +106,24 @@ class ClimateBERTAnalyzer:
         self.cache_dir = Path(self.config.cache_dir)
         self.cache_dir.mkdir(exist_ok=True)
 
-        self.preprocessor = PDFPreprocessor(self.config.get_preprocessing_config())
+        self.preprocessor = PDFPreprocessor(
+            self.config.get_preprocessing_config())
 
         self.pdf_path: Optional[Path] = None
         self.prep_data: Optional[Dict] = None
         self.bert_data: Optional[Dict] = None
 
-        self.device = 0 if torch.cuda.is_available() else -1
+        self.device = get_device()
+        self.device_id = 0 if self.device.type == "cuda" else -1
         self.models: Dict = {}
-        self.translator = None
-        self.translator_lang = None
 
-        if self.device >= 0:
-            gpu_name = torch.cuda.get_device_name(0)
-            total_mem = torch.cuda.get_device_properties(0).total_memory / 1e9
-            print(f"✓ GPU: {gpu_name} ({total_mem:.1f}GB)")
+        gpu_info = get_gpu_info()
+        if gpu_info:
+            print(
+                f"✓ GPU: {gpu_info['name']} ({gpu_info['total_memory_gb']:.1f}GB)")
             self._clear_gpu_memory()
         else:
-            print("✓ Running on CPU (no GPU detected)")
+            print("✓ Running on CPU")
 
     def _log(self, msg: str):
         if self.config.verbose:
@@ -151,26 +134,11 @@ class ClimateBERTAnalyzer:
     # -------------------------------------------------------------------------
 
     def _clear_gpu_memory(self):
-        if self.device >= 0:
-            gc.collect()
-            torch.cuda.empty_cache()
-            torch.cuda.synchronize()
+        clear_gpu_memory()
 
     def _emergency_gpu_cleanup(self):
-        if self.device < 0:
+        if self.device.type != "cuda":
             return
-
-        if self.translator:
-            try:
-                if 'model' in self.translator:
-                    self.translator['model'].cpu()
-                    del self.translator['model']
-                if 'tokenizer' in self.translator:
-                    del self.translator['tokenizer']
-            except:
-                pass
-            self.translator = None
-            self.translator_lang = None
 
         for name in list(self.models.keys()):
             try:
@@ -189,128 +157,10 @@ class ClimateBERTAnalyzer:
                 pass
 
         gc.collect()
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
-        torch.cuda.reset_peak_memory_stats()
-
-    def _unload_translator(self):
-        if self.translator:
-            self._log("  Unloading translator...")
-            try:
-                if 'model' in self.translator:
-                    self.translator['model'].cpu()
-                    del self.translator['model']
-                if 'tokenizer' in self.translator:
-                    del self.translator['tokenizer']
-            except:
-                pass
-            self.translator = None
-            self.translator_lang = None
-            self._clear_gpu_memory()
-
-    # -------------------------------------------------------------------------
-    # Translation
-    # -------------------------------------------------------------------------
-
-    def _load_helsinki_translator(self, src_lang: str):
-        if self.translator and self.translator_lang == src_lang:
-            return self.translator
-        if self.translator:
-            self._unload_translator()
-
-        model_name = HELSINKI_MODELS.get(src_lang)
-        if not model_name:
-            return None
-
-        self._log(f"  Loading translator: {model_name}")
-
-        tokenizer = MarianTokenizer.from_pretrained(model_name)
-        model = MarianMTModel.from_pretrained(
-            model_name,
-            torch_dtype=torch.float16 if self.device >= 0 else torch.float32,
-        )
-
-        if self.device >= 0:
-            model = model.cuda()
-            if self.config.use_torch_compile and hasattr(torch, 'compile'):
-                try:
-                    model = torch.compile(model, mode="reduce-overhead")
-                except:
-                    pass
-        model.eval()
-
-        self.translator = {'model': model, 'tokenizer': tokenizer, 'type': 'helsinki'}
-        self.translator_lang = src_lang
-        return self.translator
-
-    def _translate_chunks(self, chunks: List[str], src_lang: str) -> List[str]:
-        translator = self._load_helsinki_translator(src_lang)
-        if not translator:
-            return chunks
-
-        model = translator['model']
-        tokenizer = translator['tokenizer']
-        translated = []
-        batch_size = max(8, self.config.translate_batch_size // 2)
-
-        with torch.no_grad():
-            for i in range(0, len(chunks), batch_size):
-                batch = chunks[i:i + batch_size]
-                try:
-                    inputs = tokenizer(
-                        batch, return_tensors="pt", padding=True,
-                        truncation=True, max_length=self.config.translate_input_max_tokens
-                    )
-                    if self.device >= 0:
-                        inputs = {k: v.cuda() for k, v in inputs.items()}
-
-                    outputs = model.generate(
-                        **inputs,
-                        max_new_tokens=self.config.translate_output_max_tokens,
-                        no_repeat_ngram_size=3,
-                        repetition_penalty=1.2,
-                        num_beams=4,
-                        early_stopping=True,
-                        do_sample=False,
-                        use_cache=True,
-                    )
-                    batch_translations = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-                    translated.extend(batch_translations)
-                    del inputs, outputs
-
-                except RuntimeError as e:
-                    if "out of memory" in str(e):
-                        torch.cuda.empty_cache()
-                        for chunk in batch:
-                            try:
-                                inputs = tokenizer(
-                                    [chunk], return_tensors="pt",
-                                    truncation=True, max_length=self.config.translate_input_max_tokens
-                                )
-                                if self.device >= 0:
-                                    inputs = {k: v.cuda() for k, v in inputs.items()}
-                                output = model.generate(
-                                    **inputs,
-                                    max_new_tokens=self.config.translate_output_max_tokens,
-                                    no_repeat_ngram_size=3, num_beams=1
-                                )
-                                translated.append(tokenizer.decode(output[0], skip_special_tokens=True))
-                                del inputs, output
-                            except:
-                                translated.append(chunk)
-                                torch.cuda.empty_cache()
-                    else:
-                        raise
-
-        # Clean artifacts
-        cleaned = []
-        for trans in translated:
-            trans = re.sub(r'\.{5,}', '...', trans)
-            trans = re.sub(r'([.\-–—•·])\1{3,}', r'\1\1', trans)
-            trans = re.sub(r'\s{3,}', ' ', trans).strip()
-            cleaned.append(trans)
-
-        return cleaned
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+            torch.cuda.reset_peak_memory_stats()
 
     # -------------------------------------------------------------------------
     # Caching
@@ -358,7 +208,7 @@ class ClimateBERTAnalyzer:
             json.dump(self.bert_data, f, ensure_ascii=False, indent=2)
 
     # -------------------------------------------------------------------------
-    # PDF Processing
+    # PDF Processing (using shared preprocessing with translation)
     # -------------------------------------------------------------------------
 
     def set_pdf_path(self, pdf_path: str):
@@ -368,7 +218,8 @@ class ClimateBERTAnalyzer:
             self.prep_data = None
             self.bert_data = None
 
-    def extract_pdf(self) -> Dict:
+    def extract_and_translate_pdf(self) -> Dict:
+        """Extract PDF and translate if needed (using shared preprocessor)."""
         if self.prep_data is not None:
             return self.prep_data
 
@@ -376,12 +227,29 @@ class ClimateBERTAnalyzer:
         if cached:
             return cached
 
-        doc = self.preprocessor.process_pdf(self.pdf_path, chunk_method="semantic")
+        # Use shared preprocessor with translation
+        doc = self.preprocessor.process_pdf(
+            self.pdf_path,
+            chunk_method="semantic",
+            translate_to_english=self.config.translate_to_english,
+        )
 
         chunk_ids = [
             f"{doc.company_id}_{idx:03d}" if doc.company_id else f"chunk_{idx:03d}"
             for idx in range(len(doc.chunks))
         ]
+
+        # Build chunk pairs for compatibility
+        if doc.translated and doc.original_chunks:
+            chunk_pairs = [
+                {"original": o, "translated": t}
+                for o, t in zip(doc.original_chunks, doc.chunks)
+            ]
+        else:
+            chunk_pairs = [
+                {"original": c, "translated": c}
+                for c in doc.chunks
+            ]
 
         self.prep_data = {
             "pdf_path": str(self.pdf_path),
@@ -389,51 +257,19 @@ class ClimateBERTAnalyzer:
             "company_id": doc.company_id,
             "year": doc.year,
             "language": doc.language,
+            "translated": doc.translated,
             "extraction_method": doc.extraction_method,
             "num_pages": doc.num_pages,
             "num_chunks": len(doc.chunks),
             "chunks": doc.chunks,
             "chunk_ids": chunk_ids,
-            "translated": False,
+            "chunk_pairs": chunk_pairs,
             "extracted_at": str(datetime.now())
         }
 
         self._save_prep_cache()
         return self.prep_data
 
-    def translate_pdf(self) -> Dict:
-        if self.prep_data and self.prep_data.get('translated'):
-            return self.prep_data
-        if not self.prep_data:
-            cached = self._load_prep_cache()
-            if cached and cached.get('translated'):
-                return cached
-
-        extracted = self.extract_pdf()
-        lang = extracted['language']
-        chunks = extracted['chunks']
-
-        if lang == 'en':
-            self.prep_data['chunk_pairs'] = [{"original": c, "translated": c} for c in chunks]
-            self.prep_data['translated_at'] = str(datetime.now())
-        elif lang in HELSINKI_MODELS:
-            translated_chunks = self._translate_chunks(chunks, lang)
-            self.prep_data['chunks'] = translated_chunks
-            self.prep_data['chunk_pairs'] = [
-                {"original": o, "translated": t}
-                for o, t in zip(chunks, translated_chunks)
-            ]
-            self.prep_data['translated'] = True
-            self.prep_data['translation_model'] = 'helsinki'
-            self.prep_data['translated_at'] = str(datetime.now())
-            self._unload_translator()
-        else:
-            self.prep_data['chunk_pairs'] = [{"original": c, "translated": c} for c in chunks]
-            self.prep_data['unsupported_language'] = True
-            self.prep_data['translated_at'] = str(datetime.now())
-
-        self._save_prep_cache()
-        return self.prep_data
     # -------------------------------------------------------------------------
     # ClimateBERT Analysis Methods
     # -------------------------------------------------------------------------
@@ -451,7 +287,7 @@ class ClimateBERTAnalyzer:
         self.models[model_key] = pipeline(
             "text-classification",
             model=model_name,
-            device=self.device,
+            device=self.device_id,
             batch_size=self.config.batch_size
         )
         return self.models[model_key]
@@ -462,6 +298,7 @@ class ClimateBERTAnalyzer:
             self._clear_gpu_memory()
 
     def filter_climate_chunks(self) -> Dict:
+        """Filter chunks to keep only climate-related content."""
         if self.bert_data and self.bert_data.get('filtered'):
             return self.bert_data
 
@@ -472,13 +309,15 @@ class ClimateBERTAnalyzer:
         if not self.prep_data:
             self.prep_data = self._load_prep_cache()
             if not self.prep_data:
-                raise FileNotFoundError("Run extract_pdf() first")
+                raise FileNotFoundError(
+                    "Run extract_and_translate_pdf() first")
 
         chunks = self.prep_data['chunks']
-        chunk_ids = self.prep_data.get('chunk_ids', [f"chunk_{i:03d}" for i in range(len(chunks))])
-        source = "translated" if self.prep_data.get('translated') else "original"
+        chunk_ids = self.prep_data.get(
+            'chunk_ids', [f"chunk_{i:03d}" for i in range(len(chunks))])
+        source = "translated" if self.prep_data.get(
+            'translated') else "original"
 
-        self._unload_translator()
         self._clear_gpu_memory()
 
         detector = self.load_model('detector')
@@ -524,6 +363,7 @@ class ClimateBERTAnalyzer:
         return self.bert_data
 
     def analyze_specificity(self) -> Dict:
+        """Analyze climate chunks for specificity."""
         if self.bert_data and self.bert_data.get('specificity_analyzed'):
             return self.bert_data
         if not self.bert_data:
@@ -540,7 +380,8 @@ class ClimateBERTAnalyzer:
             batch_chunks = chunks[i:i + self.config.batch_size]
             batch_texts = [c['text'] for c in batch_chunks]
             try:
-                results = specificity(batch_texts, truncation=True, max_length=512)
+                results = specificity(
+                    batch_texts, truncation=True, max_length=512)
                 for chunk, result in zip(batch_chunks, results):
                     chunk['specificity_label'] = result['label']
                     chunk['specificity_score'] = result['score']
@@ -553,6 +394,7 @@ class ClimateBERTAnalyzer:
         return self.bert_data
 
     def analyze_sentiment(self) -> Dict:
+        """Analyze climate chunks for sentiment."""
         if self.bert_data and self.bert_data.get('sentiment_analyzed'):
             return self.bert_data
         if not self.bert_data:
@@ -569,7 +411,8 @@ class ClimateBERTAnalyzer:
             batch_chunks = chunks[i:i + self.config.batch_size]
             batch_texts = [c['text'] for c in batch_chunks]
             try:
-                results = sentiment(batch_texts, truncation=True, max_length=512)
+                results = sentiment(
+                    batch_texts, truncation=True, max_length=512)
                 for chunk, result in zip(batch_chunks, results):
                     chunk['sentiment_label'] = result['label']
                     chunk['sentiment_score'] = result['score']
@@ -582,6 +425,7 @@ class ClimateBERTAnalyzer:
         return self.bert_data
 
     def analyze_commitments(self) -> Dict:
+        """Analyze climate chunks for commitment statements."""
         if self.bert_data and self.bert_data.get('commitment_analyzed'):
             return self.bert_data
         if not self.bert_data:
@@ -598,7 +442,8 @@ class ClimateBERTAnalyzer:
             batch_chunks = chunks[i:i + self.config.batch_size]
             batch_texts = [c['text'] for c in batch_chunks]
             try:
-                results = commitment(batch_texts, truncation=True, max_length=512)
+                results = commitment(
+                    batch_texts, truncation=True, max_length=512)
                 for chunk, result in zip(batch_chunks, results):
                     chunk['commitment_label'] = result['label']
                     chunk['commitment_score'] = result['score']
@@ -611,6 +456,7 @@ class ClimateBERTAnalyzer:
         return self.bert_data
 
     def analyze_netzero(self) -> Dict:
+        """Analyze climate chunks for net-zero reduction mentions."""
         if self.bert_data and self.bert_data.get('netzero_analyzed'):
             return self.bert_data
         if not self.bert_data:
@@ -642,19 +488,20 @@ class ClimateBERTAnalyzer:
                 self._log(f"  ⚠ Netzero batch error: {e}")
                 self._clear_gpu_memory()
 
-        n0_chunks = [c for c in chunks if c.get('netzero_label') == 'reduction']
+        n0_chunks = [c for c in chunks if c.get(
+            'netzero_label') == 'reduction']
 
         self.bert_data['netzero_analyzed'] = True
         self.bert_data['netzero_analyzed_at'] = datetime.now().isoformat()
         self.bert_data['netzero_count'] = len(n0_chunks)
-        self.bert_data['netzero_pct'] = len(n0_chunks) / len(chunks) * 100 if chunks else 0
+        self.bert_data['netzero_pct'] = len(
+            n0_chunks) / len(chunks) * 100 if chunks else 0
         self._save_bert_cache()
         return self.bert_data
 
     def run_full_pipeline(self) -> Dict:
         """Run complete analysis pipeline on current PDF."""
-        self.extract_pdf()
-        self.translate_pdf()
+        self.extract_and_translate_pdf()
         self.filter_climate_chunks()
         self.analyze_specificity()
         self.analyze_sentiment()
@@ -668,7 +515,8 @@ class ClimateBERTAnalyzer:
         if not self.bert_data:
             print(f"❌ No analysis found")
             return None
-        required = ['filtered', 'specificity_analyzed', 'sentiment_analyzed', 'commitment_analyzed']
+        required = ['filtered', 'specificity_analyzed',
+                    'sentiment_analyzed', 'commitment_analyzed']
         missing = [r for r in required if not self.bert_data.get(r)]
         if missing:
             print(f"⚠ Incomplete: {', '.join(missing)}")
@@ -715,7 +563,9 @@ class ClimateBERTAnalyzer:
         print(f"{'='*60}")
         print(f"  PDFs to process: {n_pdfs}")
         print(f"  Cache directory: {self.cache_dir}")
-        print(f"  GPU: {'Yes' if self.device >= 0 else 'No (CPU)'}")
+        print(f"  GPU: {'Yes' if self.device.type == 'cuda' else 'No (CPU)'}")
+        print(
+            f"  Translation: {'enabled' if self.config.translate_to_english else 'disabled'}")
         print(f"{'='*60}\n")
 
         stats = {
@@ -724,7 +574,8 @@ class ClimateBERTAnalyzer:
             'start_time': time.time()
         }
 
-        STEPS = ['Extract', 'Translate', 'Filter', 'Specificity', 'Sentiment', 'Commitment', 'NetZero']
+        STEPS = ['Extract', 'Filter', 'Specificity',
+                 'Sentiment', 'Commitment', 'NetZero']
 
         pbar_files = tqdm(
             total=n_pdfs, desc="Files", unit="pdf", position=0, leave=True,
@@ -767,34 +618,32 @@ class ClimateBERTAnalyzer:
                         if cached.get('source') == 'translated':
                             stats['translated'] += 1
                         pbar_steps.n = len(STEPS)
-                        pbar_steps.set_description(f"{display_name[-30:]} → Cached ✓")
+                        pbar_steps.set_description(
+                            f"{display_name[-30:]} → Cached ✓")
                         pbar_steps.refresh()
                         pbar_files.update(1)
                         continue
 
                 update_step(1, STEPS[0], display_name)
-                self.extract_pdf()
+                result = self.extract_and_translate_pdf()
                 stats['extracted'] += 1
-
-                update_step(2, STEPS[1], display_name)
-                result = self.translate_pdf()
                 if result.get('translated'):
                     stats['translated'] += 1
 
-                update_step(3, STEPS[2], display_name)
+                update_step(2, STEPS[1], display_name)
                 self.filter_climate_chunks()
                 stats['filtered'] += 1
 
-                update_step(4, STEPS[3], display_name)
+                update_step(3, STEPS[2], display_name)
                 self.analyze_specificity()
 
-                update_step(5, STEPS[4], display_name)
+                update_step(4, STEPS[3], display_name)
                 self.analyze_sentiment()
 
-                update_step(6, STEPS[5], display_name)
+                update_step(5, STEPS[4], display_name)
                 self.analyze_commitments()
 
-                update_step(7, STEPS[6], display_name)
+                update_step(6, STEPS[5], display_name)
                 self.analyze_netzero()
                 stats['analyzed'] += 1
 
@@ -805,7 +654,8 @@ class ClimateBERTAnalyzer:
                 self._clear_gpu_memory()
 
             except Exception as e:
-                stats['errors'].append({'file': str(relative_path), 'error': str(e)})
+                stats['errors'].append(
+                    {'file': str(relative_path), 'error': str(e)})
                 pbar_steps.set_description(f"{display_name[-30:]} → Error ✗")
                 pbar_steps.refresh()
                 if not skip_errors:
@@ -820,7 +670,8 @@ class ClimateBERTAnalyzer:
         pbar_files.close()
 
         stats['elapsed_time'] = time.time() - stats['start_time']
-        stats['avg_time_per_pdf'] = stats['elapsed_time'] / n_pdfs if n_pdfs else 0
+        stats['avg_time_per_pdf'] = stats['elapsed_time'] / \
+            n_pdfs if n_pdfs else 0
 
         print(f"\n{'='*60}")
         print(f"COMPLETE")
@@ -843,6 +694,11 @@ class ClimateBERTAnalyzer:
 
         return stats
 
+    def cleanup(self):
+        """Release all resources."""
+        self._emergency_gpu_cleanup()
+        self.preprocessor.cleanup()
+
 
 # =============================================================================
 # CONVENIENCE FUNCTIONS
@@ -851,6 +707,7 @@ class ClimateBERTAnalyzer:
 def analyze_reports(
     path: str,
     cache_dir: str = "cache",
+    translate: bool = True,
     skip_errors: bool = True
 ) -> Dict:
     """
@@ -859,14 +716,21 @@ def analyze_reports(
     Args:
         path: Path to PDF or directory
         cache_dir: Cache directory for results
+        translate: Whether to translate non-English documents
         skip_errors: Continue on errors
 
     Returns:
         Processing statistics
     """
-    config = BERTConfig(cache_dir=cache_dir)
+    config = BERTConfig(
+        cache_dir=cache_dir,
+        translate_to_english=translate,
+    )
     analyzer = ClimateBERTAnalyzer(config)
-    return analyzer.process_pdfs(path, skip_errors=skip_errors)
+    try:
+        return analyzer.process_pdfs(path, skip_errors=skip_errors)
+    finally:
+        analyzer.cleanup()
 
 
 # =============================================================================
@@ -877,7 +741,7 @@ if __name__ == "__main__":
     print("ClimateBERT Analysis Pipeline")
     print("=" * 60)
     print("\nUsage:")
-    print("  from climate_bert_pipeline import ClimateBERTAnalyzer, analyze_reports")
+    print("  from bert_pipeline import ClimateBERTAnalyzer, analyze_reports")
     print()
     print("  # Quick start")
     print("  stats = analyze_reports('../data/reports')")

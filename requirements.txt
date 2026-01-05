@@ -1,61 +1,88 @@
+# # Python 3.11 required (tested with 3.11.3)
+
+# numpy==1.26.4
+# matplotlib==3.7.1
+# seaborn==0.12.2
+# statsmodels==0.14.0
+# plotly==6.3.0
+# pandas==2.3.2
+# tabulate>=0.9.0
+# tqdm>=4.65.0
+
+# jupyterlab==4.2.5
+# python-dotenv==1.0.1
+
+# openpyxl==3.1.5
+# PyMuPDF==1.26.6 #fitz
+# langid==1.1.6
+# sacremoses==0.1.1
+# spacy==3.8.11
+# wordcloud==1.9.4
+# faiss-cpu==1.12.0 # Use faiss-gpu if you have GPU support
+
+
+# langchain
+# langchainhub
+# langchain-core
+# langchain-community
+# langchain-huggingface
+# langchain-ollama
+# langchain-text-splitters
+
+# torch==2.9.1
+# transformers==4.57.3
+# sentence-transformers==5.1.0
+# datasets==4.4.1
+
+
+
 # Python 3.11 required (tested with 3.11.3)
 
-# MJR
+# Core data science
 numpy==1.26.4
+pandas==2.3.2
 matplotlib==3.7.1
 seaborn==0.12.2
 statsmodels==0.14.0
-
-
-datasets==4.4.1
-transformers==4.57.3
-torch==2.9.1
-
-jupyterlab==4.2.5
-python-dotenv==1.0.1
-
-langchainhub==0.1.21
-langchain-community==0.3.29
-langchain-openai==0.3.32
-langchain-huggingface==0.3.1
-langchain-groq==0.3.8
-sentence-transformers==5.1.0
-
-# pypdf==6.0.0
-faiss-cpu==1.12.0
 plotly==6.3.0
-pandas==2.3.2
 
-# NLP | ClimateBert
+# Utilities
+tabulate>=0.9.0
+tqdm>=4.65.0
+python-dotenv==1.0.1
+openpyxl==3.1.5
+
+# Jupyter
+jupyterlab==4.2.5
+
+# PDF & Text Processing
 PyMuPDF==1.26.6
 langid==1.1.6
 sacremoses==0.1.1
 spacy==3.8.11
 wordcloud==1.9.4
 
-# Core ML/NLP
-langchain>=0.1.0
-langchain-community>=0.0.10
-langchain-huggingface>=0.0.1
-langchain-groq>=0.0.1
-transformers>=4.35.0
+# Vector Store
+faiss-cpu==1.12.0
+# faiss-gpu==1.12.0 # Use if have CUDA
+
+# LangChain ecosystem (unpinned for compatibility)
+langchain>=0.3.0
+langchainhub>=0.1.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-huggingface>=0.1.0
+langchain-ollama>=0.2.0
+langchain-text-splitters>=0.3.0
+
+# ML / Transformers
+torch>=2.0.0
+# ensure right torch for your CUDA version eg:
+# pip install torch --index-url https://download.pytorch.org/whl/cu121  # for CUDA 12.1
+transformers>=4.40.0
 sentence-transformers>=2.2.0
+datasets>=2.14.0
 
-openpyxl==3.1.5
+# Post-install: Download spacy model
+# python -m spacy download en_core_web_sm
 
-# # Vector store
-# faiss-cpu>=1.7.4  # Use faiss-gpu if you have GPU support
-
-# # PDF processing
-# PyMuPDF>=1.23.0  # fitz
-
-# # Data processing
-# pandas>=2.0.0
-# tabulate>=0.9.0
-# tqdm>=4.65.0
-
-# # Environment
-# python-dotenv>=1.0.0
-
-# # Text splitting
-# langchain-text-splitters>=0.0.1

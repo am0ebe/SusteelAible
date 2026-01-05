@@ -2,21 +2,22 @@
 PDF Preprocessing Module
 ========================
 
-Shared preprocessing utilities for PDF extraction, cleaning, and chunking.
+Shared preprocessing utilities for PDF extraction, cleaning, chunking, and translation.
 Used by both RAG and BERT analysis pipelines.
 
 Usage:
-    from pdf_preprocessing import PDFPreprocessor, PreprocessingConfig
+    from preprocessing import PDFPreprocessor, PreprocessingConfig
 
     preprocessor = PDFPreprocessor()
     documents = preprocessor.process_folder("../data/reports")
 
-    # Or single file
-    doc = preprocessor.process_pdf("path/to/file.pdf")
+    # With translation
+    documents = preprocessor.process_folder("../data/reports", translate_to_english=True)
 """
 
 import os
 import re
+import gc
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -26,9 +27,10 @@ from collections import Counter
 import fitz  # PyMuPDF
 import spacy
 import langid
+import torch
 from tqdm import tqdm
 
-# Load spacy once at module level
+# Lazy-loaded spacy
 _nlp = None
 
 
@@ -40,6 +42,57 @@ def _get_nlp():
                           "ner", "lemmatizer", "tagger"])
         _nlp.max_length = 2_000_000
     return _nlp
+
+
+# =============================================================================
+# GPU UTILITIES
+# =============================================================================
+
+def get_device() -> torch.device:
+    """Get the best available device (GPU or CPU)."""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def clear_gpu_memory():
+    """Clear GPU memory cache."""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+
+
+def get_gpu_info() -> Optional[Dict]:
+    """Get GPU information if available."""
+    if not torch.cuda.is_available():
+        return None
+    return {
+        "name": torch.cuda.get_device_name(0),
+        "total_memory_gb": torch.cuda.get_device_properties(0).total_memory / 1e9,
+        "device_count": torch.cuda.device_count(),
+    }
+
+
+# =============================================================================
+# TRANSLATION MODELS
+# =============================================================================
+
+HELSINKI_MODELS = {
+    'de': 'Helsinki-NLP/opus-mt-de-en',
+    'es': 'Helsinki-NLP/opus-mt-es-en',
+    'it': 'Helsinki-NLP/opus-mt-it-en',
+    'zh': 'Helsinki-NLP/opus-mt-zh-en',
+    'fr': 'Helsinki-NLP/opus-mt-fr-en',
+    'nl': 'Helsinki-NLP/opus-mt-nl-en',
+    'pt': 'Helsinki-NLP/opus-mt-ROMANCE-en',
+    'pl': 'Helsinki-NLP/opus-mt-pl-en',
+    'ru': 'Helsinki-NLP/opus-mt-ru-en',
+    'ja': 'Helsinki-NLP/opus-mt-ja-en',
+    'ko': 'Helsinki-NLP/opus-mt-ko-en',
+}
 
 
 # =============================================================================
@@ -71,6 +124,11 @@ class PreprocessingConfig:
     # Language detection
     detect_language: bool = True
 
+    # Translation settings
+    translate_batch_size: int = 16
+    translate_max_input_tokens: int = 512
+    translate_max_output_tokens: int = 512
+
 
 # =============================================================================
 # DATA CLASSES
@@ -95,8 +153,12 @@ class ProcessedDocument:
     cleaned_text: str = ""
     chunks: List[str] = field(default_factory=list)
 
+    # Original chunks (before translation)
+    original_chunks: List[str] = field(default_factory=list)
+
     # Language
     language: str = "en"
+    translated: bool = False
 
     # Processing info
     num_pages: int = 0
@@ -112,6 +174,7 @@ class ProcessedDocument:
             "year": self.year,
             "report_type": self.report_type,
             "language": self.language,
+            "translated": self.translated,
             "num_pages": self.num_pages,
             "num_chunks": len(self.chunks),
             "extraction_method": self.extraction_method,
@@ -133,6 +196,7 @@ class DocumentChunk:
     year: Optional[str] = None
     report_type: Optional[str] = None
     language: str = "en"
+    translated: bool = False
 
     # Position info
     chunk_index: int = 0
@@ -151,9 +215,159 @@ class DocumentChunk:
                 "year": self.year,
                 "report_type": self.report_type,
                 "language": self.language,
+                "translated": self.translated,
                 "chunk_index": self.chunk_index,
             }
         )
+
+
+# =============================================================================
+# TRANSLATOR CLASS
+# =============================================================================
+
+class Translator:
+    """Handles translation using Helsinki-NLP models with GPU support."""
+
+    def __init__(self, config: PreprocessingConfig):
+        self.config = config
+        self.device = get_device()
+        self._model = None
+        self._tokenizer = None
+        self._current_lang = None
+
+        gpu_info = get_gpu_info()
+        if gpu_info:
+            print(
+                f"✓ Translator GPU: {gpu_info['name']} ({gpu_info['total_memory_gb']:.1f}GB)")
+        else:
+            print("✓ Translator running on CPU")
+
+    def _load_model(self, src_lang: str):
+        """Load translation model for source language."""
+        if self._current_lang == src_lang and self._model is not None:
+            return
+
+        # Unload previous model
+        self._unload()
+
+        model_name = HELSINKI_MODELS.get(src_lang)
+        if not model_name:
+            raise ValueError(f"No translation model for language: {src_lang}")
+
+        from transformers import MarianMTModel, MarianTokenizer
+
+        self._tokenizer = MarianTokenizer.from_pretrained(model_name)
+        self._model = MarianMTModel.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16 if self.device.type == "cuda" else torch.float32,
+        )
+        self._model.to(self.device)
+        self._model.eval()
+        self._current_lang = src_lang
+
+    def _unload(self):
+        """Unload current model to free memory."""
+        if self._model is not None:
+            self._model.cpu()
+            del self._model
+            self._model = None
+        if self._tokenizer is not None:
+            del self._tokenizer
+            self._tokenizer = None
+        self._current_lang = None
+        clear_gpu_memory()
+
+    def translate(self, texts: List[str], src_lang: str) -> List[str]:
+        """
+        Translate a list of texts from source language to English.
+
+        Args:
+            texts: List of texts to translate
+            src_lang: Source language code (e.g., 'de', 'fr')
+
+        Returns:
+            List of translated texts
+        """
+        if src_lang == 'en':
+            return texts
+
+        if src_lang not in HELSINKI_MODELS:
+            print(
+                f"⚠️ No translation model for '{src_lang}', keeping original")
+            return texts
+
+        self._load_model(src_lang)
+
+        translated = []
+        batch_size = self.config.translate_batch_size
+
+        with torch.no_grad():
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i:i + batch_size]
+                try:
+                    inputs = self._tokenizer(
+                        batch,
+                        return_tensors="pt",
+                        padding=True,
+                        truncation=True,
+                        max_length=self.config.translate_max_input_tokens,
+                    )
+                    inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+                    outputs = self._model.generate(
+                        **inputs,
+                        max_new_tokens=self.config.translate_max_output_tokens,
+                        no_repeat_ngram_size=3,
+                        repetition_penalty=1.2,
+                        num_beams=4,
+                        early_stopping=True,
+                        do_sample=False,
+                        use_cache=True,
+                    )
+
+                    batch_translations = self._tokenizer.batch_decode(
+                        outputs, skip_special_tokens=True
+                    )
+                    translated.extend(batch_translations)
+
+                    del inputs, outputs
+
+                except RuntimeError as e:
+                    if "out of memory" in str(e).lower():
+                        clear_gpu_memory()
+                        # Fallback to single-item processing
+                        for text in batch:
+                            try:
+                                inputs = self._tokenizer(
+                                    [text],
+                                    return_tensors="pt",
+                                    truncation=True,
+                                    max_length=self.config.translate_max_input_tokens,
+                                )
+                                inputs = {k: v.to(self.device)
+                                          for k, v in inputs.items()}
+                                output = self._model.generate(
+                                    **inputs,
+                                    max_new_tokens=self.config.translate_max_output_tokens,
+                                    no_repeat_ngram_size=3,
+                                    num_beams=1,
+                                )
+                                translated.append(
+                                    self._tokenizer.decode(
+                                        output[0], skip_special_tokens=True)
+                                )
+                                del inputs, output
+                            except:
+                                translated.append(text)
+                                clear_gpu_memory()
+                    else:
+                        raise
+
+        return translated
+
+    def cleanup(self):
+        """Release all resources."""
+        self._unload()
 
 
 # =============================================================================
@@ -168,26 +382,23 @@ class PDFPreprocessor:
     - PDF text extraction (with table detection)
     - Text cleaning and noise removal
     - Intelligent chunking
+    - Translation to English (optional)
     - Metadata extraction from file paths
     - Language detection
-
-    Usage:
-        preprocessor = PDFPreprocessor()
-
-        # Process single PDF
-        doc = preprocessor.process_pdf("report.pdf")
-
-        # Process folder
-        docs = preprocessor.process_folder("reports/")
-
-        # Get LangChain-compatible chunks
-        chunks = preprocessor.get_langchain_chunks(docs)
     """
 
     def __init__(self, config: Optional[PreprocessingConfig] = None):
         """Initialize preprocessor with optional custom config."""
         self.config = config or PreprocessingConfig()
         self._spam_chars_set = set(self.config.spam_chars)
+        self._translator: Optional[Translator] = None
+
+    @property
+    def translator(self) -> Translator:
+        """Lazy-load translator."""
+        if self._translator is None:
+            self._translator = Translator(self.config)
+        return self._translator
 
     # -------------------------------------------------------------------------
     # PDF Text Extraction
@@ -229,7 +440,6 @@ class PDFPreprocessor:
             try:
                 blocks = page.get_text("dict", sort=True)["blocks"]
             except:
-                # Fallback to simple text extraction
                 text = page.get_text("text")
                 if text:
                     all_text.append(text)
@@ -237,27 +447,22 @@ class PDFPreprocessor:
 
             page_paragraphs = []
             for block in blocks:
-                # Skip non-text blocks
                 if block.get("type") != 0:
                     continue
 
                 bbox = block.get("bbox", [0, 0, 0, 0])
                 block_height = bbox[3] - bbox[1]
 
-                # Skip very small blocks
                 if block_height < 5:
                     continue
 
-                # Skip content inside tables
                 if self.config.skip_tables:
                     is_in_table = any(
-                        self._bbox_overlap(bbox, tb)
-                        for tb in table_bboxes
+                        self._bbox_overlap(bbox, tb) for tb in table_bboxes
                     )
                     if is_in_table:
                         continue
 
-                # Extract text from block
                 block_lines = []
                 for line in block.get("lines", []):
                     spans_text = [
@@ -313,20 +518,10 @@ class PDFPreprocessor:
         3. Clean artifacts
         4. Remove repetitions
         5. Reconstruct paragraphs
-
-        Args:
-            raw_text: Raw extracted text
-
-        Returns:
-            Cleaned text
         """
-        # Fix encoding
         text = self._fix_encoding(raw_text)
-
-        # Fix hyphenation at line breaks
         text = re.sub(r'(\w)-\n(\w)', r'\1\2', text)
 
-        # Process lines
         lines = []
         for line in text.split('\n'):
             line = re.sub(r'[ \t]+', ' ', line).strip()
@@ -337,7 +532,6 @@ class PDFPreprocessor:
             else:
                 lines.append(line)
 
-        # Reconstruct paragraphs
         paragraphs = []
         current = []
 
@@ -361,7 +555,6 @@ class PDFPreprocessor:
                             paragraphs.append(para)
                     current = []
 
-        # Handle remaining content
         if current:
             para = ' '.join(current)
             para = self._clean_artifacts(para)
@@ -377,7 +570,6 @@ class PDFPreprocessor:
         text = re.sub(r'\(cid:\d+\)', '', text)
         text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
 
-        # Remove zero-width and invisible characters
         for char in ['\u00ad', '\u200b', '\u200c', '\u200d', '\ufeff']:
             text = text.replace(char, '')
 
@@ -387,51 +579,41 @@ class PDFPreprocessor:
         """Check if a line is noise (headers, footers, page numbers, etc.)."""
         line = line.strip()
 
-        # Too short
         if len(line) < 3:
             return True
 
         words = line.split()
 
-        # Fragmented text (many single characters)
         if len(words) > 5:
             single_chars = sum(1 for w in words if len(w) <= 2)
             if single_chars / len(words) > 0.7:
                 return True
 
-        # Table of contents pattern
         if re.match(r'^.{5,50}\.{5,}\s*\d+$', line):
             return True
 
-        # Page numbers
         if re.match(r'^(page|p\.?)\s*\d+|^\d+\s*(of|/)\s*\d+$', line, re.I):
             return True
 
-        # Pure numbers/dates
         if re.match(r'^[\d\s\.\-\/]+$', line) and len(line) < 15:
             return True
 
-        # Numeric tables
         if len(words) > 8:
             num_count = sum(1 for w in words if re.match(
                 r'^\d+[\.\,]?\d*$', w))
             if num_count / len(words) > 0.6:
                 return True
 
-        # URLs
         if re.match(r'^https?://\S+$', line, re.I):
             return True
 
-        # Spam characters
         spam_count = sum(1 for c in line if c in self._spam_chars_set)
         if spam_count > 5:
             return True
 
-        # Dotted lines
         if len(line) > 10 and line.count('.') / len(line) > 0.4:
             return True
 
-        # Name lists (all capitalized words)
         if re.match(r'^[A-Z][a-z]+(\s+[A-Z][a-z]+){10,}$', line):
             return True
 
@@ -439,17 +621,11 @@ class PDFPreprocessor:
 
     def _clean_artifacts(self, text: str) -> str:
         """Clean visual artifacts from text."""
-        # Fix split uppercase words
         text = re.sub(
             r'\b([A-ZÄÖÜ])\s+([A-ZÄÖÜ])\s+([A-ZÄÖÜ])', r'\1\2\3', text)
-
-        # Normalize repeated punctuation
         text = re.sub(r'\.{5,}', '...', text)
         text = re.sub(r'([.\-–—•·])\1{3,}', r'\1\1', text)
-
-        # Normalize whitespace
         text = re.sub(r'\s{3,}', ' ', text)
-
         return text.strip()
 
     def _detect_severe_repetition(self, text: str) -> bool:
@@ -458,12 +634,10 @@ class PDFPreprocessor:
         if len(words) < 10:
             return False
 
-        # Check for 5+ consecutive identical words
         for i in range(len(words) - 4):
             if words[i] == words[i+1] == words[i+2] == words[i+3] == words[i+4]:
                 return True
 
-        # Check for one word dominating the text
         stopwords = {
             'the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'for',
             'on', 'with', 'is', 'are', 'was', 'were', 'be', 'been'
@@ -478,60 +652,6 @@ class PDFPreprocessor:
         content_words = sum(word_counts.values())
 
         return content_words > 0 and (most_common_count / content_words) > 0.3
-
-    def _remove_repetitions(self, text: str, max_repeat: int = 2) -> str:
-        """Remove excessive repetitions from text."""
-        # Clean repeated spam characters
-        for char in self._spam_chars_set:
-            pattern = rf'(\s*{re.escape(char)}\s*){{3,}}'
-            text = re.sub(pattern, f' {char} ', text)
-
-        text = re.sub(r'\s+', ' ', text).strip()
-
-        words = text.split()
-        if len(words) < 4:
-            return text
-
-        # Remove consecutive duplicate words
-        result = []
-        i = 0
-        while i < len(words):
-            word = words[i]
-            count = 1
-            while i + count < len(words) and words[i + count] == word:
-                count += 1
-            result.extend([word] * min(count, max_repeat))
-            i += count
-
-        text = ' '.join(result)
-
-        # Remove repeated n-grams
-        words = text.split()
-        for n in [4, 3, 2]:
-            if len(words) < n * 2:
-                continue
-
-            cleaned_words = []
-            i = 0
-            while i < len(words):
-                if i + n * 2 <= len(words):
-                    ngram = ' '.join(words[i:i+n])
-                    next_ngram = ' '.join(words[i+n:i+n*2])
-                    if ngram == next_ngram:
-                        cleaned_words.extend(words[i:i+n])
-                        j = i + n
-                        while j + n <= len(words) and ' '.join(words[j:j+n]) == ngram:
-                            j += n
-                        i = j
-                    else:
-                        cleaned_words.append(words[i])
-                        i += 1
-                else:
-                    cleaned_words.append(words[i])
-                    i += 1
-            words = cleaned_words
-
-        return ' '.join(words)
 
     # -------------------------------------------------------------------------
     # Chunking
@@ -550,11 +670,10 @@ class PDFPreprocessor:
         """
         if method == "simple":
             return self._chunk_simple(text)
-        else:
-            return self._chunk_semantic(text)
+        return self._chunk_semantic(text)
 
     def _chunk_semantic(self, text: str) -> List[str]:
-        """Sentence-aware chunking (from BERT pipeline)."""
+        """Sentence-aware chunking."""
         paragraphs = re.split(r'\n\s*\n', text)
         paragraphs = [p.strip() for p in paragraphs if p.strip()]
 
@@ -571,7 +690,6 @@ class PDFPreprocessor:
             para_len = len(para)
 
             if min_chars <= para_len <= max_chars:
-                # Paragraph fits as a chunk
                 if current_chunk:
                     merged = current_chunk + " " + para
                     if len(merged) <= max_chars:
@@ -583,7 +701,6 @@ class PDFPreprocessor:
                     current_chunk = para
 
             elif para_len > max_chars:
-                # Paragraph too long - split by sentences
                 if current_chunk:
                     chunks.append(current_chunk)
                     current_chunk = ""
@@ -607,7 +724,6 @@ class PDFPreprocessor:
                     else:
                         current_chunk = temp_chunk
             else:
-                # Paragraph too short - accumulate
                 if current_chunk:
                     current_chunk += " " + para
                 else:
@@ -632,9 +748,7 @@ class PDFPreprocessor:
         while start < len(text):
             end = start + chunk_size
 
-            # Try to break at sentence boundary
             if end < len(text):
-                # Look for sentence end in last 20% of chunk
                 search_start = end - int(chunk_size * 0.2)
                 search_text = text[search_start:end]
 
@@ -668,18 +782,11 @@ class PDFPreprocessor:
 
         Expected naming convention: COMPANYID_YEAR_reporttype.pdf
         Expected folder structure: reports/CompanyName/...
-
-        Args:
-            pdf_path: Path to PDF file
-
-        Returns:
-            Dictionary with company_name, company_id, year, report_type
         """
         pdf_path = Path(pdf_path)
         filename = pdf_path.stem
         parts = pdf_path.parts
 
-        # Extract company name from folder structure
         company_name = None
         for i, part in enumerate(parts):
             if part.lower() == 'reports' and i + 1 < len(parts):
@@ -687,16 +794,13 @@ class PDFPreprocessor:
                 break
 
         if not company_name:
-            skip_folders = {
-                'factsheets', 'highlights', 'annual',
-                'reports', 'data', 'pdfs'
-            }
+            skip_folders = {'factsheets', 'highlights',
+                            'annual', 'reports', 'data', 'pdfs'}
             for parent in [pdf_path.parent, pdf_path.parent.parent]:
                 if parent.name.lower() not in skip_folders and parent.name:
                     company_name = parent.name
                     break
 
-        # Parse filename
         name_parts = filename.split("_")
 
         company_id = None
@@ -732,18 +836,7 @@ class PDFPreprocessor:
     # -------------------------------------------------------------------------
 
     def detect_language(self, text: str) -> str:
-        """
-        Detect the language of the text.
-
-        Uses multiple samples from different parts of the text
-        for more reliable detection.
-
-        Args:
-            text: Text to analyze
-
-        Returns:
-            ISO language code (e.g., 'en', 'de', 'fr')
-        """
+        """Detect the language of the text."""
         if not self.config.detect_language:
             return 'en'
 
@@ -752,7 +845,6 @@ class PDFPreprocessor:
             samples = []
 
             if text_len > 15000:
-                # Sample from beginning, middle, and end
                 samples = [
                     text[1000:4000],
                     text[text_len // 2:text_len // 2 + 3000],
@@ -763,7 +855,6 @@ class PDFPreprocessor:
 
             votes = []
             for sample in samples:
-                # Clean sample for better detection
                 sample_clean = re.sub(r'[^\w\s]', ' ', sample)
                 sample_clean = re.sub(r'\s+', ' ', sample_clean)
 
@@ -786,7 +877,8 @@ class PDFPreprocessor:
     def process_pdf(
         self,
         pdf_path: Union[str, Path],
-        chunk_method: str = "semantic"
+        chunk_method: str = "semantic",
+        translate_to_english: bool = False,
     ) -> ProcessedDocument:
         """
         Process a single PDF file.
@@ -794,16 +886,14 @@ class PDFPreprocessor:
         Args:
             pdf_path: Path to PDF file
             chunk_method: "semantic" or "simple"
+            translate_to_english: Whether to translate non-English text
 
         Returns:
             ProcessedDocument object
         """
         pdf_path = Path(pdf_path)
 
-        # Extract metadata
         metadata = self.extract_metadata(pdf_path)
-
-        # Extract text
         raw_text, num_pages = self.extract_text_from_pdf(pdf_path)
 
         if not raw_text:
@@ -814,14 +904,17 @@ class PDFPreprocessor:
                 num_pages=num_pages,
             )
 
-        # Clean text
         cleaned_text = self.clean_text(raw_text)
-
-        # Detect language
         language = self.detect_language(cleaned_text)
-
-        # Chunk text
         chunks = self.chunk_text(cleaned_text, method=chunk_method)
+
+        # Translation
+        original_chunks = chunks.copy()
+        translated = False
+
+        if translate_to_english and language != 'en' and language in HELSINKI_MODELS:
+            chunks = self.translator.translate(chunks, language)
+            translated = True
 
         return ProcessedDocument(
             source_path=str(pdf_path),
@@ -833,7 +926,9 @@ class PDFPreprocessor:
             raw_text=raw_text,
             cleaned_text=cleaned_text,
             chunks=chunks,
+            original_chunks=original_chunks if translated else [],
             language=language,
+            translated=translated,
             num_pages=num_pages,
             extraction_method="pymupdf_blocks",
         )
@@ -842,6 +937,7 @@ class PDFPreprocessor:
         self,
         folder_path: Union[str, Path],
         chunk_method: str = "semantic",
+        translate_to_english: bool = False,
         recursive: bool = True,
         show_progress: bool = True,
     ) -> List[ProcessedDocument]:
@@ -851,6 +947,7 @@ class PDFPreprocessor:
         Args:
             folder_path: Path to folder containing PDFs
             chunk_method: "semantic" or "simple"
+            translate_to_english: Whether to translate non-English text
             recursive: Search subdirectories
             show_progress: Show progress bar
 
@@ -862,7 +959,6 @@ class PDFPreprocessor:
         if not folder_path.exists():
             raise FileNotFoundError(f"Folder not found: {folder_path}")
 
-        # Find all PDFs
         if recursive:
             pdf_files = sorted(folder_path.rglob("*.pdf"))
         else:
@@ -878,6 +974,8 @@ class PDFPreprocessor:
         print(f"Folder: {folder_path}")
         print(f"PDFs found: {len(pdf_files)}")
         print(f"Chunk method: {chunk_method}")
+        print(
+            f"Translation: {'enabled' if translate_to_english else 'disabled'}")
 
         documents = []
         iterator = tqdm(
@@ -885,35 +983,38 @@ class PDFPreprocessor:
 
         for pdf_file in iterator:
             try:
-                doc = self.process_pdf(pdf_file, chunk_method=chunk_method)
+                doc = self.process_pdf(
+                    pdf_file,
+                    chunk_method=chunk_method,
+                    translate_to_english=translate_to_english,
+                )
                 documents.append(doc)
             except Exception as e:
                 print(f"\n⚠️ Error processing {pdf_file.name}: {e}")
                 continue
 
         total_chunks = sum(len(d.chunks) for d in documents)
+        translated_count = sum(1 for d in documents if d.translated)
+
         print(f"\n✓ Processed {len(documents)} documents")
         print(f"✓ Total chunks: {total_chunks}")
+        if translate_to_english:
+            print(f"✓ Translated: {translated_count} documents")
 
         return documents
+
+    def cleanup(self):
+        """Release all resources."""
+        if self._translator is not None:
+            self._translator.cleanup()
+            self._translator = None
 
     # -------------------------------------------------------------------------
     # Conversion Methods
     # -------------------------------------------------------------------------
 
-    def get_langchain_chunks(
-        self,
-        documents: List[ProcessedDocument]
-    ) -> List["DocumentChunk"]:
-        """
-        Convert processed documents to DocumentChunk objects.
-
-        Args:
-            documents: List of ProcessedDocument objects
-
-        Returns:
-            List of DocumentChunk objects
-        """
+    def get_langchain_chunks(self, documents: List[ProcessedDocument]) -> List[DocumentChunk]:
+        """Convert processed documents to DocumentChunk objects."""
         all_chunks = []
 
         for doc in documents:
@@ -930,25 +1031,15 @@ class PDFPreprocessor:
                     year=str(doc.year) if doc.year else None,
                     report_type=doc.report_type,
                     language=doc.language,
+                    translated=doc.translated,
                     chunk_index=i,
                 )
                 all_chunks.append(chunk)
 
         return all_chunks
 
-    def to_langchain_documents(
-        self,
-        documents: List[ProcessedDocument]
-    ) -> List:
-        """
-        Convert to LangChain Document format for RAG pipeline.
-
-        Args:
-            documents: List of ProcessedDocument objects
-
-        Returns:
-            List of LangChain Document objects
-        """
+    def to_langchain_documents(self, documents: List[ProcessedDocument]) -> List:
+        """Convert to LangChain Document format for RAG pipeline."""
         chunks = self.get_langchain_chunks(documents)
         return [chunk.to_langchain_document() for chunk in chunks]
 
@@ -960,41 +1051,37 @@ class PDFPreprocessor:
 def preprocess_pdfs(
     folder_path: str,
     chunk_method: str = "semantic",
+    translate_to_english: bool = False,
     config: Optional[PreprocessingConfig] = None,
 ) -> List[ProcessedDocument]:
-    """
-    Convenience function to preprocess PDFs in a folder.
-
-    Args:
-        folder_path: Path to folder containing PDFs
-        chunk_method: "semantic" or "simple"
-        config: Optional custom configuration
-
-    Returns:
-        List of ProcessedDocument objects
-    """
+    """Convenience function to preprocess PDFs in a folder."""
     preprocessor = PDFPreprocessor(config)
-    return preprocessor.process_folder(folder_path, chunk_method=chunk_method)
+    try:
+        return preprocessor.process_folder(
+            folder_path,
+            chunk_method=chunk_method,
+            translate_to_english=translate_to_english,
+        )
+    finally:
+        preprocessor.cleanup()
 
 
 def preprocess_single_pdf(
     pdf_path: str,
     chunk_method: str = "semantic",
+    translate_to_english: bool = False,
     config: Optional[PreprocessingConfig] = None,
 ) -> ProcessedDocument:
-    """
-    Convenience function to preprocess a single PDF.
-
-    Args:
-        pdf_path: Path to PDF file
-        chunk_method: "semantic" or "simple"
-        config: Optional custom configuration
-
-    Returns:
-        ProcessedDocument object
-    """
+    """Convenience function to preprocess a single PDF."""
     preprocessor = PDFPreprocessor(config)
-    return preprocessor.process_pdf(pdf_path, chunk_method=chunk_method)
+    try:
+        return preprocessor.process_pdf(
+            pdf_path,
+            chunk_method=chunk_method,
+            translate_to_english=translate_to_english,
+        )
+    finally:
+        preprocessor.cleanup()
 
 
 # =============================================================================
@@ -1010,11 +1097,10 @@ if __name__ == "__main__":
     print("  # Quick start")
     print("  docs = preprocess_pdfs('../data/reports')")
     print()
-    print("  # With custom config")
-    print("  from preprocessing import PreprocessingConfig")
-    print("  config = PreprocessingConfig(min_chunk_chars=400, max_chunk_chars=1200)")
-    print("  preprocessor = PDFPreprocessor(config)")
-    print("  docs = preprocessor.process_folder('../data/reports')")
+    print("  # With translation")
+    print("  docs = preprocess_pdfs('../data/reports', translate_to_english=True)")
     print()
     print("  # Get LangChain-compatible documents")
+    print("  preprocessor = PDFPreprocessor()")
+    print("  docs = preprocessor.process_folder('../data/reports')")
     print("  lc_docs = preprocessor.to_langchain_documents(docs)")
