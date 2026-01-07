@@ -15,6 +15,7 @@ Usage:
     documents = preprocessor.process_folder("../data/reports", translate_to_english=True)
 """
 
+import random
 import os
 import re
 import gc
@@ -336,10 +337,10 @@ class Translator:
                     if "out of memory" in str(e).lower():
                         clear_gpu_memory()
                         # Fallback to single-item processing
-                        for text in batch:
+                        for chunk in batch:
                             try:
                                 inputs = self._tokenizer(
-                                    [text],
+                                    [chunk],
                                     return_tensors="pt",
                                     truncation=True,
                                     max_length=self.config.translate_max_input_tokens,
@@ -835,36 +836,20 @@ class PDFPreprocessor:
     # Language Detection
     # -------------------------------------------------------------------------
 
-    def detect_language(self, text: str) -> str:
-        """Detect the language of the text."""
+    def detect_language(self, chunks: List[str]) -> str:
+        """Detect the language from the provided text chunks."""
         if not self.config.detect_language:
             return 'en'
 
         try:
-            text_len = len(text)
-            samples = []
-
-            if text_len > 15000:
-                samples = [
-                    text[1000:4000],
-                    text[text_len // 2:text_len // 2 + 3000],
-                    text[-4000:-1000]
-                ]
-            else:
-                samples = [text[100:min(5000, text_len - 100)]]
-
             votes = []
-            for sample in samples:
-                sample_clean = re.sub(r'[^\w\s]', ' ', sample)
-                sample_clean = re.sub(r'\s+', ' ', sample_clean)
-
-                if len(sample_clean) > 100:
-                    lang, _ = langid.classify(sample_clean)
+            for chunk in chunks:
+                if len(chunk) > 100:
+                    lang, _ = langid.classify(chunk)
                     votes.append(lang)
 
             if votes:
                 return Counter(votes).most_common(1)[0][0]
-
             return 'en'
 
         except Exception:
@@ -878,7 +863,7 @@ class PDFPreprocessor:
         self,
         pdf_path: Union[str, Path],
         chunk_method: str = "semantic",
-        translate_to_english: bool = False,
+        translate_to_english: bool = True,
     ) -> ProcessedDocument:
         """
         Process a single PDF file.
@@ -905,8 +890,10 @@ class PDFPreprocessor:
             )
 
         cleaned_text = self.clean_text(raw_text)
-        language = self.detect_language(cleaned_text)
         chunks = self.chunk_text(cleaned_text, method=chunk_method)
+
+        sample_size = min(5, len(chunks))
+        language = self.detect_language(random.sample(chunks, sample_size))
 
         # Translation
         original_chunks = chunks.copy()
@@ -937,7 +924,7 @@ class PDFPreprocessor:
         self,
         folder_path: Union[str, Path],
         chunk_method: str = "semantic",
-        translate_to_english: bool = False,
+        translate_to_english: bool = True,
         recursive: bool = True,
         show_progress: bool = True,
     ) -> List[ProcessedDocument]:
@@ -1051,7 +1038,7 @@ class PDFPreprocessor:
 def preprocess_pdfs(
     folder_path: str,
     chunk_method: str = "semantic",
-    translate_to_english: bool = False,
+    translate_to_english: bool = True,
     config: Optional[PreprocessingConfig] = None,
 ) -> List[ProcessedDocument]:
     """Convenience function to preprocess PDFs in a folder."""
@@ -1089,18 +1076,24 @@ def preprocess_single_pdf(
 # =============================================================================
 
 if __name__ == "__main__":
-    print("PDF Preprocessing Module")
-    print("=" * 60)
-    print("\nUsage:")
-    print("  from preprocessing import PDFPreprocessor, preprocess_pdfs")
-    print()
-    print("  # Quick start")
-    print("  docs = preprocess_pdfs('../data/reports')")
-    print()
-    print("  # With translation")
-    print("  docs = preprocess_pdfs('../data/reports', translate_to_english=True)")
-    print()
-    print("  # Get LangChain-compatible documents")
-    print("  preprocessor = PDFPreprocessor()")
-    print("  docs = preprocessor.process_folder('../data/reports')")
-    print("  lc_docs = preprocessor.to_langchain_documents(docs)")
+    # print("PDF Preprocessing Module")
+    # print("=" * 60)
+    # print("\nUsage:")
+    # print("  from preprocessing import PDFPreprocessor, preprocess_pdfs")
+    # print()
+    # print("  # Quick start")
+    # print("  docs = preprocess_pdfs('../data/reports')")
+    # print()
+    # print("  # Without translation")
+    # print("  docs = preprocess_pdfs('../data/reports', translate_to_english=False)")
+    # print()
+    # print("  # Get LangChain-compatible documents")
+    # print("  preprocessor = PDFPreprocessor()")
+    # print("  docs = preprocessor.process_folder('../data/reports')")
+    # print("  lc_docs = preprocessor.to_langchain_documents(docs)")
+
+    # Change working directory to script's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+
+    preprocess_single_pdf("../data/reports/Celsa/007_2020_sustainability_report.pdf")
