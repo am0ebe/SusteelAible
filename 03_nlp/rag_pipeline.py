@@ -30,6 +30,8 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 from tabulate import tabulate
 
+from langchain_core.prompts import ChatPromptTemplate
+
 # from langchain.schema import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -73,7 +75,7 @@ class RAGConfig:
     llm_num_ctx: int = 4096  # Context window - shortterm mem tokens. # try 8092 if GPU good
 
     # Retrieval
-    retrieval_k: int = 50 # most simi, cheap
+    retrieval_k: int = 50  # most simi, cheap
     context_chunks: int = 5
 
     # Preprocessing
@@ -325,7 +327,7 @@ class RAGPipeline:
                 existing_vs = FAISS.load_local(
                     folder_path=save_path,
                     embeddings=self.embedding_model,
-                    allow_dangerous_deserialization=True, # << 2D whats this?
+                    allow_dangerous_deserialization=True,  # << 2D whats this?
                     distance_strategy=DistanceStrategy.COSINE,
                 )
                 print(

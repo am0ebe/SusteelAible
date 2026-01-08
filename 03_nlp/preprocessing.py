@@ -10,9 +10,6 @@ Usage:
 
     preprocessor = PDFPreprocessor()
     documents = preprocessor.process_folder("../data/reports")
-
-    # With translation
-    documents = preprocessor.process_folder("../data/reports", translate_to_english=True)
 """
 
 import random
@@ -24,6 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple, Union
 from collections import Counter
+from transformers import MarianMTModel, MarianTokenizer
 
 import fitz  # PyMuPDF
 import spacy
@@ -255,12 +253,10 @@ class Translator:
         if not model_name:
             raise ValueError(f"No translation model for language: {src_lang}")
 
-        from transformers import MarianMTModel, MarianTokenizer
-
         self._tokenizer = MarianTokenizer.from_pretrained(model_name)
         self._model = MarianMTModel.from_pretrained(
             model_name,
-            torch_dtype=torch.float16 if self.device.type == "cuda" else torch.float32,
+            dtype=torch.float16 if self.device.type == "cuda" else torch.float32,
         )
         self._model.to(self.device)
         self._model.eval()
@@ -795,10 +791,8 @@ class PDFPreprocessor:
                 break
 
         if not company_name:
-            skip_folders = {'factsheets', 'highlights',
-                            'annual', 'reports', 'data', 'pdfs'}
             for parent in [pdf_path.parent, pdf_path.parent.parent]:
-                if parent.name.lower() not in skip_folders and parent.name:
+                if parent.name.lower() and parent.name:
                     company_name = parent.name
                     break
 
@@ -867,41 +861,72 @@ class PDFPreprocessor:
     ) -> ProcessedDocument:
         """
         Process a single PDF file.
-
         Args:
             pdf_path: Path to PDF file
             chunk_method: "semantic" or "simple"
             translate_to_english: Whether to translate non-English text
-
         Returns:
             ProcessedDocument object
         """
         pdf_path = Path(pdf_path)
 
-        metadata = self.extract_metadata(pdf_path)
-        raw_text, num_pages = self.extract_text_from_pdf(pdf_path)
+        with tqdm(total=6, desc=f"Processing {pdf_path.name}", unit="step") as pbar:
+            # Step 1: Extract metadata
+            pbar.set_postfix_str("Extracting metadata")
+            metadata = self.extract_metadata(pdf_path)
+            pbar.update(1)
 
-        if not raw_text:
-            return ProcessedDocument(
-                source_path=str(pdf_path),
-                filename=pdf_path.name,
-                **metadata,
-                num_pages=num_pages,
-            )
+            # Step 2: Extract text
+            pbar.set_postfix_str("Extracting text")
+            raw_text, num_pages = self.extract_text_from_pdf(pdf_path)
+            pbar.update(1)
 
-        cleaned_text = self.clean_text(raw_text)
-        chunks = self.chunk_text(cleaned_text, method=chunk_method)
+            print(f"Raw text length: {len(raw_text)}")
+            print(f"Raw text preview: {raw_text[:500]}")
 
-        sample_size = min(5, len(chunks))
-        language = self.detect_language(random.sample(chunks, sample_size))
+            if not raw_text:
+                pbar.close()
+                return ProcessedDocument(
+                    source_path=str(pdf_path),
+                    filename=pdf_path.name,
+                    **metadata,
+                    num_pages=num_pages,
+                )
 
-        # Translation
-        original_chunks = chunks.copy()
-        translated = False
+            # Step 3: Clean text
+            pbar.set_postfix_str("Cleaning text")
+            cleaned_text = self.clean_text(raw_text)
+            pbar.update(1)
 
-        if translate_to_english and language != 'en' and language in HELSINKI_MODELS:
-            chunks = self.translator.translate(chunks, language)
-            translated = True
+            print(f"Cleaned text length: {len(cleaned_text)}")
+            print(f"Cleaned text preview: {cleaned_text[:500]}")
+
+            # Step 4: Chunk text
+            pbar.set_postfix_str(f"Chunking ({chunk_method})")
+            chunks = self.chunk_text(cleaned_text, method=chunk_method)
+            pbar.update(1)
+
+            print(f"Number of chunks: {len(chunks)}")
+
+            # Step 5: Detect language
+            pbar.set_postfix_str("Detecting language")
+            sample_size = min(5, len(chunks))
+            language = self.detect_language(random.sample(chunks, sample_size))
+            pbar.update(1)
+
+            # Step 6: Translation
+            original_chunks = chunks.copy()
+            translated = False
+
+            if translate_to_english and language != 'en' and language in HELSINKI_MODELS:
+                pbar.set_postfix_str(f"Translating {language}→en")
+                chunks = self.translator.translate(chunks, language)
+                translated = True
+            else:
+                pbar.set_postfix_str("No translation needed")
+            pbar.update(1)
+
+            pbar.set_postfix_str("Complete")
 
         return ProcessedDocument(
             source_path=str(pdf_path),
@@ -1056,7 +1081,7 @@ def preprocess_pdfs(
 def preprocess_single_pdf(
     pdf_path: str,
     chunk_method: str = "semantic",
-    translate_to_english: bool = False,
+    translate_to_english: bool = True,
     config: Optional[PreprocessingConfig] = None,
 ) -> ProcessedDocument:
     """Convenience function to preprocess a single PDF."""
@@ -1096,4 +1121,11 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
 
-    preprocess_single_pdf("../data/reports/Celsa/007_2020_sustainability_report.pdf")
+    # print("what?")
+    # doc = preprocess_single_pdf(
+    #     "../data/reports/Celsa/007_2020_sustainability_report.pdf")
+
+    doc = preprocess_pdfs(
+        "../data/reports/Celsa")
+
+    print(f"doc: {doc}")

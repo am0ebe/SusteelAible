@@ -49,6 +49,8 @@ Want to see the original sustainability reports we analyzed?
 **Download reports (~1.6GB):**
 <https://github.com/am0ebe/SusteelAible/releases/download/v1.1-data/reports.zip>
 
+
+
 ```bash
 # Reports will be extracted to `data/reports/`
 unzip reports.zip
@@ -110,24 +112,36 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 
 
 ## Project Structure
-
 ```
-├── data/                  # After unzip data.zip
-│   ├── EDA/               # Emissions data
-│   └── reports/           # Source PDFs (if downloaded reports.zip)
-├── cache/                 # Pre-processed ClimateBERT results
-├── out/                   # Generated plots and visualizations
+├── README.md
+├── requirements.txt
+├── reports.zip
 │
-├── basic_EDA.ipynb        # Emissions analysis
-├── baseline_model.ipynb   # Technology baseline model
-├── bert_1.ipynb           # PDF processing pipeline (optional)
-├── bert_2.ipynb           # Report analysis & visualization
-├── rag_barriers.ipynb     # RAG barrier analysis (coming soon)
+├── 01_eda/                    # Exploratory data analysis
+│   ├── basic_EDA.ipynb
+│   └── baseline_model.ipynb
 │
-├── monitor_gpu.py         # GPU monitoring utility
-└── requirements.txt
+├── 02_models/                 # (currently empty / reserved)
+│
+├── 03_nlp/                    # NLP, BERT, and RAG pipelines
+│   ├── cache/                 # Cached / preprocessed model outputs
+│   │
+│   ├── preprocessing.py       # pdf processing
+│   │
+│   ├── bert_1.ipynb           # ??
+│   ├── bert_2.ipynb           # Report analysis & visualization
+│   ├── bert_pipeline.py
+│   │
+│   ├── rag_1.ipynb
+│   ├── rag_2.ipynb
+│   ├── rag_pipeline.py
+│   │
+│   └── monitor_gpu.py         # GPU monitoring utility
+│
+├── out/                       # Generated plots and visualizations
+└── data/
+    └── reports/               # Source PDF reports (from reports.zip)
 ```
-
 ## Requirements
 
 - Python 3.11+ (tested with 3.11.3)

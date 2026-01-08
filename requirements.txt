@@ -82,7 +82,7 @@ torch>=2.0.0
 transformers>=4.40.0
 sentence-transformers>=2.2.0
 datasets>=2.14.0
+sentencepiece>=0.2.1 # marianMT / opus
 
 # Post-install: Download spacy model
 # python -m spacy download en_core_web_sm
-
