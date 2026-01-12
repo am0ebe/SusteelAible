@@ -8,6 +8,7 @@ Usage:
     from gpu_utils import GPUManager, get_device, clear_gpu_memory
 """
 
+from pathlib import Path
 import gc
 from typing import Optional, Dict
 

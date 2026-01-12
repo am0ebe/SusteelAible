@@ -1,20 +1,22 @@
 # dirs
-data
+out
+output
 cache
 nlp/cache
-out
+nlp/output
+nlp/out
 
 # data
 *.zip
+data
 
 # python stuff
 __pycache__
 .venv
 .python-version
+susteelaible.egg-info
 
 # misc
 .env
 vector_db
-
-# os specific
 .DS_Store

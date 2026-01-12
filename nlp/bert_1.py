@@ -7,7 +7,7 @@ Analyzes PDF reports using ClimateBERT models for climate-related text classific
 Pipeline: Preprocess (via preprocessing.py) → Filter → Analyze → Save
 
 Usage:
-    from bert_pipeline import ClimateBERTAnalyzer, analyze_reports
+    from bert_1 import ClimateBERTAnalyzer, analyze_reports
 
     # Quick start
     stats = analyze_reports("../data/reports")
@@ -31,8 +31,8 @@ from typing import Callable, Dict, List, Optional
 from tqdm import tqdm
 from transformers import pipeline
 
-from gpu_utils import GPUManager
-from preprocessing import PDFPreprocessor, PreprocessingConfig, ProcessedDocument
+from nlp.gpu_utils import GPUManager
+from nlp.preprocessing import PDFPreprocessor, PreprocessingConfig, ProcessedDocument
 
 # Suppress all the noisy warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -676,17 +676,15 @@ def analyze_reports(
 # =============================================================================
 
 if __name__ == "__main__":
-    # print("ClimateBERT Analysis Pipeline")
-    # print("=" * 60)
-    # print("\nUsage:")
-    # print("  from bert_pipeline import ClimateBERTAnalyzer, analyze_reports")
-    # print()
-    # print("  # Process folder")
-    # print("  stats = analyze_reports('data/reports/Baosteel')")
-    # print()
-    # print("  # Single file")
-    # print("  analyzer = ClimateBERTAnalyzer()")
-    # print("  analyzer.set_pdf_path('report.pdf')")
-    # print("  result = analyzer.run_full_pipeline()")
-
-    stats = analyze_reports('data/reports/Baosteel')
+    print("ClimateBERT Analysis Pipeline")
+    print("=" * 60)
+    print("\nUsage:")
+    print("  from bert_1 import ClimateBERTAnalyzer, analyze_reports")
+    print()
+    print("  # Process folder")
+    print("  stats = analyze_reports('data/reports/Baosteel')")
+    print()
+    print("  # Single file")
+    print("  analyzer = ClimateBERTAnalyzer()")
+    print("  analyzer.set_pdf_path('report.pdf')")
+    print("  result = analyzer.run_full_pipeline()")

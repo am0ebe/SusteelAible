@@ -7,7 +7,7 @@ Analyzing decarbonization pathways in the EU steel industry through integrated e
 
 ## Overview
 
-This project combines **quantitative emissions analysis** with **qualitative text analysis** of ~200 corporate sustainability reports (2013–2024) to understand technology lock-in, climate commitments, and decarbonization barriers in European steel.
+This project combines **quantitative emissions analysis** with **qualitative text analysis** of ~200 corporate sustainability reports (2013–2025) to understand technology lock-in, climate commitments, and decarbonization barriers in European steel.
 
 **Key findings:**
 
@@ -30,8 +30,8 @@ python3.11 -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # .venv\Scripts\activate   # Windows
 
-# Install dependencies
-pip install -r requirements.txt
+# Install as package
+pip install -e .
 
 # Download spaCy language model
 python -m pip install -v  https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
@@ -114,7 +114,7 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 ## Project Structure
 ```
 ├── README.md
-├── requirements.txt
+├── pyproject.toml
 ├── reports.zip
 │
 ├── 01_eda/                    # Exploratory data analysis
@@ -124,19 +124,19 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 ├── 02_models/                 # (currently empty / reserved)
 │
 ├── 03_nlp/                    # NLP, BERT, and RAG pipelines
-│   ├── cache/                 # Cached / preprocessed model outputs
 │   │
+│   ├── run_all.ipynb
 │   ├── preprocessing.py       # pdf processing
 │   │
-│   ├── bert_1.ipynb           # ??
-│   ├── bert_2.ipynb           # Report analysis & visualization
-│   ├── bert_pipeline.py
+│   ├── bert_1.py           # bert pipeline
+│   ├── bert_2.py           # visualization of results
 │   │
 │   ├── rag_1.ipynb
 │   ├── rag_2.ipynb
-│   ├── rag_pipeline.py
 │   │
-│   └── monitor_gpu.py         # GPU monitoring utility
+│   ├── cache/                 # Cached / preprocessed model outputs
+│   │
+│   └── tools.py         # tools (GPU monitoring, path, ...)
 │
 ├── out/                       # Generated plots and visualizations
 └── data/
@@ -151,16 +151,12 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 
 ## Team
 
-**SuSteelAible** — December 2025
+**SuSteelAible** — January 2026
 
 [@am0ebe](https://github.com/am0ebe) · [@calluna-borealis](https://github.com/calluna-borealis) · [@dzyen](https://github.com/dzyen) · [@aposkoub92](https://github.com/aposkoub92) · [@MJR-data
 ](https://github.com/MJR-data
-) · [contributors welcome]
+)
 
 ## Contact
 
 Questions, bugs, or suggestions? Feel free to [open an issue](https://github.com/am0ebe/SusteelAible/issues) or reach out to the team. We're happy to help!
-
----
-
-*For questions about specific notebooks, see the documentation within each file.*

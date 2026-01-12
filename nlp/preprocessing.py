@@ -27,7 +27,7 @@ import torch
 from tqdm import tqdm
 from transformers import MarianMTModel, MarianTokenizer
 
-from gpu_utils import GPUManager
+from .gpu_utils import GPUManager
 import logging
 logging.getLogger("fitz").setLevel(logging.ERROR)
 
