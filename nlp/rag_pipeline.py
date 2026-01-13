@@ -2,51 +2,38 @@
 RAG Pipeline for Company Decarbonisation Report Analysis
 ========================================================
 
-This module provides a complete pipeline for:
-1. Loading and preprocessing PDFs (via shared preprocessing module)
+This module provides a pipeline for:
+1. Loading preprocessed data from JSON cache files (prep.json or bert.json)
 2. Creating/updating FAISS vector stores
 3. Extracting barriers and motivators using local LLM (Ollama)
-
-Key improvements:
-- Uses Ollama for local inference with GPU support
-- Improved prompts to reduce hallucinations
-- Automatic deduplication of extracted items
-- Simplified extraction logic
 
 Usage:
     from rag_pipeline import RAGPipeline
 
     pipeline = RAGPipeline()
-    pipeline.load_and_process_pdfs()
+    pipeline.load_from_cache()
     pipeline.extract_all_companies()
 """
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Dict, Optional, Tuple, Set
 
 import pandas as pd
-from dotenv import load_dotenv
 from tqdm import tqdm
 from tabulate import tabulate
 
 from langchain_core.prompts import ChatPromptTemplate
-
-# from langchain.schema import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores.faiss import DistanceStrategy
 from langchain_ollama import ChatOllama
 from transformers import AutoTokenizer
 
-from preprocessing import (
-    PDFPreprocessor,
-    PreprocessingConfig,
-    ProcessedDocument,
-    get_gpu_info,
-)
+from nlp.json_loader import CacheLoader, load_prep_cache, load_bert_cache
+from nlp.gpu_utils import GPUManager
 
-load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
@@ -58,10 +45,15 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 class RAGConfig:
     """Configuration for the RAG pipeline."""
 
-    # Paths
-    reports_folder: str = "../data/reports"
+    # Cache source
+    cache_dir: str = "cache"
+    use_bert_cache: bool = False  # If True, load bert.json; else prep.json
+
+    # Vector store
     vector_db_base: str = "vector_db"
     vector_db_name: str = "reports"
+
+    # Output
     output_folder: str = "decarbonisation_tables"
 
     # Embedding model
@@ -69,35 +61,22 @@ class RAGConfig:
     max_tokens: int = 512
 
     # LLM settings (Ollama)
-    ollama_model: str = "llama3.1:8b"  # or "mistral", "llama3.2", etc.
+    ollama_model: str = "llama3.1:8b"
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
-    llm_num_ctx: int = 4096  # Context window - shortterm mem tokens. # try 8092 if GPU good
+    llm_num_ctx: int = 4096
 
     # Retrieval
-    retrieval_k: int = 50  # most simi, cheap
+    retrieval_k: int = 50
     context_chunks: int = 5
-
-    # Preprocessing
-    chunk_method: str = "semantic"
-    min_chunk_chars: int = 600
-    max_chunk_chars: int = 1600
-    translate_to_english: bool = True
 
     @property
     def vector_db_path(self) -> str:
         return os.path.join(self.vector_db_base, self.vector_db_name)
 
-    def get_preprocessing_config(self) -> PreprocessingConfig:
-        """Create PreprocessingConfig from RAG settings."""
-        return PreprocessingConfig(
-            min_chunk_chars=self.min_chunk_chars,
-            max_chunk_chars=self.max_chunk_chars,
-        )
-
 
 # =============================================================================
-# PROMPTS - Designed to reduce hallucinations and over-generalization
+# PROMPTS
 # =============================================================================
 
 BARRIER_PROMPT = ChatPromptTemplate.from_template("""You are analyzing company sustainability reports to extract BARRIERS to decarbonisation.
@@ -110,17 +89,6 @@ RULES:
 3. If a barrier is mentioned multiple times, include it only once
 4. Use concise phrasing (5-15 words per barrier)
 5. If no clear barriers are found, respond with exactly: NONE_FOUND
-
-EXAMPLES OF GOOD BARRIERS:
-- High upfront costs for renewable energy infrastructure
-- Lack of skilled workforce for green technology implementation
-- Regulatory uncertainty around carbon pricing
-- Supply chain dependency on carbon-intensive materials
-
-EXAMPLES OF BAD BARRIERS (too vague/generic):
-- Climate change is challenging
-- There are many obstacles
-- Sustainability is difficult
 
 CONTEXT:
 {context}
@@ -138,17 +106,6 @@ RULES:
 3. If a motivator is mentioned multiple times, include it only once
 4. Use concise phrasing (5-15 words per motivator)
 5. If no clear motivators are found, respond with exactly: NONE_FOUND
-
-EXAMPLES OF GOOD MOTIVATORS:
-- Cost savings from energy efficiency improvements
-- Regulatory requirements for emissions reporting
-- Customer demand for sustainable products
-- Commitment to net-zero by 2050
-
-EXAMPLES OF BAD MOTIVATORS (too vague/generic):
-- Sustainability is important
-- Want to be green
-- Environmental concerns
 
 CONTEXT:
 {context}
@@ -175,30 +132,21 @@ class RAGPipeline:
     """RAG pipeline for company decarbonisation report analysis."""
 
     def __init__(self, config: Optional[RAGConfig] = None):
-        """Initialize the pipeline with optional custom configuration."""
+        """Initialize the pipeline."""
         self.config = config or RAGConfig()
-
-        self.preprocessor = PDFPreprocessor(
-            self.config.get_preprocessing_config())
+        self.gpu = GPUManager()
 
         # Lazy-loaded components
         self._llm = None
         self._embedding_model = None
         self._tokenizer = None
 
-        # Data containers
-        self.documents: List[ProcessedDocument] = []
-        self.chunks: List[Document] = []
+        # Data
+        self.chunks: List = []
         self.vectorstore: Optional[FAISS] = None
         self.retriever = None
 
-        # Print GPU info
-        gpu_info = get_gpu_info()
-        if gpu_info:
-            print(
-                f"✓ GPU available: {gpu_info['name']} ({gpu_info['total_memory_gb']:.1f}GB)")
-        else:
-            print("✓ Running on CPU")
+        print(f"✓ RAG Pipeline initialized ({self.gpu})")
 
     # -------------------------------------------------------------------------
     # Lazy-loaded properties
@@ -237,79 +185,80 @@ class RAGPipeline:
         return self._tokenizer
 
     # -------------------------------------------------------------------------
-    # PDF Loading
+    # Data Loading
     # -------------------------------------------------------------------------
 
-    def load_pdfs(self, folder: Optional[str] = None) -> List[ProcessedDocument]:
-        """Load and preprocess all PDFs from the reports folder."""
-        folder = folder or self.config.reports_folder
+    def load_from_cache(self) -> List:
+        """Load documents from JSON cache files."""
+        print(f"\n{'='*60}")
+        print("LOADING FROM CACHE")
+        print(f"{'='*60}")
+        print(f"Cache dir: {self.config.cache_dir}")
+        print(
+            f"Source: {'bert.json' if self.config.use_bert_cache else 'prep.json'}")
 
-        self.documents = self.preprocessor.process_folder(
-            folder,
-            chunk_method=self.config.chunk_method,
-            translate_to_english=self.config.translate_to_english,
-            recursive=True,
-            show_progress=True,
-        )
+        if self.config.use_bert_cache:
+            self.chunks = load_bert_cache(
+                cache_dir=self.config.cache_dir,
+                as_langchain=True
+            )
+        else:
+            self.chunks = load_prep_cache(
+                cache_dir=self.config.cache_dir,
+                as_langchain=True
+            )
 
-        self.chunks = self.preprocessor.to_langchain_documents(self.documents)
-        print(f"✓ Created {len(self.chunks)} LangChain chunks")
+        companies = set(c.metadata.get("company_id")
+                        for c in self.chunks if c.metadata.get("company_id"))
+        years = set(c.metadata.get("year")
+                    for c in self.chunks if c.metadata.get("year"))
 
-        return self.documents
+        print(f"\n✓ Loaded {len(self.chunks)} chunks")
+        print(f"  Companies: {len(companies)}")
+        print(f"  Years: {sorted(years)}")
+
+        return self.chunks
 
     # -------------------------------------------------------------------------
     # Token Management
     # -------------------------------------------------------------------------
 
-    def count_tokens(self, text: str) -> int:
-        """Count tokens in a text string."""
-        encoded = self.tokenizer(
-            text, add_special_tokens=False, truncation=False)
-        return len(encoded["input_ids"])
-
     def truncate_to_max_tokens(self, text: str) -> Tuple[str, bool]:
         """Truncate text to max tokens if needed."""
-        n_tokens = self.count_tokens(text)
+        encoded = self.tokenizer(
+            text, add_special_tokens=False, truncation=False)
+        n_tokens = len(encoded["input_ids"])
 
         if n_tokens <= self.config.max_tokens:
             return text, False
 
-        encoded = self.tokenizer(
-            text, add_special_tokens=False, truncation=False)
         truncated_ids = encoded["input_ids"][:self.config.max_tokens]
         truncated_text = self.tokenizer.decode(
             truncated_ids, skip_special_tokens=True)
         return truncated_text, True
 
     # -------------------------------------------------------------------------
-    # Vector Store Management
+    # Vector Store
     # -------------------------------------------------------------------------
 
-    def embed_and_store(
-        self,
-        chunks: Optional[List[Document]] = None,
-        incremental: bool = True
-    ) -> FAISS:
+    def embed_and_store(self, incremental: bool = True) -> FAISS:
         """Embed chunks and store in FAISS vector database."""
-        chunks = chunks or self.chunks
-
-        if not chunks:
-            raise ValueError("No chunks to embed. Call load_pdfs() first.")
+        if not self.chunks:
+            raise ValueError("No chunks loaded. Call load_from_cache() first.")
 
         print(f"\n{'='*60}")
         print("EMBEDDING AND STORING")
         print(f"{'='*60}")
         print(f"Mode: {'Incremental' if incremental else 'Full rebuild'}")
-        print(f"Chunks to process: {len(chunks)}")
+        print(f"Chunks: {len(self.chunks)}")
 
         save_path = self.config.vector_db_path
 
         # Prepare texts
-        texts = []
-        metadatas = []
+        texts, metadatas = [], []
         truncation_count = 0
 
-        for chunk in tqdm(chunks, desc="Preparing"):
+        for chunk in tqdm(self.chunks, desc="Preparing"):
             text, was_truncated = self.truncate_to_max_tokens(
                 chunk.page_content)
             if was_truncated:
@@ -318,16 +267,15 @@ class RAGPipeline:
             metadatas.append(chunk.metadata)
 
         if truncation_count > 0:
-            print(
-                f"⚠️ Truncated {truncation_count} chunks to {self.config.max_tokens} tokens")
+            print(f"⚠️ Truncated {truncation_count} chunks")
 
-        # Try to load existing vectorstore
+        # Try loading existing vectorstore
         if incremental:
             try:
                 existing_vs = FAISS.load_local(
                     folder_path=save_path,
                     embeddings=self.embedding_model,
-                    allow_dangerous_deserialization=True,  # << 2D whats this?
+                    allow_dangerous_deserialization=True,
                     distance_strategy=DistanceStrategy.COSINE,
                 )
                 print(
@@ -335,11 +283,11 @@ class RAGPipeline:
                 existing_vs.add_texts(texts=texts, metadatas=metadatas)
                 self.vectorstore = existing_vs
             except Exception as e:
-                print(f"No existing vectorstore found ({e}). Creating new...")
+                print(f"No existing vectorstore ({e}). Creating new...")
                 incremental = False
 
         if not incremental:
-            print("\nEmbedding chunks...")
+            print("Embedding chunks...")
             embeddings_list = []
             for text in tqdm(texts, desc="Embedding"):
                 vec = self.embedding_model.embed_documents([text])[0]
@@ -355,13 +303,13 @@ class RAGPipeline:
 
         os.makedirs(self.config.vector_db_base, exist_ok=True)
         self.vectorstore.save_local(save_path)
-        print(f"\n✓ Saved vectorstore to {save_path}")
+        print(f"✓ Saved vectorstore to {save_path}")
 
         return self.vectorstore
 
     def load_vectorstore(self) -> FAISS:
         """Load existing vector store from disk."""
-        print(f"\nLoading vectorstore from {self.config.vector_db_path}...")
+        print(f"Loading vectorstore from {self.config.vector_db_path}...")
 
         self.vectorstore = FAISS.load_local(
             folder_path=self.config.vector_db_path,
@@ -394,45 +342,40 @@ class RAGPipeline:
     # Full Pipeline
     # -------------------------------------------------------------------------
 
-    def load_and_process_pdfs(self, incremental: bool = True):
-        """Run the full loading and processing pipeline."""
-        self.load_pdfs()
+    def setup(self, incremental: bool = True):
+        """Run full setup: load cache, embed, setup retriever."""
+        self.load_from_cache()
         self.embed_and_store(incremental=incremental)
         self.setup_retriever()
         print("\n✓ Pipeline ready!")
 
     # -------------------------------------------------------------------------
-    # Extraction Functions
+    # Extraction
     # -------------------------------------------------------------------------
 
     def get_companies(self) -> List[str]:
         """Get sorted list of unique company IDs."""
-        if self.chunks:
-            return sorted(set(
-                c.metadata.get("company_id")
-                for c in self.chunks
-                if c.metadata.get("company_id")
-            ))
-        return []
+        return sorted(set(
+            c.metadata.get("company_id")
+            for c in self.chunks
+            if c.metadata.get("company_id")
+        ))
 
     def get_years_for_company(self, company_id: str) -> List[str]:
         """Get sorted list of years for a specific company."""
         return sorted(set(
             c.metadata.get("year")
             for c in self.chunks
-            if c.metadata.get("company_id") == company_id
-            and c.metadata.get("year")
+            if c.metadata.get("company_id") == company_id and c.metadata.get("year")
         ))
 
     def _parse_llm_response(self, response_text: str) -> List[str]:
-        """Parse LLM response into list of items, removing duplicates."""
+        """Parse LLM response into list of items."""
         if not response_text:
             return []
 
         text = response_text.strip()
-
-        # Check for "none found" indicators
-        if any(x in text.upper() for x in ["NONE_FOUND", "NO_BARRIERS", "NO_MOTIVATORS", "NONE FOUND"]):
+        if any(x in text.upper() for x in ["NONE_FOUND", "NO_BARRIERS", "NO_MOTIVATORS"]):
             return []
 
         items = []
@@ -440,28 +383,19 @@ class RAGPipeline:
 
         for line in text.splitlines():
             line = line.strip()
-            if not line:
+            if not line or len(line) < 10:
                 continue
 
-            # Remove bullet point markers
             if line.startswith(("-", "•", "*", "–")):
                 line = line[1:].strip()
 
-            # Skip very short or generic items
-            if len(line) < 10:
-                continue
-
-            # Normalize for deduplication
             normalized = line.lower().strip()
-
-            # Skip if too similar to existing item
             if normalized in seen:
                 continue
 
-            # Check for substantial overlap with existing items
+            # Check word overlap for deduplication
             is_duplicate = False
             for existing in seen:
-                # Simple word overlap check
                 existing_words = set(existing.split())
                 line_words = set(normalized.split())
                 overlap = len(existing_words & line_words)
@@ -475,11 +409,7 @@ class RAGPipeline:
 
         return items
 
-    def _extract_from_context(
-        self,
-        context: str,
-        extract_type: str
-    ) -> List[str]:
+    def _extract_from_context(self, context: str, extract_type: str) -> List[str]:
         """Extract barriers or motivators from context using LLM."""
         prompt = BARRIER_PROMPT if extract_type == "barriers" else MOTIVATOR_PROMPT
         chain = prompt | self.llm
@@ -493,44 +423,35 @@ class RAGPipeline:
             print(f"  ⚠️ Error extracting {extract_type}: {e}")
             return []
 
-    def extract_company_data(
-        self,
-        company_id: str,
-        use_semantic_search: bool = True
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def extract_company_data(self, company_id: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Extract barriers and motivators for a company across all years."""
         print(f"\n{'='*60}")
-        print(f"Extracting data for Company {company_id}")
+        print(f"Extracting: {company_id}")
         print(f"{'='*60}")
 
         years = self.get_years_for_company(company_id)
-        print(f"Years found: {years}")
+        print(f"Years: {years}")
 
-        barrier_rows = []
-        motivator_rows = []
+        barrier_rows, motivator_rows = [], []
 
         for year in years:
-            print(f"\nProcessing year {year}...")
+            print(f"\nYear {year}...")
 
-            # Get relevant chunks
-            if use_semantic_search and self.retriever:
-                # Semantic search for barriers
-                barrier_docs = self.retriever.invoke(BARRIER_QUERY)
+            # Get relevant chunks via semantic search
+            if self.retriever:
                 barrier_docs = [
-                    d for d in barrier_docs
+                    d for d in self.retriever.invoke(BARRIER_QUERY)
                     if d.metadata.get("company_id") == company_id
                     and d.metadata.get("year") == year
                 ][:self.config.context_chunks]
 
-                # Semantic search for motivators
-                motivator_docs = self.retriever.invoke(MOTIVATOR_QUERY)
                 motivator_docs = [
-                    d for d in motivator_docs
+                    d for d in self.retriever.invoke(MOTIVATOR_QUERY)
                     if d.metadata.get("company_id") == company_id
                     and d.metadata.get("year") == year
                 ][:self.config.context_chunks]
             else:
-                # Use all chunks for this year
+                # Fallback: use all chunks for this year
                 year_chunks = [
                     c for c in self.chunks
                     if c.metadata.get("company_id") == company_id
@@ -540,24 +461,20 @@ class RAGPipeline:
                 motivator_docs = year_chunks[:self.config.context_chunks * 2]
 
             # Extract barriers
+            barriers = []
             if barrier_docs:
                 context = "\n\n---\n\n".join(
                     d.page_content for d in barrier_docs)
                 barriers = self._extract_from_context(context, "barriers")
-                print(f"  → Found {len(barriers)} barriers")
-            else:
-                barriers = []
-                print("  → No relevant barrier documents found")
+            print(f"  → {len(barriers)} barriers")
 
             # Extract motivators
+            motivators = []
             if motivator_docs:
                 context = "\n\n---\n\n".join(
                     d.page_content for d in motivator_docs)
                 motivators = self._extract_from_context(context, "motivators")
-                print(f"  → Found {len(motivators)} motivators")
-            else:
-                motivators = []
-                print("  → No relevant motivator documents found")
+            print(f"  → {len(motivators)} motivators")
 
             barrier_rows.append({
                 "company_id": company_id,
@@ -574,14 +491,10 @@ class RAGPipeline:
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 
-    def extract_all_companies(
-        self,
-        use_semantic_search: bool = True,
-        save_results: bool = True
-    ) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
+    def extract_all_companies(self, save_results: bool = True) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
         """Extract barriers and motivators for all companies."""
         print(f"\n{'='*70}")
-        print("EXTRACTING DATA FOR ALL COMPANIES")
+        print("EXTRACTING ALL COMPANIES")
         print(f"{'='*70}")
 
         results = {}
@@ -590,42 +503,31 @@ class RAGPipeline:
         for company_id in companies:
             try:
                 df_barriers, df_motivators = self.extract_company_data(
-                    company_id,
-                    use_semantic_search=use_semantic_search
-                )
+                    company_id)
                 results[company_id] = (df_barriers, df_motivators)
 
                 if save_results:
                     self.save_company_tables(
                         company_id, df_barriers, df_motivators)
 
-                print(f"✓ Completed {company_id}\n")
+                print(f"✓ {company_id}")
             except Exception as e:
-                print(f"✗ Error with {company_id}: {e}\n")
+                print(f"✗ {company_id}: {e}")
 
         print(f"\n{'='*70}")
-        print("✓ ALL COMPANIES PROCESSED!")
+        print("✓ COMPLETE")
         print(f"{'='*70}")
 
         return results
 
-    def save_company_tables(
-        self,
-        company_id: str,
-        df_barriers: pd.DataFrame,
-        df_motivators: pd.DataFrame
-    ):
+    def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
         """Save extraction results to CSV and Excel."""
         os.makedirs(self.config.output_folder, exist_ok=True)
 
         base_barrier = os.path.join(
-            self.config.output_folder,
-            f"barriers_company_{company_id}"
-        )
+            self.config.output_folder, f"barriers_{company_id}")
         base_motivator = os.path.join(
-            self.config.output_folder,
-            f"motivators_company_{company_id}"
-        )
+            self.config.output_folder, f"motivators_{company_id}")
 
         df_barriers.to_csv(f"{base_barrier}.csv", index=False)
         df_barriers.to_excel(f"{base_barrier}.xlsx", index=False)
@@ -633,115 +535,46 @@ class RAGPipeline:
         df_motivators.to_csv(f"{base_motivator}.csv", index=False)
         df_motivators.to_excel(f"{base_motivator}.xlsx", index=False)
 
-        print(f"\n✓ Saved to {self.config.output_folder}/")
-
     # -------------------------------------------------------------------------
-    # INSPECTION FUNCTIONS
+    # Inspection
     # -------------------------------------------------------------------------
 
-    def inspect_documents(self, sample_size: int = 3):
-        """Inspect loaded documents."""
-        print(f"\n{'='*60}")
-        print("DOCUMENT INSPECTION")
-        print(f"{'='*60}")
-
-        if not self.documents:
-            print("⚠️ No documents loaded. Call load_pdfs() first.")
-            return
-
-        print(f"\nTotal documents: {len(self.documents)}")
-
-        company_counts = {}
-        for doc in self.documents:
-            cid = doc.company_id or "Unknown"
-            company_counts[cid] = company_counts.get(cid, 0) + 1
-
-        print(f"\nDocuments per company:")
-        for cid, count in sorted(company_counts.items()):
-            print(f"  {cid}: {count}")
-
-        lang_counts = {}
-        for doc in self.documents:
-            lang = doc.language
-            lang_counts[lang] = lang_counts.get(lang, 0) + 1
-
-        print(f"\nLanguage distribution:")
-        for lang, count in sorted(lang_counts.items(), key=lambda x: -x[1]):
-            print(f"  {lang}: {count}")
-
-        translated_count = sum(1 for d in self.documents if d.translated)
-        print(f"\nTranslated documents: {translated_count}")
-
-    def inspect_chunks(self, sample_size: int = 3):
-        """Inspect chunked documents."""
-        print(f"\n{'='*60}")
-        print("CHUNK INSPECTION")
-        print(f"{'='*60}")
-
-        if not self.chunks:
-            print("⚠️ No chunks created. Call load_pdfs() first.")
-            return
-
-        print(f"\nTotal chunks: {len(self.chunks)}")
-
-        company_year_counts = {}
-        for chunk in self.chunks:
-            key = (
-                chunk.metadata.get("company_id", "Unknown"),
-                chunk.metadata.get("year", "Unknown")
-            )
-            company_year_counts[key] = company_year_counts.get(key, 0) + 1
-
-        print(f"\nChunks per company/year:")
-        for (cid, year), count in sorted(company_year_counts.items()):
-            print(f"  {cid} / {year}: {count} chunks")
-
-    def inspect_pipeline_status(self):
-        """Show overall pipeline status."""
+    def inspect_status(self):
+        """Show pipeline status."""
         print(f"\n{'='*60}")
         print("PIPELINE STATUS")
         print(f"{'='*60}")
 
         status = {
-            "Documents loaded": len(self.documents) if self.documents else 0,
-            "Chunks created": len(self.chunks) if self.chunks else 0,
-            "Vectorstore": "✓ Ready" if self.vectorstore else "✗ Not loaded",
-            "Retriever": "✓ Ready" if self.retriever else "✗ Not configured",
-            "LLM": "✓ Ready" if self._llm else "○ Not initialized (lazy)",
-            "Embedding model": "✓ Ready" if self._embedding_model else "○ Not initialized (lazy)",
+            "Chunks loaded": len(self.chunks) if self.chunks else 0,
+            "Vectorstore": "✓" if self.vectorstore else "✗",
+            "Retriever": "✓" if self.retriever else "✗",
+            "LLM": "✓" if self._llm else "○ (lazy)",
         }
 
-        print("\nComponent Status:")
-        for component, state in status.items():
-            print(f"  {component}: {state}")
+        for k, v in status.items():
+            print(f"  {k}: {v}")
 
-        print(f"\nConfiguration:")
-        print(f"  Reports folder: {self.config.reports_folder}")
-        print(f"  Vector DB path: {self.config.vector_db_path}")
-        print(f"  Ollama model: {self.config.ollama_model}")
-        print(
-            f"  Translation: {'enabled' if self.config.translate_to_english else 'disabled'}")
+        print(f"\nConfig:")
+        print(f"  Cache: {self.config.cache_dir}")
+        print(f"  VectorDB: {self.config.vector_db_path}")
+        print(f"  Ollama: {self.config.ollama_model}")
 
-    def display_results(
-        self,
-        company_id: str,
-        df_barriers: pd.DataFrame,
-        df_motivators: pd.DataFrame
-    ):
-        """Display extraction results in table format."""
+    def display_results(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
+        """Display extraction results."""
         print(f"\n{'='*60}")
-        print(f"BARRIERS - Company {company_id}")
+        print(f"BARRIERS - {company_id}")
         print(f"{'='*60}")
         print(tabulate(df_barriers, headers='keys', tablefmt='grid'))
 
         print(f"\n{'='*60}")
-        print(f"MOTIVATORS - Company {company_id}")
+        print(f"MOTIVATORS - {company_id}")
         print(f"{'='*60}")
         print(tabulate(df_motivators, headers='keys', tablefmt='grid'))
 
     def cleanup(self):
-        """Release all resources."""
-        self.preprocessor.cleanup()
+        """Release resources."""
+        self.gpu.clear()
 
 
 # =============================================================================
@@ -749,30 +582,37 @@ class RAGPipeline:
 # =============================================================================
 
 def quick_start(
-    reports_folder: str = "../data/reports",
+    cache_dir: str = "cache",
+    use_bert_cache: bool = False,
     incremental: bool = True,
     ollama_model: str = "llama3.1:8b"
 ) -> RAGPipeline:
-    """Quick start function to get the pipeline running."""
+    """Quick start: load cache, embed, setup retriever."""
     config = RAGConfig(
-        reports_folder=reports_folder,
+        cache_dir=cache_dir,
+        use_bert_cache=use_bert_cache,
         ollama_model=ollama_model,
     )
     pipeline = RAGPipeline(config)
-    pipeline.load_and_process_pdfs(incremental=incremental)
+    pipeline.setup(incremental=incremental)
     return pipeline
 
 
-def load_existing_pipeline(
+def load_existing(
     vector_db_path: str = "vector_db/reports",
+    cache_dir: str = "cache",
     ollama_model: str = "llama3.1:8b"
 ) -> RAGPipeline:
-    """Load an existing pipeline from a saved vector store."""
-    config = RAGConfig(ollama_model=ollama_model)
+    """Load existing vectorstore and cache."""
+    config = RAGConfig(
+        cache_dir=cache_dir,
+        ollama_model=ollama_model,
+    )
     config.vector_db_base = os.path.dirname(vector_db_path)
     config.vector_db_name = os.path.basename(vector_db_path)
 
     pipeline = RAGPipeline(config)
+    pipeline.load_from_cache()
     pipeline.load_vectorstore()
 
     return pipeline
@@ -788,14 +628,19 @@ if __name__ == "__main__":
     print("\nUsage:")
     print("  from rag_pipeline import RAGPipeline, quick_start")
     print()
-    print("  # Full pipeline")
-    print("  pipeline = RAGPipeline()")
-    print("  pipeline.load_and_process_pdfs()")
-    print("  pipeline.inspect_pipeline_status()")
+    print("  # Quick start (loads from prep.json cache)")
+    print("  pipeline = quick_start('cache')")
     print("  pipeline.extract_all_companies()")
     print()
-    print("  # Quick start")
-    print("  pipeline = quick_start('../data/reports')")
+    print("  # Use BERT cache (with classification scores)")
+    print("  pipeline = quick_start('cache', use_bert_cache=True)")
     print()
-    print("NOTE: Ensure Ollama is running with your preferred model:")
+    print("  # Manual setup")
+    print("  pipeline = RAGPipeline()")
+    print("  pipeline.load_from_cache()")
+    print("  pipeline.embed_and_store()")
+    print("  pipeline.setup_retriever()")
+    print("  pipeline.inspect_status()")
+    print()
+    print("NOTE: Ensure Ollama is running:")
     print("  ollama run llama3.1:8b")

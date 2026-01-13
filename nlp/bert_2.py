@@ -18,7 +18,6 @@ Usage:
     viz.print_summary()
 """
 
-import json
 import re
 import warnings
 from collections import Counter
@@ -30,6 +29,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+from nlp.json_loader import CacheLoader
 
 warnings.filterwarnings("ignore")
 
@@ -138,6 +139,12 @@ class ClimateBERTVisualizer:
         self.output_dir = Path(self.config.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Cache loader
+        self.loader = CacheLoader(
+            cache_dir=self.config.cache_dir,
+            exclude_year_gte=self.config.exclude_year_gte
+        )
+
         # Data frames
         self.report_df: Optional[pd.DataFrame] = None
         self.cy_df: Optional[pd.DataFrame] = None  # Company-Year aggregated
@@ -154,102 +161,92 @@ class ClimateBERTVisualizer:
         plt.close()
 
     # -------------------------------------------------------------------------
-    # Data Loading
+    # Data Loading (using shared CacheLoader)
     # -------------------------------------------------------------------------
 
     def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Load and process BERT cache files."""
-        bert_files = list(self.cache_dir.glob("*_bert.json"))
+        # Use the shared loader to get raw BERT data
+        raw_data_list = self.loader.load_bert_raw()
 
-        if not bert_files:
+        if not raw_data_list:
             raise FileNotFoundError(
                 f"No BERT cache files found in {self.cache_dir}")
 
         rows = []
-        for fp in bert_files:
-            try:
-                with open(fp, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-
-                chunks = data.get("chunks", [])
-                if not chunks:
-                    continue
-
-                n = len(chunks)
-                detector = np.array([c.get("detector_score", 0)
-                                    for c in chunks])
-                weights = detector if detector.sum() > 0 else np.ones(n)
-
-                # Extract labels
-                spec_labels = [c.get("specificity_label", "non")
-                               for c in chunks]
-                sent_labels = [c.get("sentiment_label", "neutral")
-                               for c in chunks]
-                comm_labels = [c.get("commitment_label", "no") for c in chunks]
-                netzero_labels = [c.get("netzero_label", "none")
-                                  for c in chunks]
-
-                # Sentiment weights
-                opp_w = sum(w for w, l in zip(weights, sent_labels)
-                            if l == "opportunity")
-                risk_w = sum(w for w, l in zip(
-                    weights, sent_labels) if l == "risk")
-                neutral_w = sum(w for w, l in zip(
-                    weights, sent_labels) if l == "neutral")
-                total_w = weights.sum()
-
-                # Netzero counts
-                netzero_count = sum(
-                    1 for l in netzero_labels if l == "reduction")
-                netzero_pct = (netzero_count / n * 100) if n > 0 else 0
-
-                # N0 subset metrics
-                n0_chunks = [c for c in chunks if c.get(
-                    "netzero_label") == "reduction"]
-                non_n0_chunks = [c for c in chunks if c.get(
-                    "netzero_label") != "reduction"]
-
-                def safe_mean(lst, key, default=0):
-                    vals = [c.get(key, default) for c in lst]
-                    return np.mean(vals) if vals else default
-
-                rows.append({
-                    "company": data.get("company", "Unknown"),
-                    "company_id": str(data.get("company_id", "unknown")),
-                    "year": int(data.get("year", 0)),
-                    "is_translated": data.get("translated", False),
-                    # Funnel metrics
-                    "total_chunks": data.get("total_chunks", 0),
-                    "climate_chunks": data.get("climate_chunks", n),
-                    "climate_pct": data.get("kept_percentage", 100.0),
-                    "netzero_chunks": netzero_count,
-                    "netzero_pct": netzero_pct,
-                    # Quality scores (weighted)
-                    "specificity_w": np.average(
-                        [c.get("specificity_score", 0) for c in chunks], weights=weights
-                    ),
-                    "commitment_w": np.average(
-                        [c.get("commitment_score", 0) for c in chunks], weights=weights
-                    ),
-                    # N0 subset metrics
-                    "n0_specificity": safe_mean(n0_chunks, "specificity_score"),
-                    "n0_commitment": safe_mean(n0_chunks, "commitment_score"),
-                    "non_n0_specificity": safe_mean(non_n0_chunks, "specificity_score"),
-                    "non_n0_commitment": safe_mean(non_n0_chunks, "commitment_score"),
-                    # Sentiment percentages
-                    "opportunity_pct": (opp_w / total_w * 100) if total_w > 0 else 0,
-                    "risk_pct": (risk_w / total_w * 100) if total_w > 0 else 0,
-                    "neutral_pct": (neutral_w / total_w * 100) if total_w > 0 else 0,
-                })
-            except Exception as e:
-                print(f"⚠️ Error loading {fp.name}: {e}")
+        for data in raw_data_list:
+            chunks = data.get("chunks", [])
+            if not chunks:
                 continue
 
-        df = pd.DataFrame(rows)
+            n = len(chunks)
+            detector = np.array([c.get("detector_score", 0)
+                                for c in chunks])
+            weights = detector if detector.sum() > 0 else np.ones(n)
 
-        # Filter by year
-        if self.config.exclude_year_gte:
-            df = df[df["year"] < self.config.exclude_year_gte]
+            # Extract labels
+            spec_labels = [c.get("specificity_label", "non")
+                           for c in chunks]
+            sent_labels = [c.get("sentiment_label", "neutral")
+                           for c in chunks]
+            comm_labels = [c.get("commitment_label", "no") for c in chunks]
+            netzero_labels = [c.get("netzero_label", "none")
+                              for c in chunks]
+
+            # Sentiment weights
+            opp_w = sum(w for w, l in zip(weights, sent_labels)
+                        if l == "opportunity")
+            risk_w = sum(w for w, l in zip(
+                weights, sent_labels) if l == "risk")
+            neutral_w = sum(w for w, l in zip(
+                weights, sent_labels) if l == "neutral")
+            total_w = weights.sum()
+
+            # Netzero counts
+            netzero_count = sum(
+                1 for l in netzero_labels if l == "reduction")
+            netzero_pct = (netzero_count / n * 100) if n > 0 else 0
+
+            # N0 subset metrics
+            n0_chunks = [c for c in chunks if c.get(
+                "netzero_label") == "reduction"]
+            non_n0_chunks = [c for c in chunks if c.get(
+                "netzero_label") != "reduction"]
+
+            def safe_mean(lst, key, default=0):
+                vals = [c.get(key, default) for c in lst]
+                return np.mean(vals) if vals else default
+
+            rows.append({
+                "company": data.get("company", "Unknown"),
+                "company_id": str(data.get("company_id", "unknown")),
+                "year": int(data.get("year", 0)),
+                "is_translated": data.get("translated", False),
+                # Funnel metrics
+                "total_chunks": data.get("total_chunks", 0),
+                "climate_chunks": data.get("climate_chunks", n),
+                "climate_pct": data.get("kept_percentage", 100.0),
+                "netzero_chunks": netzero_count,
+                "netzero_pct": netzero_pct,
+                # Quality scores (weighted)
+                "specificity_w": np.average(
+                    [c.get("specificity_score", 0) for c in chunks], weights=weights
+                ),
+                "commitment_w": np.average(
+                    [c.get("commitment_score", 0) for c in chunks], weights=weights
+                ),
+                # N0 subset metrics
+                "n0_specificity": safe_mean(n0_chunks, "specificity_score"),
+                "n0_commitment": safe_mean(n0_chunks, "commitment_score"),
+                "non_n0_specificity": safe_mean(non_n0_chunks, "specificity_score"),
+                "non_n0_commitment": safe_mean(non_n0_chunks, "commitment_score"),
+                # Sentiment percentages
+                "opportunity_pct": (opp_w / total_w * 100) if total_w > 0 else 0,
+                "risk_pct": (risk_w / total_w * 100) if total_w > 0 else 0,
+                "neutral_pct": (neutral_w / total_w * 100) if total_w > 0 else 0,
+            })
+
+        df = pd.DataFrame(rows)
 
         if df.empty:
             raise ValueError("No valid data after filtering")
@@ -934,46 +931,36 @@ Net-Zero Analysis:
 
     def _load_chunk_texts(self) -> Tuple[List[str], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
         """Load all chunk texts grouped by category."""
-        bert_files = list(self.cache_dir.glob("*_bert.json"))
+        # Use shared loader
+        raw_data_list = self.loader.load_bert_raw()
 
         all_texts = []
         texts_by_sentiment = {"opportunity": [], "risk": [], "neutral": []}
         texts_by_commitment = {"yes": [], "no": []}
         texts_by_netzero = {"net-zero": [], "reduction": [], "none": []}
 
-        for fp in bert_files:
-            try:
-                with open(fp, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-
-                year = data.get("year", 0)
-                if self.config.exclude_year_gte and year >= self.config.exclude_year_gte:
+        for data in raw_data_list:
+            for chunk in data.get("chunks", []):
+                text = chunk.get("text", "")
+                if not text:
                     continue
 
-                for chunk in data.get("chunks", []):
-                    text = chunk.get("text", "")
-                    if not text:
-                        continue
+                all_texts.append(text)
 
-                    all_texts.append(text)
+                # By sentiment
+                sent = chunk.get("sentiment_label", "neutral")
+                if sent in texts_by_sentiment:
+                    texts_by_sentiment[sent].append(text)
 
-                    # By sentiment
-                    sent = chunk.get("sentiment_label", "neutral")
-                    if sent in texts_by_sentiment:
-                        texts_by_sentiment[sent].append(text)
+                # By commitment
+                comm = chunk.get("commitment_label", "no")
+                if comm in texts_by_commitment:
+                    texts_by_commitment[comm].append(text)
 
-                    # By commitment
-                    comm = chunk.get("commitment_label", "no")
-                    if comm in texts_by_commitment:
-                        texts_by_commitment[comm].append(text)
-
-                    # By netzero
-                    n0 = chunk.get("netzero_label", "none")
-                    if n0 in texts_by_netzero:
-                        texts_by_netzero[n0].append(text)
-
-            except Exception:
-                pass
+                # By netzero
+                n0 = chunk.get("netzero_label", "none")
+                if n0 in texts_by_netzero:
+                    texts_by_netzero[n0].append(text)
 
         return all_texts, texts_by_sentiment, texts_by_commitment, texts_by_netzero
 
@@ -1131,9 +1118,11 @@ Net-Zero Analysis:
             viz.analyze_chunks(label_filter='yes', filter_type='commitment', export_path='commits.json')
         """
         import random
+        import json
         random.seed(random_seed)
 
-        bert_files = list(self.cache_dir.glob("*_bert.json"))
+        # Use shared loader
+        raw_data_list = self.loader.load_bert_raw()
 
         # Map filter_type to JSON key
         filter_key_map = {
@@ -1146,41 +1135,32 @@ Net-Zero Analysis:
 
         all_chunks = []
 
-        for fp in bert_files:
-            try:
-                with open(fp, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+        for data in raw_data_list:
+            company = data.get("company", "Unknown")
+            year = data.get("year", 0)
 
-                year = data.get("year", 0)
-                if self.config.exclude_year_gte and year >= self.config.exclude_year_gte:
+            for chunk in data.get("chunks", []):
+                chunk_label = chunk.get(filter_key, "none")
+
+                if label_filter and chunk_label != label_filter:
                     continue
 
-                company = data.get("company", "Unknown")
-
-                for chunk in data.get("chunks", []):
-                    chunk_label = chunk.get(filter_key, "none")
-
-                    if label_filter and chunk_label != label_filter:
-                        continue
-
-                    all_chunks.append({
-                        "company": company,
-                        "year": year,
-                        # Truncate for display
-                        "text": chunk.get("text", "")[:500],
-                        "full_text": chunk.get("text", ""),
-                        "netzero_label": chunk.get("netzero_label", "none"),
-                        "netzero_score": chunk.get("netzero_score", 0),
-                        "sentiment_label": chunk.get("sentiment_label", "neutral"),
-                        "sentiment_score": chunk.get("sentiment_score", 0),
-                        "commitment_label": chunk.get("commitment_label", "no"),
-                        "commitment_score": chunk.get("commitment_score", 0),
-                        "specificity_label": chunk.get("specificity_label", "non"),
-                        "specificity_score": chunk.get("specificity_score", 0),
-                        "detector_score": chunk.get("detector_score", 0),
-                    })
-            except Exception:
-                pass
+                all_chunks.append({
+                    "company": company,
+                    "year": year,
+                    # Truncate for display
+                    "text": chunk.get("text", "")[:500],
+                    "full_text": chunk.get("text", ""),
+                    "netzero_label": chunk.get("netzero_label", "none"),
+                    "netzero_score": chunk.get("netzero_score", 0),
+                    "sentiment_label": chunk.get("sentiment_label", "neutral"),
+                    "sentiment_score": chunk.get("sentiment_score", 0),
+                    "commitment_label": chunk.get("commitment_label", "no"),
+                    "commitment_score": chunk.get("commitment_score", 0),
+                    "specificity_label": chunk.get("specificity_label", "non"),
+                    "specificity_score": chunk.get("specificity_score", 0),
+                    "detector_score": chunk.get("detector_score", 0),
+                })
 
         # Export if requested
         if export_path:
