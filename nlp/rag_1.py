@@ -84,10 +84,11 @@ BARRIER_PROMPT = ChatPromptTemplate.from_template("""You are analyzing company s
 TASK: Extract specific barriers mentioned in the text below. Only extract barriers that are EXPLICITLY stated or clearly implied.
 
 RULES:
-1. Only include barriers actually mentioned in the context - DO NOT invent or assume barriers
-2. If a barrier is mentioned multiple times, include it only once
-3. Use sentences.
-4. If no clear barriers are found, respond with exactly: NONE_FOUND
+1. Each barrier must be a specific, concrete challenge (not vague statements)
+2. Only include barriers actually mentioned in the context - DO NOT invent or assume barriers
+3. If a barrier is mentioned multiple times, include it only once
+4. Use concise phrasing (5-15 words per barrier)
+5. If no clear barriers are found, respond with exactly: NONE_FOUND
 
 CONTEXT:
 {context}
@@ -100,10 +101,11 @@ MOTIVATOR_PROMPT = ChatPromptTemplate.from_template("""You are analyzing company
 TASK: Extract specific motivators/drivers mentioned in the text below. Only extract motivators that are EXPLICITLY stated or clearly implied.
 
 RULES:
-1. Only include motivators actually mentioned in the context - DO NOT invent or assume motivators
-2. If a motivator is mentioned multiple times, include it only once
-3. Use sentences.
-4. If no clear motivators are found, respond with exactly: NONE_FOUND
+1. Each motivator must be a specific, concrete driver (not vague statements)
+2. Only include motivators actually mentioned in the context - DO NOT invent or assume motivators
+3. If a motivator is mentioned multiple times, include it only once
+4. Use concise phrasing (5-15 words per motivator)
+5. If no clear motivators are found, respond with exactly: NONE_FOUND
 
 CONTEXT:
 {context}
@@ -645,7 +647,7 @@ if __name__ == "__main__":
 
     # Manual setup
     pipeline = RAGPipeline()
-    pipeline.load_from_cache()
-    pipeline.embed_and_store()
+    # pipeline.load_from_cache()
+    # pipeline.embed_and_store()
     pipeline.setup_retriever()
     pipeline.inspect_status()

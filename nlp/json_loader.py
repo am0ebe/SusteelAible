@@ -29,11 +29,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
-
+from langchain_core.documents import Document
 
 # =============================================================================
 # DATA CLASSES
 # =============================================================================
+
 
 @dataclass
 class CachedDocument:
@@ -74,7 +75,6 @@ class CachedDocument:
 
     def to_langchain_documents(self) -> List:
         """Convert to LangChain Document format."""
-        from langchain.schema import Document
 
         docs = []
         for i, chunk_text in enumerate(self.chunks):
