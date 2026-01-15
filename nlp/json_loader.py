@@ -31,6 +31,7 @@ from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 from langchain_core.documents import Document
 
+
 # =============================================================================
 # DATA CLASSES
 # =============================================================================
@@ -155,7 +156,6 @@ class BERTAnalyzedDocument:
 
     def to_langchain_documents(self) -> List:
         """Convert to LangChain Document format with BERT scores in metadata."""
-        from langchain.schema import Document
 
         docs = []
         for i, chunk in enumerate(self.chunks):

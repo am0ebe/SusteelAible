@@ -74,7 +74,7 @@ class PreprocessingConfig:
 
     # Chunking parameters
     min_chunk_chars: int = 600
-    max_chunk_chars: int = 1600
+    max_chunk_chars: int = 1400
 
     # For LangChain-style chunking (RAG pipeline)
     langchain_chunk_size: int = 1500
@@ -1032,3 +1032,5 @@ if __name__ == "__main__":
     print()
     print("  # Without translation")
     print("  docs = preprocess_pdfs('../data/reports', translate_to_english=False)")
+
+    docs = preprocess_pdfs('../data/reports/BaoSteel')

@@ -54,21 +54,26 @@ class RAGConfig:
     vector_db_name: str = "reports"
 
     # Output
-    output_folder: str = "decarbonisation_tables"
+    output_folder: str = "out"
 
     # Embedding model
-    embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2"
+    # embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2"
+    embedding_model_name: str = "all-MiniLM-L6-v2"
+    # "all-MiniLM-L6-v2" # lightweight
+    # nomic-embed-text # hi quality
     max_tokens: int = 512
 
     # LLM settings (Ollama)
     ollama_model: str = "llama3.1:8b"
+    # "llama-3.1-8b-instant",  # Fast, free model for testing
+    # "llama3-8b-8192"
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
-    llm_num_ctx: int = 4096
+    llm_num_ctx: int = 4096  # increase if GPU VRAM allows
 
     # Retrieval
-    retrieval_k: int = 50
-    context_chunks: int = 5
+    retrieval_k: int = 200
+    context_chunks: int = 17  # as far as ctx allows
 
     @property
     def vector_db_path(self) -> str:
@@ -240,19 +245,40 @@ class RAGPipeline:
     # -------------------------------------------------------------------------
     # Vector Store
     # -------------------------------------------------------------------------
+    def embed_and_store(self, incremental: bool = True, force_rebuild: bool = False) -> FAISS:
+        """Embed chunks and store in FAISS vector database.
 
-    def embed_and_store(self, incremental: bool = True) -> FAISS:
-        """Embed chunks and store in FAISS vector database."""
+        Args:
+            incremental: If True, try to load existing vectorstore first
+            force_rebuild: If True, always rebuild from scratch
+        """
         if not self.chunks:
             raise ValueError("No chunks loaded. Call load_from_cache() first.")
 
         print(f"\n{'='*60}")
         print("EMBEDDING AND STORING")
         print(f"{'='*60}")
-        print(f"Mode: {'Incremental' if incremental else 'Full rebuild'}")
-        print(f"Chunks: {len(self.chunks)}")
 
         save_path = self.config.vector_db_path
+
+        # Try loading existing vectorstore (unless force rebuild)
+        if incremental and not force_rebuild:
+            try:
+                self.vectorstore = FAISS.load_local(
+                    folder_path=save_path,
+                    embeddings=self.embedding_model,
+                    allow_dangerous_deserialization=True,
+                    distance_strategy=DistanceStrategy.COSINE,
+                )
+                print(f"✓ Loaded existing vectorstore from {save_path}")
+                print(f"  (Use force_rebuild=True to re-embed)")
+                return self.vectorstore  # ← EXIT EARLY, don't add duplicates!
+            except Exception as e:
+                print(f"No existing vectorstore ({e}). Creating new...")
+
+        # If we get here, we need to build from scratch
+        print(f"Mode: Full rebuild")
+        print(f"Chunks: {len(self.chunks)}")
 
         # Prepare texts
         texts, metadatas = [], []
@@ -269,38 +295,22 @@ class RAGPipeline:
         if truncation_count > 0:
             print(f"⚠️ Truncated {truncation_count} chunks")
 
-        # Try loading existing vectorstore
-        if incremental:
-            try:
-                existing_vs = FAISS.load_local(
-                    folder_path=save_path,
-                    embeddings=self.embedding_model,
-                    allow_dangerous_deserialization=True,
-                    distance_strategy=DistanceStrategy.COSINE,
-                )
-                print(
-                    f"✓ Loaded existing vectorstore. Adding {len(texts)} chunks...")
-                existing_vs.add_texts(texts=texts, metadatas=metadatas)
-                self.vectorstore = existing_vs
-            except Exception as e:
-                print(f"No existing vectorstore ({e}). Creating new...")
-                incremental = False
+        # Embed all chunks
+        print("Embedding chunks...")
+        embeddings_list = []
+        for text in tqdm(texts, desc="Embedding"):
+            vec = self.embedding_model.embed_documents([text])[0]
+            embeddings_list.append(vec)
 
-        if not incremental:
-            print("Embedding chunks...")
-            embeddings_list = []
-            for text in tqdm(texts, desc="Embedding"):
-                vec = self.embedding_model.embed_documents([text])[0]
-                embeddings_list.append(vec)
+        text_embedding_pairs = list(zip(texts, embeddings_list))
+        self.vectorstore = FAISS.from_embeddings(
+            text_embeddings=text_embedding_pairs,
+            embedding=self.embedding_model,
+            metadatas=metadatas,
+            distance_strategy=DistanceStrategy.COSINE,
+        )
 
-            text_embedding_pairs = list(zip(texts, embeddings_list))
-            self.vectorstore = FAISS.from_embeddings(
-                text_embeddings=text_embedding_pairs,
-                embedding=self.embedding_model,
-                metadatas=metadatas,
-                distance_strategy=DistanceStrategy.COSINE,
-            )
-
+        # Save
         os.makedirs(self.config.vector_db_base, exist_ok=True)
         self.vectorstore.save_local(save_path)
         print(f"✓ Saved vectorstore to {save_path}")
@@ -539,7 +549,7 @@ class RAGPipeline:
     # Inspection
     # -------------------------------------------------------------------------
 
-    def inspect_status(self):
+    def print_status(self):
         """Show pipeline status."""
         print(f"\n{'='*60}")
         print("PIPELINE STATUS")
@@ -640,14 +650,14 @@ if __name__ == "__main__":
     # print("  pipeline.load_from_cache()")
     # print("  pipeline.embed_and_store()")
     # print("  pipeline.setup_retriever()")
-    # print("  pipeline.inspect_status()")
+    # print("  pipeline.print_status()")
     # print()
     # print("NOTE: Ensure Ollama is running:")
     # print("  ollama run llama3.1:8b")
 
     # Manual setup
     pipeline = RAGPipeline()
-    # pipeline.load_from_cache()
-    # pipeline.embed_and_store()
+    pipeline.load_from_cache()
+    pipeline.embed_and_store()
     pipeline.setup_retriever()
-    pipeline.inspect_status()
+    pipeline.print_status()
