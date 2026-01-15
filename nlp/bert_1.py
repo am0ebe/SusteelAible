@@ -33,6 +33,7 @@ from transformers import pipeline
 
 from nlp.gpu_utils import GPUManager
 from nlp.preprocessing import PDFPreprocessor, PreprocessingConfig, ProcessedDocument
+from nlp.json_loader import CacheLoader
 
 # Suppress all the noisy warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -91,6 +92,9 @@ class ClimateBERTAnalyzer:
         self.cache_dir = Path(self.config.cache_dir)
         self.cache_dir.mkdir(exist_ok=True)
 
+        # Cache loader for file operations
+        self.cache_loader = CacheLoader(self.config.cache_dir)
+
         # Initialize components (quiet mode for preprocessing to avoid extra prints)
         self.gpu = GPUManager()
         self.preprocessor = PDFPreprocessor(
@@ -112,29 +116,27 @@ class ClimateBERTAnalyzer:
             print(msg)
 
     # -------------------------------------------------------------------------
-    # Caching
+    # Caching (using CacheLoader)
     # -------------------------------------------------------------------------
 
     def _get_cache_path(self, suffix: str) -> Path:
         """Get cache file path for current PDF."""
         if not self.pdf_path:
             raise ValueError("No PDF path set")
-        return self.cache_dir / f"{self.pdf_path.stem}_{suffix}.json"
+        return self.cache_loader.get_cache_path(self.pdf_path.stem, suffix)
 
     def _load_cache(self, suffix: str) -> Optional[Dict]:
         """Load cache file if exists."""
-        cache_file = self._get_cache_path(suffix)
-        if cache_file.exists():
-            self._log(f"  Loading cache: {cache_file.name}")
-            with open(cache_file, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return None
+        if not self.pdf_path:
+            raise ValueError("No PDF path set")
+        self._log(f"  Loading cache: {self.pdf_path.stem}_{suffix}.json")
+        return self.cache_loader.load_single_cache(self.pdf_path.stem, suffix)
 
     def _save_cache(self, suffix: str, data: Dict):
         """Save data to cache file."""
-        cache_file = self._get_cache_path(suffix)
-        with open(cache_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        if not self.pdf_path:
+            raise ValueError("No PDF path set")
+        self.cache_loader.save_single_cache(self.pdf_path.stem, suffix, data)
 
     # -------------------------------------------------------------------------
     # PDF Processing (delegates to preprocessing module)
@@ -271,20 +273,31 @@ class ClimateBERTAnalyzer:
         model = self._load_model(model_key)
         texts = [c["text"] for c in chunks]
 
+        # Track truncation for warning
+        truncation_count = 0
+
         for i in range(0, len(texts), self.config.batch_size):
             batch_texts = texts[i: i + self.config.batch_size]
             batch_chunks = chunks[i: i + self.config.batch_size]
 
             try:
                 results = model(batch_texts, truncation=True, max_length=512)
-                for chunk, result in zip(batch_chunks, results):
+                for chunk, result, text in zip(batch_chunks, results, batch_texts):
                     chunk[label_field] = result["label"]
                     chunk[score_field] = result["score"]
+                    # Check if text was likely truncated (rough estimate: ~4 chars per token)
+                    if len(text) > 512 * 4:
+                        truncation_count += 1
             except RuntimeError as e:
                 if "out of memory" in str(e).lower():
                     self.gpu.clear()
                 else:
                     raise
+
+        # Print warning if truncation occurred
+        if truncation_count > 0 and not self.quiet:
+            print(
+                f"  ⚠️ {truncation_count} chunks exceeded 512 tokens (truncated by model)")
 
     def filter_climate_chunks(self) -> Dict:
         """Filter chunks to keep only climate-related content."""

@@ -27,8 +27,7 @@ Usage:
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import numpy as np
+from typing import Dict, List, Optional, Any
 from langchain_core.documents import Document
 
 
@@ -211,13 +210,58 @@ class CacheLoader:
         self.exclude_year_gte = exclude_year_gte
 
         if not self.cache_dir.exists():
-            raise FileNotFoundError(f"Cache directory not found: {cache_dir}")
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _should_exclude(self, year: Optional[int]) -> bool:
         """Check if document should be excluded based on year."""
         if self.exclude_year_gte is None or year is None:
             return False
         return year >= self.exclude_year_gte
+
+    # -------------------------------------------------------------------------
+    # Single File Cache Operations (for BERT/RAG pipelines)
+    # -------------------------------------------------------------------------
+
+    def get_cache_path(self, pdf_stem: str, suffix: str) -> Path:
+        """Get cache file path for a specific PDF.
+
+        Args:
+            pdf_stem: PDF filename without extension (e.g., "report_2018")
+            suffix: Cache type suffix ("prep" or "bert")
+
+        Returns:
+            Path to cache file
+        """
+        return self.cache_dir / f"{pdf_stem}_{suffix}.json"
+
+    def load_single_cache(self, pdf_stem: str, suffix: str) -> Optional[Dict]:
+        """Load a single cache file by PDF stem and suffix.
+
+        Args:
+            pdf_stem: PDF filename without extension
+            suffix: Cache type suffix ("prep" or "bert")
+
+        Returns:
+            Loaded JSON data or None if not found
+        """
+        cache_path = self.get_cache_path(pdf_stem, suffix)
+        if cache_path.exists():
+            with open(cache_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return None
+
+    def save_single_cache(self, pdf_stem: str, suffix: str, data: Dict):
+        """Save data to a single cache file.
+
+        Args:
+            pdf_stem: PDF filename without extension
+            suffix: Cache type suffix ("prep" or "bert")
+            data: Data to save
+        """
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_path = self.get_cache_path(pdf_stem, suffix)
+        with open(cache_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
     # -------------------------------------------------------------------------
     # Prep File Loading
@@ -430,3 +474,8 @@ if __name__ == "__main__":
     print()
     print("  # Load BERT files for visualization")
     print("  bert_data = load_bert_cache('cache', raw=True)")
+    print()
+    print("  # Single file operations")
+    print("  loader = CacheLoader('cache')")
+    print("  data = loader.load_single_cache('report_2018', 'prep')")
+    print("  loader.save_single_cache('report_2018', 'bert', results)")
