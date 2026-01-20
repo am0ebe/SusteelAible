@@ -52,6 +52,7 @@ class RAGConfig:
 
     # LLM settings (Ollama)
     ollama_model: str = "llama3.1:8b"
+    # phi3:mini
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
     # Increased for map-reduce (fits ~20 chunks + prompt)
