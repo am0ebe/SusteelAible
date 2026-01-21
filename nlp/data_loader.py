@@ -24,6 +24,10 @@ Usage:
     bert_data = load_bert_cache("cache")
 """
 
+from tqdm import tqdm
+import pandas as pd
+from typing import List, Dict, Any, Optional, Union
+import os
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -456,10 +460,295 @@ def load_bert_cache(
     return loader.load_bert_files()
 
 
+"""
+Data Loader Module
+==================
+
+Shared data loading utilities for ML pipelines.
+Supports loading both JSON and CSV files.
+
+Usage:
+    from data_loader import DataLoader, load_csv_data, load_json_data
+"""
+
+
+class DataLoader:
+    """
+    Unified data loader for JSON and CSV files.
+
+    Usage:
+        loader = DataLoader()
+
+        # Load CSV files
+        df = loader.load_csv_folder('data/', prefix='barriers', text_column='barriers')
+
+        # Load JSON files
+        data = loader.load_json_folder('data/', pattern='*.json')
+
+        # Load single files
+        df = loader.load_csv('file.csv')
+        data = loader.load_json('file.json')
+    """
+
+    def __init__(self, verbose: bool = True):
+        """
+        Initialize DataLoader.
+
+        Args:
+            verbose: Whether to print progress information
+        """
+        self.verbose = verbose
+
+    def _log(self, message: str):
+        """Print message if verbose mode is enabled."""
+        if self.verbose:
+            print(message)
+
+    # ==================== CSV Loading ====================
+
+    def load_csv(
+        self,
+        filepath: Union[str, Path],
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Load a single CSV file.
+
+        Args:
+            filepath: Path to CSV file
+            **kwargs: Additional arguments passed to pd.read_csv
+
+        Returns:
+            DataFrame with loaded data
+        """
+        return pd.read_csv(filepath, **kwargs)
+
+    def load_csv_folder(
+        self,
+        folder_path: Union[str, Path],
+        prefix: Optional[str] = None,
+        suffix: str = '.csv',
+        text_column: Optional[str] = None,
+        filter_pattern: Optional[str] = 'NO_',
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Load multiple CSV files from a folder.
+
+        Args:
+            folder_path: Path to folder containing CSV files
+            prefix: Only load files starting with this prefix (e.g., 'barriers')
+            suffix: File extension to look for (default: '.csv')
+            text_column: Column to filter on (removes rows containing filter_pattern)
+            filter_pattern: Pattern to filter out from text_column (e.g., 'NO_')
+            **kwargs: Additional arguments passed to pd.read_csv
+
+        Returns:
+            Concatenated DataFrame from all matching files
+        """
+        folder = Path(folder_path)
+
+        if not folder.exists():
+            raise FileNotFoundError(f"Folder not found: {folder_path}")
+
+        # Find matching files
+        files = [
+            f for f in folder.iterdir()
+            if f.suffix.lower() == suffix.lower()
+            and (prefix is None or f.name.startswith(prefix))
+        ]
+
+        if not files:
+            self._log(f"⚠️  No {suffix} files found in {folder_path}" +
+                      (f" with prefix '{prefix}'" if prefix else ""))
+            return pd.DataFrame()
+
+        self._log(f"\n📂 Loading {len(files)} CSV files from {folder_path}...")
+
+        all_data = []
+        iterator = tqdm(
+            files, desc="Reading CSV files") if self.verbose else files
+
+        for filepath in iterator:
+            try:
+                df = pd.read_csv(filepath, **kwargs)
+
+                # Filter out unwanted rows if specified
+                if text_column and filter_pattern and text_column in df.columns:
+                    df = df[~df[text_column].str.contains(
+                        filter_pattern, na=False)]
+
+                all_data.append(df)
+            except Exception as e:
+                self._log(f"⚠️  Error loading {filepath.name}: {e}")
+
+        if not all_data:
+            return pd.DataFrame()
+
+        result = pd.concat(all_data, ignore_index=True)
+        self._log(f"✅ Loaded {len(result)} rows from {len(all_data)} files")
+
+        return result
+
+    # ==================== JSON Loading ====================
+
+    def load_json(
+        self,
+        filepath: Union[str, Path]
+    ) -> Union[Dict, List]:
+        """
+        Load a single JSON file.
+
+        Args:
+            filepath: Path to JSON file
+
+        Returns:
+            Parsed JSON data (dict or list)
+        """
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def load_json_folder(
+        self,
+        folder_path: Union[str, Path],
+        prefix: Optional[str] = None,
+        suffix: str = '.json',
+        flatten: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        Load multiple JSON files from a folder.
+
+        Args:
+            folder_path: Path to folder containing JSON files
+            prefix: Only load files starting with this prefix
+            suffix: File extension to look for (default: '.json')
+            flatten: If True and JSON files contain lists, flatten into single list
+
+        Returns:
+            List of loaded JSON data with source file information
+        """
+        folder = Path(folder_path)
+
+        if not folder.exists():
+            raise FileNotFoundError(f"Folder not found: {folder_path}")
+
+        # Find matching files
+        files = [
+            f for f in folder.iterdir()
+            if f.suffix.lower() == suffix.lower()
+            and (prefix is None or f.name.startswith(prefix))
+        ]
+
+        if not files:
+            self._log(f"⚠️  No {suffix} files found in {folder_path}" +
+                      (f" with prefix '{prefix}'" if prefix else ""))
+            return []
+
+        self._log(f"\n📂 Loading {len(files)} JSON files from {folder_path}...")
+
+        all_data = []
+        iterator = tqdm(
+            files, desc="Reading JSON files") if self.verbose else files
+
+        for filepath in iterator:
+            try:
+                data = self.load_json(filepath)
+
+                if flatten and isinstance(data, list):
+                    for item in data:
+                        if isinstance(item, dict):
+                            item['_source_file'] = filepath.name
+                        all_data.append(item)
+                else:
+                    if isinstance(data, dict):
+                        data['_source_file'] = filepath.name
+                    all_data.append(data)
+
+            except Exception as e:
+                self._log(f"⚠️  Error loading {filepath.name}: {e}")
+
+        self._log(f"✅ Loaded {len(all_data)} items from {len(files)} files")
+        return all_data
+
+    def load_json_to_dataframe(
+        self,
+        folder_path: Union[str, Path],
+        prefix: Optional[str] = None,
+        record_path: Optional[str] = None,
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Load JSON files and convert to DataFrame.
+
+        Args:
+            folder_path: Path to folder containing JSON files
+            prefix: Only load files starting with this prefix
+            record_path: Path to records in JSON (for nested structures)
+            **kwargs: Additional arguments passed to pd.json_normalize
+
+        Returns:
+            DataFrame with normalized JSON data
+        """
+        data = self.load_json_folder(folder_path, prefix=prefix, flatten=True)
+
+        if not data:
+            return pd.DataFrame()
+
+        return pd.json_normalize(data, record_path=record_path, **kwargs)
+
+
+# ==================== Convenience Functions ====================
+
+def load_csv_data(
+    folder_path: str,
+    file_type: str = 'barriers',
+    verbose: bool = True
+) -> pd.DataFrame:
+    """
+    Load CSV data (backwards compatible with original notebook function).
+
+    Args:
+        folder_path: Path to folder containing CSV files
+        file_type: Type of data to load ('barriers' or 'motivators')
+        verbose: Whether to print progress
+
+    Returns:
+        DataFrame with loaded and filtered data
+    """
+    loader = DataLoader(verbose=verbose)
+    return loader.load_csv_folder(
+        folder_path,
+        prefix=file_type,
+        text_column=file_type,
+        filter_pattern='NO_'
+    )
+
+
+def load_json_data(
+    folder_path: str,
+    prefix: Optional[str] = None,
+    flatten: bool = True,
+    verbose: bool = True
+) -> List[Dict]:
+    """
+    Load JSON data from a folder.
+
+    Args:
+        folder_path: Path to folder containing JSON files
+        prefix: Only load files starting with this prefix
+        flatten: If True, flatten nested lists
+        verbose: Whether to print progress
+
+    Returns:
+        List of loaded JSON data
+    """
+    loader = DataLoader(verbose=verbose)
+    return loader.load_json_folder(folder_path, prefix=prefix, flatten=flatten)
+
+
 # =============================================================================
 # MAIN
 # =============================================================================
-
 if __name__ == "__main__":
     print("JSON Cache Loader Module")
     print("=" * 60)
@@ -479,3 +768,17 @@ if __name__ == "__main__":
     print("  loader = CacheLoader('cache')")
     print("  data = loader.load_single_cache('report_2018', 'prep')")
     print("  loader.save_single_cache('report_2018', 'bert', results)")
+
+    # Example usage
+    print("Data Loader Module")
+    print("==================")
+    print("\nUsage examples:")
+    print("  from data_loader import DataLoader, load_csv_data")
+    print("  ")
+    print("  # Load barriers/motivators CSV files")
+    print("  barriers_df = load_csv_data('data/', 'barriers')")
+    print("  ")
+    print("  # Use DataLoader class for more control")
+    print("  loader = DataLoader()")
+    print("  df = loader.load_csv_folder('data/', prefix='barriers')")
+    print("  json_data = loader.load_json_folder('data/', prefix='config')")

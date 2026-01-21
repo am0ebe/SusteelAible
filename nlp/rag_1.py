@@ -29,7 +29,7 @@ from tabulate import tabulate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
-from nlp.json_loader import load_prep_cache, load_bert_cache
+from nlp.data_loader import load_prep_cache, load_bert_cache
 from nlp.gpu_utils import GPUManager
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -528,7 +528,10 @@ class RAGPipeline:
         return results
 
     def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
-        """Save extraction results to CSV and Excel."""
+        """Save extraction results to CSV and Excel.
+
+        Each barrier/motivator is saved as its own row with metadata preserved.
+        """
         os.makedirs(self.config.output_folder, exist_ok=True)
 
         base_barrier = os.path.join(
@@ -536,11 +539,72 @@ class RAGPipeline:
         base_motivator = os.path.join(
             self.config.output_folder, f"motivators_{company_id}")
 
-        df_barriers.to_csv(f"{base_barrier}.csv", index=False)
-        df_barriers.to_excel(f"{base_barrier}.xlsx", index=False)
+        # Explode barriers into individual rows
+        df_barriers_exploded = self._explode_items(
+            df_barriers,
+            text_column='barriers',
+            count_column='barrier_count'
+        )
 
-        df_motivators.to_csv(f"{base_motivator}.csv", index=False)
-        df_motivators.to_excel(f"{base_motivator}.xlsx", index=False)
+        # Explode motivators into individual rows
+        df_motivators_exploded = self._explode_items(
+            df_motivators,
+            text_column='motivators',
+            count_column='motivator_count'
+        )
+
+        # Save
+        df_barriers_exploded.to_csv(f"{base_barrier}.csv", index=False)
+        df_barriers_exploded.to_excel(f"{base_barrier}.xlsx", index=False)
+        df_motivators_exploded.to_csv(f"{base_motivator}.csv", index=False)
+        df_motivators_exploded.to_excel(f"{base_motivator}.xlsx", index=False)
+
+    def _explode_items(
+        self,
+        df: pd.DataFrame,
+        text_column: str,
+        count_column: str
+    ) -> pd.DataFrame:
+        """Explode concatenated items into individual rows.
+
+        Args:
+            df: DataFrame with concatenated items in text_column
+            text_column: Column containing newline-separated items ('barriers' or 'motivators')
+            count_column: Column with item count (will be dropped)
+
+        Returns:
+            DataFrame with one item per row, metadata preserved
+        """
+        if df.empty:
+            return df
+
+        # Create a copy
+        df = df.copy()
+
+        # Split text column by newlines into lists
+        df[text_column] = df[text_column].apply(
+            lambda x: [item.strip()
+                       for item in str(x).split('\n') if item.strip()]
+        )
+
+        # Explode: each list item becomes its own row
+        df_exploded = df.explode(text_column, ignore_index=True)
+
+        # Drop the count column (no longer accurate/needed)
+        if count_column in df_exploded.columns:
+            df_exploded = df_exploded.drop(columns=[count_column])
+
+        # Drop the chunks column if present (not needed for topic modeling)
+        if 'chunks' in df_exploded.columns:
+            df_exploded = df_exploded.drop(columns=['chunks'])
+
+        # Remove any empty rows that might have been created
+        df_exploded = df_exploded[df_exploded[text_column].str.len() > 0]
+
+        # Reset index
+        df_exploded = df_exploded.reset_index(drop=True)
+
+        return df_exploded
 
     # -------------------------------------------------------------------------
     # Inspection

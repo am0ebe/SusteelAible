@@ -33,7 +33,7 @@ from transformers import pipeline
 
 from nlp.gpu_utils import GPUManager
 from nlp.preprocessing import PDFPreprocessor, PreprocessingConfig, ProcessedDocument
-from nlp.json_loader import CacheLoader
+from nlp.data_loader import CacheLoader
 
 # Suppress all the noisy warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)

@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from nlp.json_loader import CacheLoader
+from nlp.data_loader import CacheLoader
 
 warnings.filterwarnings("ignore")
 
