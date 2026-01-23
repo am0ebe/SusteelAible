@@ -312,6 +312,9 @@ def select_best_scope2_method(df):
 def prepare_analysis_dataset(df):
     """
     Prepare dataset for analysis by calculating additional metrics.
+
+    Automatically filters to rows with valid Scope 1 data, as production-only
+    rows cannot be used in emission intensity analysis.
     
     NOTE: For EDA notebook, these calculations are shown explicitly 
     for educational purposes. For other notebooks, this function 
@@ -331,6 +334,8 @@ def prepare_analysis_dataset(df):
         - scope2_intensity_market: Market-based Scope 2 / production
         - scope2_intensity_best: Best available Scope 2 method per company
         - scope2_method_used: Method selected ('location' or 'market')
+        - total_intensity_best: Scope 1 + best available Scope 2
+        - total_intensity_location: Scope 1 + location-based Scope 2
         - technology_group: Simplified categories (EAF, BF-BOF, Other)
     """
     df = df.copy()
@@ -340,9 +345,29 @@ def prepare_analysis_dataset(df):
         if 'scope1_intensity' not in df.columns:
             df['scope1_intensity'] = df['scope1'] / df['production']
     
+# Filter to rows with valid Scope 1 (required for all analysis)
+    if 'scope1_intensity' in df.columns:
+        n_before = len(df)
+        df = df[df['scope1_intensity'].notna()].copy()
+        n_after = len(df)
+        n_removed = n_before - n_after
+        if n_removed > 0:
+            print(f"   ℹ️  Filtered out {n_removed} rows with missing Scope 1 data")
+
     # Calculate Scope 2 intensities (both methods + best selection)
     if 'scope2_location' in df.columns and 'production' in df.columns:
         df = select_best_scope2_method(df)
+    
+    # Calculate total intensity (Scope 1 + Scope 2)
+    if 'scope1_intensity' in df.columns and 'scope2_intensity_best' in df.columns:
+        df['total_intensity_best'] = (
+            df['scope1_intensity'] + df['scope2_intensity_best']
+        )
+    
+    if 'scope1_intensity' in df.columns and 'scope2_intensity_location' in df.columns:
+        df['total_intensity_location'] = (
+            df['scope1_intensity'] + df['scope2_intensity_location']
+        )
     
     # Create simplified technology groups
     if 'technology' in df.columns:
@@ -397,9 +422,9 @@ def print_data_summary(df):
     print("-"*80)
     print("DATASET SUMMARY")
     print("-"*80)
-    print(f"\nCompanies: {summary['n_companies']}")
-    print(f"Total rows: {summary['n_rows']}")
-    print(f"Year range: {summary['year_range'][0]}-{summary['year_range'][1]}")
+    print(f"\n🏭 Companies: {summary['n_companies']}")
+    print(f"📂 Total rows: {summary['n_rows']}")
+    print(f"📅 Year range: {summary['year_range'][0]}-{summary['year_range'][1]}")
     
     if summary['technologies']:
         print(f"\nTechnologies: {', '.join(summary['technologies'])}")
