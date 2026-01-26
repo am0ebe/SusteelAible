@@ -67,50 +67,88 @@ class RAGConfig:
 # =============================================================================
 
 # MAP phase: Extract from a single company-year group
+# basically using the LLM as a semantic filter + high-recall extractor, not a generator
+# scopeREQ: The sentence MUST explicitly mention at least one emissions-related term (e.g. “emissions”, “CO₂”, “GHG”, “carbon”, “decarbonisation”, “net zero”, “carbon neutral”).
 BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""
-You are analyzing sustainability report excerpts from {company} ({year}) to extract BARRIERS to decarbonisation.
+You are analyzing sustainability report excerpts from {company} ({year}) to extract BARRIERS to DECARBONISATION.
 
 TASK:
-Extract ALL barriers to decarbonisation explicitly mentioned in the text below.
+Extract ALL barriers that explicitly hinder, slow, limit, or complicate efforts to reduce greenhouse gas (GHG) emissions or to decarbonise operations, products, or value chains.
 
-A "barrier" is any stated challenge, constraint, limitation, obstacle, risk, dependency, or external factor that makes decarbonisation more difficult, slower, more expensive, or uncertain.
+DEFINITION:
+A "barrier" is any stated challenge, constraint, limitation, obstacle, risk, dependency, or external factor that makes decarbonisation or GHG emissions reduction more difficult, slower, more expensive, or more uncertain.
+
+SCOPE REQUIREMENT (MANDATORY):
+To qualify, the barrier MUST be explicitly linked in the text to at least one of the following:
+- Decarbonisation
+- Reduction of CO₂ or other greenhouse gas emissions
+- Net-zero, carbon neutrality, or emissions targets
+- Transition away from fossil fuels or high-carbon activities
+
+DO NOT include barriers that relate only to:
+- General sustainability or ESG topics
+- Biodiversity, water, waste, safety, or social issues
+- Business or operational challenges unless they are explicitly tied to emissions reduction or decarbonisation
 
 RULES:
-Extract EVERY barrier mentioned; do NOT filter, rank, or prioritize
-Include barriers even if they are mentioned briefly, indirectly, or as part of a longer sentence
-Do NOT infer barriers that are not explicitly stated in the text
-Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting, no normalization)
-Each output must be the full original sentence or bullet text that contains the barrier
-If a single sentence contains multiple barriers, include the same sentence multiple times (once per barrier)
-If no barriers are explicitly mentioned, respond with exactly: NONE_FOUND
+- Extract EVERY qualifying barrier mentioned; do NOT filter, rank, or prioritize
+- Include barriers even if mentioned briefly or indirectly, as long as the link to decarbonisation or emissions reduction is explicit
+- Do NOT infer or assume a link to decarbonisation if it is not stated in the text
+- Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting)
+- Do NOT normalize capitalization, punctuation, spacing, or units.
+- Each output must be the full original sentence or bullet text that contains the barrier
+- If a single sentence contains multiple qualifying barriers, include the same sentence multiple times (once per barrier)
+- Evaluate each sentence independently. Do NOT combine information across sentences or infer missing context from earlier or later text
+- If no qualifying barriers are found, respond with exactly: NONE_FOUND
 
 REPORT EXCERPTS:
 {context}
 
-Extract ALL barriers (one per line, starting with "- "):
+OUTPUT FORMAT:
+- One line per extracted sentence
+- Each line must start with "- "
+- No empty lines
+- No commentary or headers
+
+Extract ALL qualifying barriers:
 """)
 
 MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""
-You are analyzing sustainability report excerpts from {company} ({year}) to extract MOTIVATORS for decarbonisation.
+You are analyzing sustainability report excerpts from {company} ({year}) to extract MOTIVATORS for DECARBONISATION.
 
 TASK:
-Extract ALL motivators for decarbonisation explicitly mentioned in the text below.
+Extract ALL motivators that explicitly drive, encourage, justify, or accelerate efforts to reduce greenhouse gas (GHG) emissions or to decarbonise operations, products, or value chains.
 
-A "motivator" is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that encourages, enables, accelerates, or justifies decarbonisation efforts. This includes regulatory, financial, strategic, reputational, environmental, operational, or stakeholder-related drivers.
+DEFINITION:
+A "motivator" is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that encourages or justifies decarbonisation or GHG emissions reduction.
+
+SCOPE REQUIREMENT (MANDATORY):
+To qualify, the motivator MUST be explicitly linked in the text to at least one of the following:
+- Decarbonisation
+- Reduction of CO₂ or other greenhouse gas emissions
+- Net-zero, carbon neutrality, or emissions targets
+- Transition away from fossil fuels or high-carbon activities
+
+DO NOT include motivators that relate only to:
+- General sustainability or ESG ambitions
+- Biodiversity, water, waste, safety, or social performance
+- Business strategies or opportunities unless they are explicitly connected to emissions reduction or decarbonisation
 
 RULES:
-Extract EVERY motivator mentioned; do NOT filter, rank, or prioritize,
-Include motivators even if they are mentioned briefly, indirectly, or as part of a longer sentence,
-Do NOT infer motivators that are not explicitly stated in the text,
-Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting, no normalization),
-Each output must be the full original sentence or bullet text that contains the motivator,
-If a single sentence contains multiple motivators, include the same sentence multiple times (once per motivator),
-If no motivators are explicitly mentioned, respond with exactly: NONE_FOUND,
+- Extract EVERY qualifying motivator mentioned; do NOT filter, rank, or prioritize
+- Include motivators even if mentioned briefly or indirectly, as long as the link to decarbonisation or emissions reduction is explicit
+- Do NOT infer or assume a link to decarbonisation if it is not stated in the text
+- Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting)
+- Do NOT normalize capitalization, punctuation, spacing, or units.
+- Each output must be the full original sentence or bullet text that contains the motivator
+- If a single sentence contains multiple qualifying motivators, include the same sentence multiple times (once per motivator)
+- Evaluate each sentence independently. Do NOT combine information across sentences or infer missing context from earlier or later text
+- If no qualifying motivators are found, respond with exactly: NONE_FOUND
 
 REPORT EXCERPTS:
 {context}
 
-Extract ALL motivators (one per line, starting with "- "):
+Extract ALL qualifying motivators (one per line, starting with "- "):
 """)
 
 
