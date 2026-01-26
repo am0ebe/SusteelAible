@@ -408,142 +408,122 @@ class TopicModeler:
         self._reduced_embeddings = umap_2d.fit_transform(embeddings)
         return self._reduced_embeddings
 
-    # ==================== Visualization Methods ====================
+    # ==================== Visualization ====================
 
-    def visualize_topics(self, **kwargs):
-        """
-        Visualize topics in 2D (similar to LDAvis).
-
-        Returns:
-            Plotly figure
-        """
-        return self.topic_model.visualize_topics(**kwargs)
-
-    def visualize_barchart(self, top_n_topics: int = 8, **kwargs):
-        """
-        Visualize top words per topic as bar chart.
-
-        Args:
-            top_n_topics: Number of topics to show
-
-        Returns:
-            Plotly figure
-        """
-        return self.topic_model.visualize_barchart(top_n_topics=top_n_topics, **kwargs)
-
-    def visualize_hierarchy(self, **kwargs):
-        """
-        Visualize topic hierarchy as dendrogram.
-
-        Returns:
-            Plotly figure
-        """
-        return self.topic_model.visualize_hierarchy(**kwargs)
-
-    def visualize_heatmap(self, **kwargs):
-        """
-        Visualize topic similarity matrix.
-
-        Returns:
-            Plotly figure
-        """
-        return self.topic_model.visualize_heatmap(**kwargs)
-
-    def visualize_documents(
+    def viz(
         self,
-        docs: List[str],
-        embeddings: Optional[np.ndarray] = None,
-        reduced_embeddings: Optional[np.ndarray] = None,
-        **kwargs
-    ):
+        df: pd.DataFrame,
+        text_column: str,
+        output_path: str,
+        category: str,
+        top_n_topics: int = 10,
+        include_datamap: bool = False
+    ) -> Dict[str, Any]:
         """
-        Visualize documents in 2D with Plotly.
+        Generate and save all visualizations for a category.
 
         Args:
-            docs: Document texts
-            embeddings: Document embeddings (uses stored if None)
-            reduced_embeddings: 2D embeddings (computes if None)
+            df: DataFrame with text data and metadata (year, company columns)
+            text_column: Name of column containing document text
+            output_path: Directory to save visualizations
+            category: Category name ("barriers" or "motivators")
+            top_n_topics: Number of topics for barchart
+            include_datamap: Whether to generate DataMapPlot (requires datamapplot)
 
         Returns:
-            Plotly figure
+            Dict with paths to saved files and any errors
         """
-        if embeddings is None:
-            embeddings = self._embeddings
-        if reduced_embeddings is None:
-            reduced_embeddings = self._reduced_embeddings
-            if reduced_embeddings is None:
-                reduced_embeddings = self.reduce_embeddings_for_viz(embeddings)
-        self.topic_model.topic_representations_
-        return self.topic_model.visualize_documents(
-            docs,
-            embeddings=embeddings,
-            reduced_embeddings=reduced_embeddings,
-            **kwargs
-        )
+        output = Path(output_path)
+        output.mkdir(parents=True, exist_ok=True)
 
-    def visualize_document_datamap(
-        self,
-        docs: List[str],
-        embeddings: Optional[np.ndarray] = None,
-        reduced_embeddings: Optional[np.ndarray] = None,
-        title: str = "Topic Clusters",
-        interactive: bool = False,
-        **kwargs
-    ):
-        """
-        Visualize documents using DataMapPlot (publication-ready).
+        docs = df[text_column].tolist()
+        self._log(f"\n📊 Generating visualizations for {category}...")
 
-        DataMapPlot creates beautiful, publication-ready visualizations
-        with automatic label placement and styling.
+        results = {"saved": [], "errors": []}
 
-        Requires: pip install datamapplot
+        # Ensure 2D embeddings are computed for document visualizations
+        if self._reduced_embeddings is None and self._embeddings is not None:
+            self.reduce_embeddings_for_viz()
 
-        Args:
-            docs: Document texts
-            embeddings: Document embeddings
-            reduced_embeddings: 2D embeddings
-            title: Plot title
-            interactive: If True, generate interactive HTML
-            **kwargs: Additional DataMapPlot parameters
+        viz_configs = [
+            ("barchart", lambda: self.topic_model.visualize_barchart(top_n_topics=top_n_topics)),
+            ("topics_2d", lambda: self.topic_model.visualize_topics()),
+            ("hierarchy", lambda: self.topic_model.visualize_hierarchy()),
+            ("heatmap", lambda: self.topic_model.visualize_heatmap()),
+            ("documents", lambda: self.topic_model.visualize_documents(
+                docs,
+                embeddings=self._embeddings,
+                reduced_embeddings=self._reduced_embeddings
+            )),
+        ]
 
-        Returns:
-            Matplotlib figure (or HTML if interactive=True)
-        """
+        for name, viz_func in viz_configs:
+            try:
+                fig = viz_func()
+                path = output / f"{category}_{name}.html"
+                fig.write_html(str(path))
+                results["saved"].append(str(path))
+                self._log(f"  ✓ {category}_{name}.html")
+            except Exception as e:
+                results["errors"].append((name, str(e)))
+                self._log(f"  ⚠️ {name}: {e}")
 
-        if embeddings is None:
-            embeddings = self._embeddings
-        if reduced_embeddings is None:
-            reduced_embeddings = self._reduced_embeddings
-            if reduced_embeddings is None:
-                reduced_embeddings = self.reduce_embeddings_for_viz(embeddings)
+        # Topics over time (using year column)
+        if 'year' in df.columns:
+            try:
+                years = df['year'].tolist()
+                topics_over_time = self.topic_model.topics_over_time(
+                    docs, years,
+                    global_tuning=True,
+                    evolution_tuning=True
+                )
+                fig = self.topic_model.visualize_topics_over_time(
+                    topics_over_time,
+                    top_n_topics=top_n_topics
+                )
+                path = output / f"{category}_over_time.html"
+                fig.write_html(str(path))
+                results["saved"].append(str(path))
+                self._log(f"  ✓ {category}_over_time.html")
+            except Exception as e:
+                results["errors"].append(("over_time", str(e)))
+                self._log(f"  ⚠️ over_time: {e}")
 
-        return self.topic_model.visualize_document_datamap(
-            docs,
-            embeddings=embeddings,
-            reduced_embeddings=reduced_embeddings,
-            title=title,
-            interactive=interactive,
-            **kwargs
-        )
+        # Topics per company
+        if 'company' in df.columns:
+            try:
+                companies = df['company'].tolist()
+                topics_per_company = self.topic_model.topics_per_class(docs, companies)
+                fig = self.topic_model.visualize_topics_per_class(
+                    topics_per_company,
+                    top_n_topics=top_n_topics
+                )
+                path = output / f"{category}_per_company.html"
+                fig.write_html(str(path))
+                results["saved"].append(str(path))
+                self._log(f"  ✓ {category}_per_company.html")
+            except Exception as e:
+                results["errors"].append(("per_company", str(e)))
+                self._log(f"  ⚠️ per_company: {e}")
 
-    def visualize_topics_over_time(
-        self,
-        docs: List[str],
-        timestamps: List[str],
-        **kwargs
-    ):
-        """
-        Visualize topic evolution over time.
+        # DataMapPlot (optional, requires datamapplot package)
+        if include_datamap:
+            try:
+                fig = self.topic_model.visualize_document_datamap(
+                    docs,
+                    embeddings=self._embeddings,
+                    reduced_embeddings=self._reduced_embeddings,
+                    title=f"{category.title()} Topics"
+                )
+                path = output / f"{category}_datamap.png"
+                fig.savefig(str(path), dpi=150, bbox_inches='tight')
+                results["saved"].append(str(path))
+                self._log(f"  ✓ {category}_datamap.png")
+            except Exception as e:
+                results["errors"].append(("datamap", str(e)))
+                self._log(f"  ⚠️ datamap: {e}")
 
-        Args:
-            docs: Document texts
-            timestamps: Timestamps for each document
-
-        Returns:
-            Plotly figure
-        """
-        topics_over_time = self.topic_model.topics_over_time(docs, timestamps)
-        return self.topic_model.visualize_topics_over_time(topics_over_time, **kwargs)
+        return results
 
     # ==================== Persistence ====================
 
@@ -644,12 +624,46 @@ def aggregate_by_category(
     ).fillna(0).astype(int)
 
 
+def aggregate_by_company_year(
+    df: pd.DataFrame,
+    topic_column: str = 'topic',
+    company_column: str = 'company',
+    year_column: str = 'year'
+) -> pd.DataFrame:
+    """
+    Aggregate topic counts by company AND year.
+
+    Creates a pivot table showing topic distribution across company-year combinations,
+    useful for tracking how topics evolve within each company over time.
+
+    Args:
+        df: DataFrame with topic, company, and year columns
+        topic_column: Name of topic column
+        company_column: Name of company column
+        year_column: Name of year column
+
+    Returns:
+        Pivoted DataFrame with (company, year) as multi-index rows and topics as columns
+    """
+    counts = df.groupby(
+        [company_column, year_column, topic_column]
+    ).size().reset_index(name='count')
+
+    return counts.pivot_table(
+        index=[company_column, year_column],
+        columns=topic_column,
+        values='count',
+        fill_value=0
+    ).astype(int)
+
+
 # ==================== Main Pipeline ====================
 
 def run_topic_modeling_pipeline(
     data_folder: str,
     output_folder: str = "./output",
-    config: Optional[TopicModelConfig] = None
+    config: Optional[TopicModelConfig] = None,
+    include_datamap: bool = False
 ) -> Dict[str, Any]:
     """
     Run complete topic modeling pipeline.
@@ -658,106 +672,75 @@ def run_topic_modeling_pipeline(
         data_folder: Path to folder with CSV data files
         output_folder: Path to save outputs
         config: TopicModelConfig (uses defaults if None)
+        include_datamap: Whether to generate DataMapPlot visualizations
 
     Returns:
         Dictionary with results
     """
-    # Setup
     config = config or TopicModelConfig()
     output_path = Path(output_folder)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    results = {}
-
-    # Load data
     print("\n" + "="*60)
     print("📂 LOADING DATA")
     print("="*60)
 
-    barriers_df = load_csv_data(data_folder, 'barriers')
-    motivators_df = load_csv_data(data_folder, 'motivators')
+    # Load both datasets
+    datasets = {
+        'barriers': load_csv_data(data_folder, 'barriers'),
+        'motivators': load_csv_data(data_folder, 'motivators')
+    }
 
-    # Initialize modeler
-    modeler = TopicModeler(config)
+    results = {}
 
-    # Process barriers
-    if not barriers_df.empty:
+    # Process each category with the same code
+    for category, df in datasets.items():
+        if df.empty:
+            print(f"\n⚠️  No {category} data found, skipping...")
+            continue
+
         print("\n" + "="*60)
-        print("🎯 TOPIC MODELING: BARRIERS")
+        print(f"🎯 TOPIC MODELING: {category.upper()}")
         print("="*60)
 
-        barriers_df, topics, probs = modeler.fit_transform(
-            barriers_df, 'barriers')
-        modeler.print_topics()
-
-        # Save results
-        barriers_df.to_csv(output_path / "barriers_topics.csv", index=False)
-        modeler.save(str(output_path / "barriers"))
-
-        results['barriers'] = {
-            'df': barriers_df,
-            'topics': topics,
-            'topic_info': modeler.get_topic_info()
-        }
-
-        # Generate visualizations
-        try:
-            fig = modeler.visualize_barchart(top_n_topics=10)
-            fig.write_html(str(output_path / "barriers_topics_barchart.html"))
-
-            fig = modeler.visualize_topics()
-            fig.write_html(str(output_path / "barriers_topics_2d.html"))
-        except Exception as e:
-            print(f"⚠️  Visualization error: {e}")
-
-        # Aggregate by year if available
-        if 'year' in barriers_df.columns:
-            yearly = aggregate_by_year(barriers_df)
-            yearly.to_csv(output_path / "barriers_yearly.csv")
-            results['barriers']['yearly'] = yearly
-
-        modeler.cleanup()
-
-    # Process motivators (create new modeler instance)
-    if not motivators_df.empty:
-        print("\n" + "="*60)
-        print("🎯 TOPIC MODELING: MOTIVATORS")
-        print("="*60)
-
+        # Fit topic model
         modeler = TopicModeler(config)
-        motivators_df, topics, probs = modeler.fit_transform(
-            motivators_df, 'motivators')
+        df, topics, probs = modeler.fit_transform(df, category)
         modeler.print_topics()
 
-        # Save results
-        motivators_df.to_csv(
-            output_path / "motivators_topics.csv", index=False)
-        modeler.save(str(output_path / "motivators"))
+        # Save model and results
+        df.to_csv(output_path / f"{category}_topics.csv", index=False)
+        modeler.save(str(output_path / category))
 
-        results['motivators'] = {
-            'df': motivators_df,
+        results[category] = {
+            'df': df,
             'topics': topics,
             'topic_info': modeler.get_topic_info()
         }
 
         # Generate visualizations
-        try:
-            fig = modeler.visualize_barchart(top_n_topics=10)
-            fig.write_html(
-                str(output_path / "motivators_topics_barchart.html"))
-
-            fig = modeler.visualize_topics()
-            fig.write_html(str(output_path / "motivators_topics_2d.html"))
-        except Exception as e:
-            print(f"⚠️  Visualization error: {e}")
+        viz_results = modeler.viz(
+            df=df,
+            text_column=category,
+            output_path=str(output_path),
+            category=category,
+            include_datamap=include_datamap
+        )
+        results[category]['viz'] = viz_results
 
         # Aggregate by year if available
-        if 'year' in motivators_df.columns:
-            yearly = aggregate_by_year(motivators_df)
-            yearly.to_csv(output_path / "motivators_yearly.csv")
-            results['motivators']['yearly'] = yearly
+        if 'year' in df.columns:
+            yearly = aggregate_by_year(df)
+            yearly.to_csv(output_path / f"{category}_yearly.csv")
+            results[category]['yearly'] = yearly
 
-        # add visualize_document_datamap here!
+        # Aggregate by company-year if both columns available
+        if 'company' in df.columns and 'year' in df.columns:
+            company_year = aggregate_by_company_year(df)
+            company_year.to_csv(output_path / f"{category}_company_year.csv")
+            results[category]['company_year'] = company_year
+            print(f"  ✓ Saved {category}_company_year.csv")
+
         modeler.cleanup()
 
     print("\n" + "="*60)
