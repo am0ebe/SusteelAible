@@ -4,10 +4,10 @@ RAG Pipeline for Company Decarbonisation Report Analysis
 
 This module provides a pipeline for:
 1. Loading preprocessed data from JSON cache files (bert.json with ClimateBERT filtering)
-2. Extracting barriers and motivators using map-reduce LLM strategy
+2. Extracting barriers and motivators using LLM extraction
 3. Aggregating results by company and year
 
-Strategy: ClimateBERT filters → Group by company-year → Map (extract per group) → Reduce (aggregate)
+Strategy: ClimateBERT filters → Group by company-year → Extract per group → Save
 
 Usage:
     from rag_pipeline import RAGPipeline
@@ -55,7 +55,7 @@ class RAGConfig:
     # phi3:mini
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
-    # Increased for map-reduce (fits ~20 chunks + prompt)
+    # Fits ~20 chunks + prompt per LLM call
     llm_num_ctx: int = 8192
 
     # Extraction settings
@@ -67,16 +67,22 @@ class RAGConfig:
 # =============================================================================
 
 # MAP phase: Extract from a single company-year group
-BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""You are analyzing sustainability report excerpts from {company} ({year}) to extract BARRIERS to decarbonisation.
+BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""
+You are analyzing sustainability report excerpts from {company} ({year}) to extract BARRIERS to decarbonisation.
 
-TASK: Extract ALL specific barriers mentioned in the text below. Capture every barrier, even minor ones.
+TASK:
+Extract ALL barriers to decarbonisation explicitly mentioned in the text below.
+
+A "barrier" is any stated challenge, constraint, limitation, obstacle, risk, dependency, or external factor that makes decarbonisation more difficult, slower, more expensive, or uncertain.
 
 RULES:
-1. Extract EVERY barrier mentioned - do not filter or prioritize
-2. Each barrier should be a concrete, specific challenge
-3. Include the barrier even if mentioned briefly or indirectly
-4. Use concise phrasing (5-20 words per barrier)
-5. If truly no barriers found, respond with: NONE_FOUND
+Extract EVERY barrier mentioned; do NOT filter, rank, or prioritize
+Include barriers even if they are mentioned briefly, indirectly, or as part of a longer sentence
+Do NOT infer barriers that are not explicitly stated in the text
+Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting, no normalization)
+Each output must be the full original sentence or bullet text that contains the barrier
+If a single sentence contains multiple barriers, include the same sentence multiple times (once per barrier)
+If no barriers are explicitly mentioned, respond with exactly: NONE_FOUND
 
 REPORT EXCERPTS:
 {context}
@@ -84,38 +90,27 @@ REPORT EXCERPTS:
 Extract ALL barriers (one per line, starting with "- "):
 """)
 
-MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""You are analyzing sustainability report excerpts from {company} ({year}) to extract MOTIVATORS/DRIVERS for decarbonisation.
+MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""
+You are analyzing sustainability report excerpts from {company} ({year}) to extract MOTIVATORS for decarbonisation.
 
-TASK: Extract ALL specific motivators mentioned in the text below. Capture every driver, even minor ones.
+TASK:
+Extract ALL motivators for decarbonisation explicitly mentioned in the text below.
+
+A "motivator" is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that encourages, enables, accelerates, or justifies decarbonisation efforts. This includes regulatory, financial, strategic, reputational, environmental, operational, or stakeholder-related drivers.
 
 RULES:
-1. Extract EVERY motivator mentioned - do not filter or prioritize
-2. Each motivator should be a concrete, specific driver
-3. Include the motivator even if mentioned briefly or indirectly
-4. Use concise phrasing (5-20 words per motivator)
-5. If truly no motivators found, respond with: NONE_FOUND
+Extract EVERY motivator mentioned; do NOT filter, rank, or prioritize,
+Include motivators even if they are mentioned briefly, indirectly, or as part of a longer sentence,
+Do NOT infer motivators that are not explicitly stated in the text,
+Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting, no normalization),
+Each output must be the full original sentence or bullet text that contains the motivator,
+If a single sentence contains multiple motivators, include the same sentence multiple times (once per motivator),
+If no motivators are explicitly mentioned, respond with exactly: NONE_FOUND,
 
 REPORT EXCERPTS:
 {context}
 
 Extract ALL motivators (one per line, starting with "- "):
-""")
-
-# REDUCE phase: Aggregate and deduplicate across chunks (if needed for very large groups)
-REDUCE_PROMPT = ChatPromptTemplate.from_template("""You are consolidating extracted {extract_type} from multiple report sections.
-
-TASK: Merge and deduplicate the following {extract_type}, preserving all unique items.
-
-RULES:
-1. Keep ALL unique {extract_type} - do not remove any
-2. Merge duplicates that say the same thing differently
-3. Preserve specific details and numbers
-4. Output one item per line, starting with "- "
-
-EXTRACTED {extract_type}:
-{items}
-
-Consolidated {extract_type} (one per line, starting with "- "):
 """)
 
 
@@ -124,7 +119,7 @@ Consolidated {extract_type} (one per line, starting with "- "):
 # =============================================================================
 
 class RAGPipeline:
-    """RAG pipeline using map-reduce extraction strategy."""
+    """RAG pipeline for extracting barriers and motivators from sustainability reports."""
 
     def __init__(self, config: Optional[RAGConfig] = None):
         """Initialize the pipeline."""
@@ -194,7 +189,7 @@ class RAGPipeline:
         return self.chunks
 
     def _group_chunks(self):
-        """Group chunks by (company_id, year) for map-reduce processing."""
+        """Group chunks by (company_id, year) for batch processing."""
         self.grouped_chunks = defaultdict(list)
 
         for chunk in self.chunks:
@@ -282,7 +277,7 @@ class RAGPipeline:
         print(f"{'='*70}\n")
 
     # -------------------------------------------------------------------------
-    # Extraction (Map-Reduce)
+    # Extraction
     # -------------------------------------------------------------------------
 
     def get_companies(self) -> List[str]:
@@ -392,35 +387,6 @@ class RAGPipeline:
             print(f"    ⚠️ Error in map phase: {e}")
             return []
 
-    def _reduce_items(self, all_items: List[str], extract_type: str) -> List[str]:
-        """REDUCE phase: Consolidate items if list is very long."""
-        if len(all_items) <= 30:
-            # No need to reduce, just deduplicate
-            seen = set()
-            unique = []
-            for item in all_items:
-                normalized = item.lower().strip()
-                if normalized not in seen:
-                    seen.add(normalized)
-                    unique.append(item)
-            return unique
-
-        # Use LLM to consolidate
-        chain = REDUCE_PROMPT | self.llm
-        items_text = "\n".join(f"- {item}" for item in all_items)
-
-        try:
-            response = chain.invoke({
-                "extract_type": extract_type,
-                "items": items_text
-            })
-            raw_text = response.content if hasattr(
-                response, "content") else str(response)
-            return self._parse_llm_response(raw_text)
-        except Exception as e:
-            print(f"    ⚠️ Error in reduce phase: {e}")
-            return all_items[:30]  # Fallback: return first 30
-
     def extract_company_year(
         self,
         company_id: str,
@@ -456,6 +422,7 @@ class RAGPipeline:
             f"Groups: {len(years)} | Avg chunks/group: {len(self.chunks) / max(len(self.grouped_chunks), 1):.1f}")
 
         barrier_rows, motivator_rows = [], []
+        total_barriers, total_motivators = 0, 0
 
         for year in tqdm(years, desc=f"  {company_id}", leave=False):
             key = (company_id, year)
@@ -463,32 +430,35 @@ class RAGPipeline:
 
             barriers, motivators = self.extract_company_year(company_id, year)
 
-            barrier_rows.append({
-                "company_id": company_id,
-                "company": company_name,
-                "year": year,
-                "chunks": n_chunks,
-                "barriers": "\n".join(barriers) if barriers else "NONE_FOUND",
-                "barrier_count": len(barriers),
-            })
-            motivator_rows.append({
-                "company_id": company_id,
-                "company": company_name,
-                "year": year,
-                "chunks": n_chunks,
-                "motivators": "\n".join(motivators) if motivators else "NONE_FOUND",
-                "motivator_count": len(motivators),
-            })
+            # Create one row per barrier (individual items, not joined)
+            for barrier in barriers:
+                barrier_rows.append({
+                    "company_id": company_id,
+                    "company": company_name,
+                    "year": year,
+                    "barriers": barrier,
+                })
+            total_barriers += len(barriers)
 
-        print(f"  ✓ Extracted {sum(r['barrier_count'] for r in barrier_rows)} barriers, "
-              f"{sum(r['motivator_count'] for r in motivator_rows)} motivators")
+            # Create one row per motivator (individual items, not joined)
+            for motivator in motivators:
+                motivator_rows.append({
+                    "company_id": company_id,
+                    "company": company_name,
+                    "year": year,
+                    "motivators": motivator,
+                })
+            total_motivators += len(motivators)
+
+        print(
+            f"  ✓ Extracted {total_barriers} barriers, {total_motivators} motivators")
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 
     def extract_all_companies(self, save_results: bool = True) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
         """Extract barriers and motivators for all companies."""
         print(f"\n{'='*70}")
-        print("EXTRACTING ALL COMPANIES (Map-Reduce Strategy)")
+        print("EXTRACTING ALL COMPANIES")
         print(f"{'='*70}")
         print(f"Total groups: {len(self.grouped_chunks)}")
         print(f"LLM context: {self.config.llm_num_ctx} tokens")
@@ -510,12 +480,8 @@ class RAGPipeline:
                 print(f"✗ {company_id}: {e}")
 
         # Summary
-        total_barriers = sum(
-            df[0]['barrier_count'].sum() for df in results.values()
-        )
-        total_motivators = sum(
-            df[1]['motivator_count'].sum() for df in results.values()
-        )
+        total_barriers = sum(len(df[0]) for df in results.values())
+        total_motivators = sum(len(df[1]) for df in results.values())
 
         print(f"\n{'='*70}")
         print("✓ EXTRACTION COMPLETE")
@@ -530,7 +496,7 @@ class RAGPipeline:
     def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
         """Save extraction results to CSV and Excel.
 
-        Each barrier/motivator is saved as its own row with metadata preserved.
+        Each barrier/motivator is already its own row with metadata preserved.
         """
         os.makedirs(self.config.output_folder, exist_ok=True)
 
@@ -539,72 +505,11 @@ class RAGPipeline:
         base_motivator = os.path.join(
             self.config.output_folder, f"motivators_{company_id}")
 
-        # Explode barriers into individual rows
-        df_barriers_exploded = self._explode_items(
-            df_barriers,
-            text_column='barriers',
-            count_column='barrier_count'
-        )
-
-        # Explode motivators into individual rows
-        df_motivators_exploded = self._explode_items(
-            df_motivators,
-            text_column='motivators',
-            count_column='motivator_count'
-        )
-
-        # Save
-        df_barriers_exploded.to_csv(f"{base_barrier}.csv", index=False)
-        df_barriers_exploded.to_excel(f"{base_barrier}.xlsx", index=False)
-        df_motivators_exploded.to_csv(f"{base_motivator}.csv", index=False)
-        df_motivators_exploded.to_excel(f"{base_motivator}.xlsx", index=False)
-
-    def _explode_items(
-        self,
-        df: pd.DataFrame,
-        text_column: str,
-        count_column: str
-    ) -> pd.DataFrame:
-        """Explode concatenated items into individual rows.
-
-        Args:
-            df: DataFrame with concatenated items in text_column
-            text_column: Column containing newline-separated items ('barriers' or 'motivators')
-            count_column: Column with item count (will be dropped)
-
-        Returns:
-            DataFrame with one item per row, metadata preserved
-        """
-        if df.empty:
-            return df
-
-        # Create a copy
-        df = df.copy()
-
-        # Split text column by newlines into lists
-        df[text_column] = df[text_column].apply(
-            lambda x: [item.strip()
-                       for item in str(x).split('\n') if item.strip()]
-        )
-
-        # Explode: each list item becomes its own row
-        df_exploded = df.explode(text_column, ignore_index=True)
-
-        # Drop the count column (no longer accurate/needed)
-        if count_column in df_exploded.columns:
-            df_exploded = df_exploded.drop(columns=[count_column])
-
-        # Drop the chunks column if present (not needed for topic modeling)
-        if 'chunks' in df_exploded.columns:
-            df_exploded = df_exploded.drop(columns=['chunks'])
-
-        # Remove any empty rows that might have been created
-        df_exploded = df_exploded[df_exploded[text_column].str.len() > 0]
-
-        # Reset index
-        df_exploded = df_exploded.reset_index(drop=True)
-
-        return df_exploded
+        # Save directly (already one row per item)
+        df_barriers.to_csv(f"{base_barrier}.csv", index=False)
+        df_barriers.to_excel(f"{base_barrier}.xlsx", index=False)
+        df_motivators.to_csv(f"{base_motivator}.csv", index=False)
+        df_motivators.to_excel(f"{base_motivator}.xlsx", index=False)
 
     # -------------------------------------------------------------------------
     # Inspection
@@ -639,16 +544,22 @@ class RAGPipeline:
     def display_results(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
         """Display extraction results."""
         print(f"\n{'='*60}")
-        print(f"BARRIERS - {company_id}")
+        print(f"BARRIERS - {company_id} ({len(df_barriers)} items)")
         print(f"{'='*60}")
-        print(tabulate(df_barriers[['year', 'chunks', 'barrier_count', 'barriers']],
-                       headers='keys', tablefmt='grid', maxcolwidths=[None, None, None, 60]))
+        if not df_barriers.empty:
+            print(tabulate(df_barriers[['year', 'barriers']],
+                           headers='keys', tablefmt='grid', maxcolwidths=[None, 60]))
+        else:
+            print("No barriers found.")
 
         print(f"\n{'='*60}")
-        print(f"MOTIVATORS - {company_id}")
+        print(f"MOTIVATORS - {company_id} ({len(df_motivators)} items)")
         print(f"{'='*60}")
-        print(tabulate(df_motivators[['year', 'chunks', 'motivator_count', 'motivators']],
-                       headers='keys', tablefmt='grid', maxcolwidths=[None, None, None, 60]))
+        if not df_motivators.empty:
+            print(tabulate(df_motivators[['year', 'motivators']],
+                           headers='keys', tablefmt='grid', maxcolwidths=[None, 60]))
+        else:
+            print("No motivators found.")
 
     def cleanup(self):
         """Release resources."""
