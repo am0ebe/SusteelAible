@@ -35,7 +35,7 @@ from umap import UMAP
 from hdbscan import HDBSCAN
 from sklearn.feature_extraction.text import CountVectorizer
 from bertopic import BERTopic
-from bertopic.representation import KeyBERTInspired
+from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
 from bertopic.vectorizers import ClassTfidfTransformer
 from sentence_transformers import SentenceTransformer
 
@@ -204,10 +204,15 @@ class TopicModeler:
         # Step 4: c-TF-IDF transformer
         ctfidf_model = ClassTfidfTransformer()
 
-        # Step 5: KeyBERTInspired for better topic representation
-        # This improves topic word coherence by using embeddings
-        representation_model = KeyBERTInspired()
-        self._log("  🔑 Using KeyBERTInspired for topic representation")
+        # Step 5: Representation models
+        # KeyBERTInspired improves topic word coherence using embeddings
+        # MMR adds diversity to reduce redundancy in topic words
+        diversity = 0.5
+        mmr_model = MaximalMarginalRelevance(diversity=diversity)
+        keybert_model = KeyBERTInspired()
+        representation_model = [keybert_model, mmr_model]
+        self._log(
+            f"  🔑 Using KeyBERTInspired + MMR (diversity={diversity}) for topic representation")
 
         # Create BERTopic model
         topic_model = BERTopic(
@@ -446,7 +451,8 @@ class TopicModeler:
             self.reduce_embeddings_for_viz()
 
         viz_configs = [
-            ("barchart", lambda: self.topic_model.visualize_barchart(top_n_topics=top_n_topics)),
+            ("barchart", lambda: self.topic_model.visualize_barchart(
+                top_n_topics=top_n_topics)),
             ("topics_2d", lambda: self.topic_model.visualize_topics()),
             ("hierarchy", lambda: self.topic_model.visualize_hierarchy()),
             ("heatmap", lambda: self.topic_model.visualize_heatmap()),
@@ -493,7 +499,8 @@ class TopicModeler:
         if 'company' in df.columns:
             try:
                 companies = df['company'].tolist()
-                topics_per_company = self.topic_model.topics_per_class(docs, companies)
+                topics_per_company = self.topic_model.topics_per_class(
+                    docs, companies)
                 fig = self.topic_model.visualize_topics_per_class(
                     topics_per_company,
                     top_n_topics=top_n_topics
