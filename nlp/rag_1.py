@@ -20,8 +20,9 @@ Usage:
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple, Set
+from typing import List, Dict, Optional, Tuple, Set, Any
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from tabulate import tabulate
@@ -68,7 +69,7 @@ class RAGConfig:
 
 # MAP phase: Extract from a single company-year group
 # basically using the LLM as a semantic filter + high-recall extractor, not a generator
-# scopeREQ: The sentence MUST explicitly mention at least one emissions-related term (e.g. “emissions”, “CO₂”, “GHG”, “carbon”, “decarbonisation”, “net zero”, “carbon neutral”).
+# scopeREQ: The sentence MUST explicitly mention at least one emissions-related term (e.g. "emissions", "CO₂", "GHG", "carbon", "decarbonisation", "net zero", "carbon neutral").
 BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""
 You are analyzing sustainability report excerpts from {company} ({year}) to extract BARRIERS to DECARBONISATION.
 
@@ -77,6 +78,12 @@ Extract ALL barriers that explicitly hinder, slow, limit, or complicate efforts 
 
 DEFINITION:
 A "barrier" is any stated challenge, constraint, limitation, obstacle, risk, dependency, or external factor that makes decarbonisation or GHG emissions reduction more difficult, slower, more expensive, or more uncertain.
+
+CHUNK ANNOTATIONS:
+- Chunks marked [NET-ZERO] contain net-zero/reduction targets
+- Chunks marked [COMMITMENT] contain firm commitments
+- Chunks marked [SPECIFIC] contain specific/quantified claims
+- Prioritize extracting from marked chunks, but also check unmarked chunks
 
 SCOPE REQUIREMENT (MANDATORY):
 To qualify, the barrier MUST be explicitly linked in the text to at least one of the following:
@@ -121,6 +128,12 @@ Extract ALL motivators that explicitly drive, encourage, justify, or accelerate 
 
 DEFINITION:
 A "motivator" is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that encourages or justifies decarbonisation or GHG emissions reduction.
+
+CHUNK ANNOTATIONS:
+- Chunks marked [NET-ZERO] contain net-zero/reduction targets
+- Chunks marked [COMMITMENT] contain firm commitments
+- Chunks marked [SPECIFIC] contain specific/quantified claims
+- Prioritize extracting from marked chunks, but also check unmarked chunks
 
 SCOPE REQUIREMENT (MANDATORY):
 To qualify, the motivator MUST be explicitly linked in the text to at least one of the following:
@@ -338,6 +351,123 @@ class RAGPipeline:
                     return name
         return company_id
 
+    # -------------------------------------------------------------------------
+    # BERT Metadata Helpers
+    # -------------------------------------------------------------------------
+
+    def _find_source_chunk_exact(self, extracted_text: str, chunks: List) -> Optional[Dict[str, Any]]:
+        """Find source chunk using exact substring match.
+
+        Since prompts require verbatim extraction, we can use exact string matching
+        to trace extracted sentences back to source chunks.
+
+        Returns dict with source chunk ID and all BERT metadata, or None if not found.
+        """
+        if not extracted_text or not chunks:
+            return None
+
+        extracted_clean = extracted_text.strip().lower()
+
+        for chunk in chunks:
+            chunk_text = chunk.page_content.lower() if hasattr(chunk, 'page_content') else str(chunk).lower()
+            if extracted_clean in chunk_text:
+                return {
+                    "source_chunk_id": chunk.metadata.get("chunk_id"),
+                    "detector_score": chunk.metadata.get("detector_score", 0),
+                    "specificity_score": chunk.metadata.get("specificity_score", 0),
+                    "specificity_label": chunk.metadata.get("specificity_label"),
+                    "commitment_score": chunk.metadata.get("commitment_score", 0),
+                    "commitment_label": chunk.metadata.get("commitment_label"),
+                    "sentiment_label": chunk.metadata.get("sentiment_label"),
+                    "sentiment_score": chunk.metadata.get("sentiment_score", 0),
+                    "netzero_label": chunk.metadata.get("netzero_label"),
+                    "netzero_score": chunk.metadata.get("netzero_score", 0),
+                }
+        return None
+
+    def _format_chunk_with_metadata(self, i: int, chunk) -> str:
+        """Format chunk with BERT labels for prompt context.
+
+        Annotates chunks with labels like [NET-ZERO], [COMMITMENT], [SPECIFIC]
+        to help the LLM prioritize high-quality chunks.
+        """
+        labels = []
+        if chunk.metadata.get("netzero_label") == "reduction":
+            labels.append("NET-ZERO")
+        if chunk.metadata.get("commitment_label") == "yes":
+            labels.append("COMMITMENT")
+        if chunk.metadata.get("specificity_label") == "specific":
+            labels.append("SPECIFIC")
+
+        tag = f" [{', '.join(labels)}]" if labels else ""
+        return f"[Chunk {i+1}{tag}]\n{chunk.page_content}"
+
+    def _sort_chunks_by_quality(self, chunks: List) -> List:
+        """Sort chunks by composite quality score (best first).
+
+        Score = 30% detector + 35% specificity + 35% commitment
+        """
+        def score(c):
+            return (
+                c.metadata.get("detector_score", 0) * 0.3 +
+                c.metadata.get("specificity_score", 0) * 0.35 +
+                c.metadata.get("commitment_score", 0) * 0.35
+            )
+        return sorted(chunks, key=score, reverse=True)
+
+    def _compute_group_metadata(self, chunks: List) -> Dict[str, Any]:
+        """Compute aggregate BERT metadata for a group of chunks.
+
+        Used as fallback when exact substring match fails (e.g., LLM slightly modified text).
+        Returns mean scores and most common labels.
+        """
+        if not chunks:
+            return {
+                "source_chunk_id": None,
+                "detector_score": 0,
+                "specificity_score": 0,
+                "specificity_label": None,
+                "commitment_score": 0,
+                "commitment_label": None,
+                "sentiment_label": None,
+                "sentiment_score": 0,
+                "netzero_label": None,
+                "netzero_score": 0,
+            }
+
+        # Compute mean scores
+        detector_scores = [c.metadata.get("detector_score", 0) for c in chunks]
+        specificity_scores = [c.metadata.get("specificity_score", 0) for c in chunks]
+        commitment_scores = [c.metadata.get("commitment_score", 0) for c in chunks]
+        sentiment_scores = [c.metadata.get("sentiment_score", 0) for c in chunks]
+        netzero_scores = [c.metadata.get("netzero_score", 0) for c in chunks]
+
+        # Get most common labels (mode)
+        def mode(values: List) -> Optional[str]:
+            filtered = [v for v in values if v is not None]
+            if not filtered:
+                return None
+            from collections import Counter
+            return Counter(filtered).most_common(1)[0][0]
+
+        specificity_labels = [c.metadata.get("specificity_label") for c in chunks]
+        commitment_labels = [c.metadata.get("commitment_label") for c in chunks]
+        sentiment_labels = [c.metadata.get("sentiment_label") for c in chunks]
+        netzero_labels = [c.metadata.get("netzero_label") for c in chunks]
+
+        return {
+            "source_chunk_id": None,  # No exact match
+            "detector_score": float(np.mean(detector_scores)) if detector_scores else 0,
+            "specificity_score": float(np.mean(specificity_scores)) if specificity_scores else 0,
+            "specificity_label": mode(specificity_labels),
+            "commitment_score": float(np.mean(commitment_scores)) if commitment_scores else 0,
+            "commitment_label": mode(commitment_labels),
+            "sentiment_label": mode(sentiment_labels),
+            "sentiment_score": float(np.mean(sentiment_scores)) if sentiment_scores else 0,
+            "netzero_label": mode(netzero_labels),
+            "netzero_score": float(np.mean(netzero_scores)) if netzero_scores else 0,
+        }
+
     def _parse_llm_response(self, response_text: str) -> List[str]:
         """Parse LLM response into list of items."""
         if not response_text:
@@ -394,17 +524,25 @@ class RAGPipeline:
         year: str,
         extract_type: str
     ) -> List[str]:
-        """MAP phase: Extract barriers/motivators from a single company-year group."""
+        """MAP phase: Extract barriers/motivators from a single company-year group.
+
+        Uses BERT metadata to:
+        1. Sort chunks by quality (best first)
+        2. Annotate chunks with BERT labels in the prompt
+        """
         if not chunks:
             return []
+
+        # Sort by BERT quality score (best chunks first)
+        chunks = self._sort_chunks_by_quality(chunks)
 
         # Limit chunks if too many
         if len(chunks) > self.config.max_chunks_per_group:
             chunks = chunks[:self.config.max_chunks_per_group]
 
-        # Build context from all chunks
+        # Build context WITH metadata annotations
         context = "\n\n---\n\n".join(
-            f"[Chunk {i+1}]\n{chunk.page_content}"
+            self._format_chunk_with_metadata(i, chunk)
             for i, chunk in enumerate(chunks)
         )
 
@@ -447,7 +585,12 @@ class RAGPipeline:
         return barriers, motivators
 
     def extract_company_data(self, company_id: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Extract barriers and motivators for a company across all years."""
+        """Extract barriers and motivators for a company across all years.
+
+        Each extracted item is traced back to its source chunk via exact substring
+        matching, inheriting all BERT metadata (detector, specificity, commitment,
+        sentiment, netzero scores and labels).
+        """
         company_name = self._get_company_name(company_id)
 
         print(f"\n{'='*60}")
@@ -461,35 +604,58 @@ class RAGPipeline:
 
         barrier_rows, motivator_rows = [], []
         total_barriers, total_motivators = 0, 0
+        matched_barriers, matched_motivators = 0, 0
 
         for year in tqdm(years, desc=f"  {company_id}", leave=False):
             key = (company_id, year)
-            n_chunks = len(self.grouped_chunks.get(key, []))
+            chunks = self.grouped_chunks.get(key, [])
 
             barriers, motivators = self.extract_company_year(company_id, year)
 
-            # Create one row per barrier (individual items, not joined)
+            # Create one row per barrier with BERT metadata
             for barrier in barriers:
-                barrier_rows.append({
+                row = {
                     "company_id": company_id,
                     "company": company_name,
                     "year": year,
                     "barriers": barrier,
-                })
+                }
+                # Find source chunk and inherit BERT scores
+                source = self._find_source_chunk_exact(barrier, chunks)
+                if source:
+                    row.update(source)
+                    matched_barriers += 1
+                else:
+                    # Fallback: use group-level aggregates
+                    row.update(self._compute_group_metadata(chunks))
+                barrier_rows.append(row)
             total_barriers += len(barriers)
 
-            # Create one row per motivator (individual items, not joined)
+            # Create one row per motivator with BERT metadata
             for motivator in motivators:
-                motivator_rows.append({
+                row = {
                     "company_id": company_id,
                     "company": company_name,
                     "year": year,
                     "motivators": motivator,
-                })
+                }
+                # Find source chunk and inherit BERT scores
+                source = self._find_source_chunk_exact(motivator, chunks)
+                if source:
+                    row.update(source)
+                    matched_motivators += 1
+                else:
+                    # Fallback: use group-level aggregates
+                    row.update(self._compute_group_metadata(chunks))
+                motivator_rows.append(row)
             total_motivators += len(motivators)
 
+        # Report match rates
+        barrier_match_rate = matched_barriers / total_barriers * 100 if total_barriers > 0 else 0
+        motivator_match_rate = matched_motivators / total_motivators * 100 if total_motivators > 0 else 0
         print(
-            f"  ✓ Extracted {total_barriers} barriers, {total_motivators} motivators")
+            f"  ✓ Extracted {total_barriers} barriers ({barrier_match_rate:.0f}% matched), "
+            f"{total_motivators} motivators ({motivator_match_rate:.0f}% matched)")
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 

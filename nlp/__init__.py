@@ -15,6 +15,10 @@ from .data_loader import (
     load_csv_data,
     load_json_data,
 )
+from .rag_1 import (
+    RAGPipeline,
+    quick_start
+)
 # Topic modeling with BERTopic (HDBSCAN + UMAP + KeyBERTInspired)
 from .rag_2 import (
     TopicModeler,
