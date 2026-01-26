@@ -19,17 +19,17 @@ Requirements:
     pip install datamapplot  # Optional: for DataMapPlot visualization
 """
 
-from nlp import DataLoader, load_csv_data
-from nlp import GPUManager, clear_gpu_memory
+from nlp import load_csv_data
+from nlp import GPUManager
 import os
 import warnings
 from pathlib import Path
 from typing import Optional, List, Tuple, Dict, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+import datamapplot  # ?? y not uised?
 
 from umap import UMAP
 from hdbscan import HDBSCAN
@@ -37,6 +37,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from bertopic import BERTopic
 from bertopic.representation import KeyBERTInspired
 from bertopic.vectorizers import ClassTfidfTransformer
+from sentence_transformers import SentenceTransformer
+
 
 # Suppress warnings
 warnings.filterwarnings('ignore')
@@ -52,12 +54,13 @@ class TopicModelConfig:
     """Configuration for topic modeling pipeline."""
 
     # Embedding model
-    # Primary: thenlper/gte-small (384 dims, max 512 tokens, English only)
-    # Alternative: sentence-transformers/all-mpnet-base-v2 (768 dims, better quality)
-    embedding_model: str = "thenlper/gte-small"
+    # embedding_model: str = "thenlper/gte-small"
+    embedding_model: str = "sentence-transformers/all-mpnet-base-v2"
+    # embedding_model: str = "Octen/Octen-Embedding-4B"
+    batch_size: int = 32  # embed
 
     # UMAP parameters
-    umap_n_neighbors: int = 15
+    umap_n_neighbors: int = 30  # was 15
     umap_n_components: int = 5  # Reduce to 5D for clustering
     umap_min_dist: float = 0.0  # higher = worse cluster, but better viz
     umap_metric: str = 'cosine'
@@ -65,10 +68,11 @@ class TopicModelConfig:
 
     # HDBSCAN parameters
     # min_cluster_size controls number of topics (higher = fewer topics)
-    hdbscan_min_cluster_size: int = 15
+    hdbscan_min_cluster_size: int = 30  # was 15
     hdbscan_min_samples: int = 10  # Lower = less noise/outliers
     hdbscan_metric: str = 'euclidean'
     hdbscan_cluster_selection_method: str = 'eom'  # 'eom' or 'leaf'
+    # prediction_data ?
 
     # BERTopic parameters
     top_n_words: int = 10
@@ -77,7 +81,6 @@ class TopicModelConfig:
     calculate_probabilities: bool = False
 
     # Processing
-    batch_size: int = 32
     verbose: bool = True
 
     # Visualization
@@ -146,7 +149,6 @@ class TopicModeler:
 
     def _load_embedding_model(self):
         """Load sentence transformer embedding model."""
-        from sentence_transformers import SentenceTransformer
 
         self._log(
             f"\n🤖 Loading embedding model: {self.config.embedding_model}")
@@ -195,7 +197,8 @@ class TopicModeler:
         vectorizer_model = CountVectorizer(
             stop_words="english",
             ngram_range=(1, 2),  # Include bigrams
-            min_df=2  # Minimum document frequency
+            min_df=2,  # Minimum document frequency (dont rm too aggresively)
+            max_df=0.95  # rm common >95%
         )
 
         # Step 4: c-TF-IDF transformer
@@ -384,7 +387,6 @@ class TopicModeler:
         Returns:
             2D embeddings
         """
-        from umap import UMAP
 
         if embeddings is None:
             embeddings = self._embeddings
@@ -471,7 +473,7 @@ class TopicModeler:
             reduced_embeddings = self._reduced_embeddings
             if reduced_embeddings is None:
                 reduced_embeddings = self.reduce_embeddings_for_viz(embeddings)
-
+        self.topic_model.topic_representations_
         return self.topic_model.visualize_documents(
             docs,
             embeddings=embeddings,
@@ -507,13 +509,6 @@ class TopicModeler:
         Returns:
             Matplotlib figure (or HTML if interactive=True)
         """
-        try:
-            import datamapplot  # noqa: F401
-        except ImportError:
-            self._log(
-                "⚠️  DataMapPlot not installed. Install with: pip install datamapplot")
-            self._log("   Falling back to visualize_documents()")
-            return self.visualize_documents(docs, embeddings, reduced_embeddings)
 
         if embeddings is None:
             embeddings = self._embeddings
@@ -578,7 +573,6 @@ class TopicModeler:
             path: Path to saved model (without extension)
             load_embeddings: Whether to load embeddings
         """
-        from bertopic import BERTopic
 
         self._topic_model = BERTopic.load(f"{path}_model")
         self._log(f"✅ Loaded model from {path}_model")
@@ -763,6 +757,7 @@ def run_topic_modeling_pipeline(
             yearly.to_csv(output_path / "motivators_yearly.csv")
             results['motivators']['yearly'] = yearly
 
+        # add visualize_document_datamap here!
         modeler.cleanup()
 
     print("\n" + "="*60)
@@ -771,55 +766,3 @@ def run_topic_modeling_pipeline(
     print(f"📁 Results saved to: {output_path}")
 
     return results
-
-
-# ==================== CLI ====================
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Topic Modeling Pipeline")
-    parser.add_argument(
-        "--data-folder", "-d",
-        default="./data",
-        help="Path to folder with CSV files"
-    )
-    parser.add_argument(
-        "--output-folder", "-o",
-        default="./output",
-        help="Path to save outputs"
-    )
-    parser.add_argument(
-        "--embedding-model", "-e",
-        default="thenlper/gte-small",
-        # Alternative: "sentence-transformers/all-mpnet-base-v2"
-        help="Sentence transformer model name"
-    )
-    parser.add_argument(
-        "--min-cluster-size",
-        type=int,
-        default=15,
-        help="HDBSCAN min_cluster_size (higher = fewer topics)"
-    )
-    parser.add_argument(
-        "--min-samples",
-        type=int,
-        default=10,
-        help="HDBSCAN min_samples (lower = less outliers)"
-    )
-
-    args = parser.parse_args()
-
-    # Create config from arguments
-    config = TopicModelConfig(
-        embedding_model=args.embedding_model,
-        hdbscan_min_cluster_size=args.min_cluster_size,
-        hdbscan_min_samples=args.min_samples
-    )
-
-    # Run pipeline
-    results = run_topic_modeling_pipeline(
-        data_folder=args.data_folder,
-        output_folder=args.output_folder,
-        config=config
-    )

@@ -26,6 +26,7 @@ import spacy
 import torch
 from tqdm import tqdm
 from transformers import MarianMTModel, MarianTokenizer
+from langchain.schema import Document
 
 from .gpu_utils import GPUManager
 import logging
@@ -167,7 +168,6 @@ class DocumentChunk:
 
     def to_langchain_document(self):
         """Convert to LangChain Document format."""
-        from langchain.schema import Document
 
         return Document(
             page_content=self.text,
@@ -680,7 +680,7 @@ class PDFPreprocessor:
                 for punct in [". ", "! ", "? ", "\n\n", "\n"]:
                     last_punct = search_text.rfind(punct)
                     if last_punct != -1:
-                        end = search_start + last_punct + len(punct)
+                        end = seabreakrch_start + last_punct + len(punct)
                         break
 
             chunk = text[start:end].strip()
