@@ -24,3 +24,5 @@ susteelaible.egg-info
 .env
 vector_db
 .DS_Store
+
+.CLAUDE.md

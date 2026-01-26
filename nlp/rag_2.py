@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-import datamapplot  # ?? y not uised?
+# import datamapplot  # ?? y not uised?
 
 from umap import UMAP
 from hdbscan import HDBSCAN
@@ -196,9 +196,9 @@ class TopicModeler:
         # Step 3: Vectorizer for c-TF-IDF
         vectorizer_model = CountVectorizer(
             stop_words="english",
-            ngram_range=(1, 2),  # Include bigrams
-            min_df=2,  # Minimum document frequency (dont rm too aggresively)
-            max_df=0.95  # rm common >95%
+            ngram_range=(1, 3),  # Include bigrams
+            min_df=1,  # Minimum document frequency (dont rm too aggresively)
+            max_df=.90  # rm common >95%
         )
 
         # Step 4: c-TF-IDF transformer

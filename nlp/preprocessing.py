@@ -26,7 +26,7 @@ import spacy
 import torch
 from tqdm import tqdm
 from transformers import MarianMTModel, MarianTokenizer
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 from .gpu_utils import GPUManager
 import logging
