@@ -38,6 +38,8 @@ from bertopic import BERTopic
 from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
 from bertopic.vectorizers import ClassTfidfTransformer
 from sentence_transformers import SentenceTransformer
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
 
 
 # Suppress warnings
@@ -57,22 +59,27 @@ class TopicModelConfig:
     # embedding_model: str = "thenlper/gte-small"
     embedding_model: str = "sentence-transformers/all-mpnet-base-v2"
     # embedding_model: str = "Octen/Octen-Embedding-4B"
-    batch_size: int = 32  # embed
+    batch_size: int = 64  # embed (increase if GPU memory allows)
 
     # UMAP parameters
-    umap_n_neighbors: int = 30  # was 15
-    umap_n_components: int = 5  # Reduce to 5D for clustering
-    umap_min_dist: float = 0.0  # higher = worse cluster, but better viz
-    umap_metric: str = 'cosine'
+    umap_n_neighbors: int = 15
+    umap_n_components: int = 10  # Reduce to 5D for clustering
+    umap_min_dist: float = 0.1  # higher = worse cluster, but better viz
+    umap_metric: str = 'cosine'  # 'cosine'
     umap_random_state: int = 42
 
     # HDBSCAN parameters
     # min_cluster_size controls number of topics (higher = fewer topics)
-    hdbscan_min_cluster_size: int = 30  # was 15
-    hdbscan_min_samples: int = 10  # Lower = less noise/outliers
+    hdbscan_min_cluster_size: int = 10
+    hdbscan_min_samples: int = 3  # Lower = less noise/outliers
     hdbscan_metric: str = 'euclidean'
-    hdbscan_cluster_selection_method: str = 'eom'  # 'eom' or 'leaf'
+    hdbscan_cluster_selection_method: str = 'leaf'  # 'eom' or 'leaf'
     # prediction_data ?
+
+    vectorizer_ngram_range = (1, 2)  # Include bigrams
+    # Minimum document frequency (dont rm too aggresively)
+    vectorizer_min_df = 1
+    vectorizer_max_df = .95  # rm common >95%#
 
     # BERTopic parameters
     top_n_words: int = 10
@@ -88,6 +95,34 @@ class TopicModelConfig:
     viz_umap_n_neighbors: int = 10
     viz_umap_n_components: int = 2
     viz_umap_min_dist: float = 0.0
+
+    # LLM settings (Ollama) for topic labeling
+    ollama_model: str = "llama3.1:8b"
+    ollama_base_url: str = "http://localhost:11434"
+    llm_temperature: float = 0.0
+
+    # Embedding cache (save immediately after computation to survive crashes)
+    embeddings_cache_path: Optional[str] = None  # e.g., "out/embeddings_cache"
+
+
+# ==================== Prompt ====================
+
+TOPIC_LABEL_PROMPT = ChatPromptTemplate.from_template("""
+You are analyzing topics extracted from corporate sustainability reports about DECARBONISATION.
+
+Given the following keywords that describe a topic, generate a short, descriptive label (2-4 words) that captures the main theme.
+
+KEYWORDS: {keywords}
+
+RULES:
+- Return ONLY the label, nothing else
+- Use 2-4 words maximum
+- Be specific and descriptive
+- Use title case (e.g., "Carbon Pricing Policy")
+- Focus on the decarbonisation/sustainability context
+
+LABEL:
+""")
 
 
 # ==================== Topic Modeler ====================
@@ -124,6 +159,7 @@ class TopicModeler:
         self._topic_model = None
         self._embeddings = None
         self._reduced_embeddings = None
+        self._llm = None
 
         self._log(f"🖥️  {self.gpu}")
 
@@ -146,6 +182,18 @@ class TopicModeler:
             raise ValueError(
                 "Topic model not fitted. Call fit_transform() first.")
         return self._topic_model
+
+    @property
+    def llm(self):
+        """Lazy-load the Ollama LLM."""
+        if self._llm is None:
+            self._log(f"Loading Ollama model: {self.config.ollama_model}")
+            self._llm = ChatOllama(
+                model=self.config.ollama_model,
+                base_url=self.config.ollama_base_url,
+                temperature=self.config.llm_temperature,
+            )
+        return self._llm
 
     def _load_embedding_model(self):
         """Load sentence transformer embedding model."""
@@ -196,9 +244,9 @@ class TopicModeler:
         # Step 3: Vectorizer for c-TF-IDF
         vectorizer_model = CountVectorizer(
             stop_words="english",
-            ngram_range=(1, 3),  # Include bigrams
-            min_df=1,  # Minimum document frequency (dont rm too aggresively)
-            max_df=.90  # rm common >95%
+            ngram_range=self.config.vectorizer_ngram_range,
+            min_df=self.config.vectorizer_min_df,
+            max_df=self.config.vectorizer_max_df
         )
 
         # Step 4: c-TF-IDF transformer
@@ -207,7 +255,7 @@ class TopicModeler:
         # Step 5: Representation models
         # KeyBERTInspired improves topic word coherence using embeddings
         # MMR adds diversity to reduce redundancy in topic words
-        diversity = 0.5
+        diversity = 0.2
         mmr_model = MaximalMarginalRelevance(diversity=diversity)
         keybert_model = KeyBERTInspired()
         representation_model = [keybert_model, mmr_model]
@@ -274,9 +322,28 @@ class TopicModeler:
         self._log(
             f"\n🔄 Processing {len(texts)} documents from '{text_column}'...")
 
-        # Generate embeddings if not provided
+        # Generate or load embeddings
+        cache_path = self.config.embeddings_cache_path
+        if embeddings is None and cache_path:
+            cache_file = f"{cache_path}_{text_column}.npy"
+            if os.path.exists(cache_file):
+                self._log(f"📂 Loading cached embeddings from {cache_file}")
+                embeddings = np.load(cache_file)
+                if len(embeddings) != len(texts):
+                    self._log(
+                        f"⚠️ Cache size mismatch ({len(embeddings)} vs {len(texts)}), recomputing...")
+                    embeddings = None
+
         if embeddings is None:
             embeddings = self.encode_documents(texts)
+            # Save immediately to survive crashes
+            if cache_path:
+                cache_file = f"{cache_path}_{text_column}.npy"
+                os.makedirs(os.path.dirname(cache_file), exist_ok=True) if os.path.dirname(
+                    cache_file) else None
+                np.save(cache_file, embeddings)
+                self._log(f"💾 Cached embeddings to {cache_file}")
+
         self._embeddings = embeddings
 
         # Create and fit topic model
@@ -346,6 +413,63 @@ class TopicModeler:
         if not outliers.empty:
             self._log(
                 f"\nOutliers (Topic -1): {outliers['Count'].values[0]} docs")
+
+    def generate_topic_labels(self) -> Dict[int, str]:
+        """
+        Generate human-readable labels for topics using Ollama LLM.
+
+        Uses the topic keywords from get_topic_info() to generate
+        short descriptive labels (2-4 words) for each topic.
+
+        Returns:
+            Dict mapping topic_id -> label string
+        """
+        topic_info = self.get_topic_info()
+        labels = {}
+
+        self._log("\n🏷️  Generating topic labels with LLM...")
+
+        chain = TOPIC_LABEL_PROMPT | self.llm
+
+        for _, row in topic_info.iterrows():
+            topic_id = row['Topic']
+
+            # Skip outlier topic
+            if topic_id == -1:
+                labels[topic_id] = "Outliers"
+                continue
+
+            # Get keywords for this topic
+            top_words = self.topic_model.get_topic(topic_id)
+            if not top_words:
+                labels[topic_id] = f"Topic {topic_id}"
+                continue
+
+            keywords = ", ".join([word for word, _ in top_words[:10]])
+
+            try:
+                response = chain.invoke({"keywords": keywords})
+                label = response.content.strip() if hasattr(
+                    response, "content") else str(response).strip()
+                # Clean up: remove quotes, extra whitespace
+                label = label.strip('"\'').strip()
+                labels[topic_id] = label
+                self._log(f"  Topic {topic_id}: {label}")
+            except Exception as e:
+                self._log(f"  ⚠️ Topic {topic_id}: Error - {e}")
+                labels[topic_id] = f"Topic {topic_id}"
+
+        return labels
+
+    def set_topic_labels(self, labels: Dict[int, str]):
+        """
+        Set custom labels for topics.
+
+        Args:
+            labels: Dict mapping topic_id -> label string
+        """
+        self.topic_model.set_topic_labels(labels)
+        self._log(f"✅ Set labels for {len(labels)} topics")
 
     def reduce_outliers(
         self,

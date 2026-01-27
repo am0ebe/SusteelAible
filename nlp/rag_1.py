@@ -49,7 +49,7 @@ class RAGConfig:
     use_bert_cache: bool = True  # Default to bert.json (ClimateBERT filtered)
 
     # Output
-    output_folder: str = "out"
+    output_folder: str = "../out"
 
     # LLM settings (Ollama)
     ollama_model: str = "llama3.1:8b"
@@ -369,7 +369,8 @@ class RAGPipeline:
         extracted_clean = extracted_text.strip().lower()
 
         for chunk in chunks:
-            chunk_text = chunk.page_content.lower() if hasattr(chunk, 'page_content') else str(chunk).lower()
+            chunk_text = chunk.page_content.lower() if hasattr(
+                chunk, 'page_content') else str(chunk).lower()
             if extracted_clean in chunk_text:
                 return {
                     "source_chunk_id": chunk.metadata.get("chunk_id"),
@@ -437,9 +438,12 @@ class RAGPipeline:
 
         # Compute mean scores
         detector_scores = [c.metadata.get("detector_score", 0) for c in chunks]
-        specificity_scores = [c.metadata.get("specificity_score", 0) for c in chunks]
-        commitment_scores = [c.metadata.get("commitment_score", 0) for c in chunks]
-        sentiment_scores = [c.metadata.get("sentiment_score", 0) for c in chunks]
+        specificity_scores = [c.metadata.get(
+            "specificity_score", 0) for c in chunks]
+        commitment_scores = [c.metadata.get(
+            "commitment_score", 0) for c in chunks]
+        sentiment_scores = [c.metadata.get(
+            "sentiment_score", 0) for c in chunks]
         netzero_scores = [c.metadata.get("netzero_score", 0) for c in chunks]
 
         # Get most common labels (mode)
@@ -450,8 +454,10 @@ class RAGPipeline:
             from collections import Counter
             return Counter(filtered).most_common(1)[0][0]
 
-        specificity_labels = [c.metadata.get("specificity_label") for c in chunks]
-        commitment_labels = [c.metadata.get("commitment_label") for c in chunks]
+        specificity_labels = [c.metadata.get(
+            "specificity_label") for c in chunks]
+        commitment_labels = [c.metadata.get(
+            "commitment_label") for c in chunks]
         sentiment_labels = [c.metadata.get("sentiment_label") for c in chunks]
         netzero_labels = [c.metadata.get("netzero_label") for c in chunks]
 
@@ -651,8 +657,10 @@ class RAGPipeline:
             total_motivators += len(motivators)
 
         # Report match rates
-        barrier_match_rate = matched_barriers / total_barriers * 100 if total_barriers > 0 else 0
-        motivator_match_rate = matched_motivators / total_motivators * 100 if total_motivators > 0 else 0
+        barrier_match_rate = matched_barriers / \
+            total_barriers * 100 if total_barriers > 0 else 0
+        motivator_match_rate = matched_motivators / \
+            total_motivators * 100 if total_motivators > 0 else 0
         print(
             f"  ✓ Extracted {total_barriers} barriers ({barrier_match_rate:.0f}% matched), "
             f"{total_motivators} motivators ({motivator_match_rate:.0f}% matched)")
