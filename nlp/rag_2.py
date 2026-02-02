@@ -23,13 +23,14 @@ from nlp import load_csv_data
 from nlp import GPUManager
 import os
 import warnings
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Tuple, Dict, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 import numpy as np
 import pandas as pd
-# import datamapplot  # ?? y not uised?
+# import datamapplot
 
 from umap import UMAP
 from hdbscan import HDBSCAN
@@ -56,34 +57,36 @@ class TopicModelConfig:
     """Configuration for topic modeling pipeline."""
 
     # Embedding model
-    # embedding_model: str = "thenlper/gte-small"
     embedding_model: str = "sentence-transformers/all-mpnet-base-v2"
     # embedding_model: str = "Octen/Octen-Embedding-4B"
     batch_size: int = 64  # embed (increase if GPU memory allows)
 
     # UMAP parameters
     umap_n_neighbors: int = 15
-    umap_n_components: int = 10  # Reduce to 5D for clustering
-    umap_min_dist: float = 0.1  # higher = worse cluster, but better viz
+    umap_n_components: int = 15  # Reduce to 5D for clustering
+    umap_min_dist: float = 0.2  # higher = worse cluster, but better viz
     umap_metric: str = 'cosine'  # 'cosine'
     umap_random_state: int = 42
 
     # HDBSCAN parameters
     # min_cluster_size controls number of topics (higher = fewer topics)
-    hdbscan_min_cluster_size: int = 10
+    hdbscan_min_cluster_size: int = 25  # 1-3% datasize > 0.02 * 1000 cluster
     hdbscan_min_samples: int = 3  # Lower = less noise/outliers
     hdbscan_metric: str = 'euclidean'
     hdbscan_cluster_selection_method: str = 'leaf'  # 'eom' or 'leaf'
     # prediction_data ?
 
-    vectorizer_ngram_range = (1, 2)  # Include bigrams
+    vectorizer_ngram_range: Tuple[int, int] = (1, 2)  # Include bigrams
     # Minimum document frequency (dont rm too aggresively)
-    vectorizer_min_df = 1
-    vectorizer_max_df = .95  # rm common >95%#
+    vectorizer_min_df: int = 2
+    vectorizer_max_df: float = 0.95  # rm common >95%
+
+    mmr_diversity: float = 0.3
 
     # BERTopic parameters
     top_n_words: int = 10
-    nr_topics: Optional[int] = None  # Set to reduce topics post-hoc
+    # Set to reduce topics post-hoc # can use auto?
+    nr_topics: Optional[int] = 7
     # Set True for soft clustering (slower)
     calculate_probabilities: bool = False
 
@@ -107,21 +110,38 @@ class TopicModelConfig:
 
 # ==================== Prompt ====================
 
-TOPIC_LABEL_PROMPT = ChatPromptTemplate.from_template("""
-You are analyzing topics extracted from corporate sustainability reports about DECARBONISATION.
+TOPIC_LABEL_PROMPT = ChatPromptTemplate.from_template("""You are a classifier.
 
-Given the following keywords that describe a topic, generate a short, descriptive label (2-4 words) that captures the main theme.
+KEYWORDS:
+{keywords}
 
-KEYWORDS: {keywords}
+OUTPUT RULES:
+- Return ONLY the label text.
+- No punctuation. No quotes. No comments. No extra text.
 
-RULES:
-- Return ONLY the label, nothing else
-- Use 2-4 words maximum
-- Be specific and descriptive
-- Use title case (e.g., "Carbon Pricing Policy")
-- Focus on the decarbonisation/sustainability context
+INSTRUCTIONS:
+1. Read all sample documents carefully
+2. Identify the common theme across all samples
+3. Create a descriptive label that captures this theme
 
-LABEL:
+LABEL REQUIREMENTS:
+- Length: 3-5 words (e.g., "Carbon Pricing & ETS Uncertainty")
+- Style: Title Case with & for conjunctions
+- Focus: Be specific about what barrier/motivator this represents
+- Clarity: A stakeholder should immediately understand what this topic is about
+
+EXAMPLES OF GOOD LABELS:
+- "Raw Materials & Energy Availability"
+- "Fossil-Free Steel Innovation"
+- "Import Competition & Overcapacity"
+- "Environmental Permits & Compliance"
+
+EXAMPLES OF BAD LABELS:
+- "Operations" (too vague)
+- "Identify Barriers" (too vague, makes no sense)
+- "Cost" (too general)
+- "SSAB Production Issues" (company-specific)
+- "Various challenges in the steel production process" (too long)
 """)
 
 
@@ -255,12 +275,12 @@ class TopicModeler:
         # Step 5: Representation models
         # KeyBERTInspired improves topic word coherence using embeddings
         # MMR adds diversity to reduce redundancy in topic words
-        diversity = 0.2
-        mmr_model = MaximalMarginalRelevance(diversity=diversity)
+        mmr_model = MaximalMarginalRelevance(
+            diversity=self.config.mmr_diversity)
         keybert_model = KeyBERTInspired()
         representation_model = [keybert_model, mmr_model]
         self._log(
-            f"  🔑 Using KeyBERTInspired + MMR (diversity={diversity}) for topic representation")
+            f"  🔑 Using KeyBERTInspired + MMR (diversity={self.config.mmr_diversity}) for topic representation")
 
         # Create BERTopic model
         topic_model = BERTopic(
@@ -414,7 +434,7 @@ class TopicModeler:
             self._log(
                 f"\nOutliers (Topic -1): {outliers['Count'].values[0]} docs")
 
-    def generate_topic_labels(self) -> Dict[int, str]:
+    def generate_topic_labels(self) -> Tuple[Dict[int, str], Dict[int, str]]:
         """
         Generate human-readable labels for topics using Ollama LLM.
 
@@ -422,10 +442,11 @@ class TopicModeler:
         short descriptive labels (2-4 words) for each topic.
 
         Returns:
-            Dict mapping topic_id -> label string
+            Tuple of (labels_dict, keywords_dict) where both map topic_id -> string
         """
         topic_info = self.get_topic_info()
         labels = {}
+        keywords_map = {}
 
         self._log("\n🏷️  Generating topic labels with LLM...")
 
@@ -437,29 +458,31 @@ class TopicModeler:
             # Skip outlier topic
             if topic_id == -1:
                 labels[topic_id] = "Outliers"
+                keywords_map[topic_id] = ""
                 continue
 
             # Get keywords for this topic
             top_words = self.topic_model.get_topic(topic_id)
             if not top_words:
                 labels[topic_id] = f"Topic {topic_id}"
+                keywords_map[topic_id] = ""
                 continue
 
             keywords = ", ".join([word for word, _ in top_words[:10]])
+            keywords_map[topic_id] = keywords
 
             try:
                 response = chain.invoke({"keywords": keywords})
-                label = response.content.strip() if hasattr(
-                    response, "content") else str(response).strip()
-                # Clean up: remove quotes, extra whitespace
-                label = label.strip('"\'').strip()
+                label = response.content if hasattr(
+                    response, "content") else str(response)
+                label = label.strip().strip('"\'')
                 labels[topic_id] = label
                 self._log(f"  Topic {topic_id}: {label}")
             except Exception as e:
                 self._log(f"  ⚠️ Topic {topic_id}: Error - {e}")
                 labels[topic_id] = f"Topic {topic_id}"
 
-        return labels
+        return labels, keywords_map
 
     def set_topic_labels(self, labels: Dict[int, str]):
         """
@@ -545,8 +568,7 @@ class TopicModeler:
         text_column: str,
         output_path: str,
         category: str,
-        top_n_topics: int = 10,
-        include_datamap: bool = False
+        top_n_topics: int = 10
     ) -> Dict[str, Any]:
         """
         Generate and save all visualizations for a category.
@@ -557,7 +579,6 @@ class TopicModeler:
             output_path: Directory to save visualizations
             category: Category name ("barriers" or "motivators")
             top_n_topics: Number of topics for barchart
-            include_datamap: Whether to generate DataMapPlot (requires datamapplot)
 
         Returns:
             Dict with paths to saved files and any errors
@@ -589,6 +610,7 @@ class TopicModeler:
 
         for name, viz_func in viz_configs:
             try:
+
                 fig = viz_func()
                 path = output / f"{category}_{name}.html"
                 fig.write_html(str(path))
@@ -637,22 +659,21 @@ class TopicModeler:
                 results["errors"].append(("per_company", str(e)))
                 self._log(f"  ⚠️ per_company: {e}")
 
-        # DataMapPlot (optional, requires datamapplot package)
-        if include_datamap:
-            try:
-                fig = self.topic_model.visualize_document_datamap(
-                    docs,
-                    embeddings=self._embeddings,
-                    reduced_embeddings=self._reduced_embeddings,
-                    title=f"{category.title()} Topics"
-                )
-                path = output / f"{category}_datamap.png"
-                fig.savefig(str(path), dpi=150, bbox_inches='tight')
-                results["saved"].append(str(path))
-                self._log(f"  ✓ {category}_datamap.png")
-            except Exception as e:
-                results["errors"].append(("datamap", str(e)))
-                self._log(f"  ⚠️ datamap: {e}")
+        # DataMapPlot (requires datamapplot package)
+        try:
+            fig = self.topic_model.visualize_document_datamap(
+                docs,
+                embeddings=self._embeddings,
+                reduced_embeddings=self._reduced_embeddings,
+                title=f"{category.title()} Topics"
+            )
+            path = output / f"{category}_datamap.png"
+            fig.savefig(str(path), dpi=150, bbox_inches='tight')
+            results["saved"].append(str(path))
+            self._log(f"  ✓ {category}_datamap.png")
+        except Exception as e:
+            results["errors"].append(("datamap", str(e)))
+            self._log(f"  ⚠️ datamap: {e}")
 
         return results
 
@@ -790,11 +811,40 @@ def aggregate_by_company_year(
 
 # ==================== Main Pipeline ====================
 
+def _write_config_log(output_path: Path, config: TopicModelConfig, force_retrain: bool):
+    """Write config parameters to a log file for reproducibility."""
+    log_file = output_path / "config_log.txt"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    lines = [
+        f"{'='*60}",
+        f"Topic Modeling Pipeline Run",
+        f"Timestamp: {timestamp}",
+        f"Force Retrain: {force_retrain}",
+        f"{'='*60}",
+        "",
+        "TopicModelConfig:",
+        "-" * 40,
+    ]
+
+    for key, value in asdict(config).items():
+        lines.append(f"  {key}: {value}")
+
+    lines.append("")
+    lines.append("=" * 60 + "\n")
+
+    # Append to log file (keeps history of all runs)
+    with open(log_file, "a") as f:
+        f.write("\n".join(lines))
+
+    print(f"📝 Config logged to {log_file}")
+
+
 def run_topic_modeling_pipeline(
     data_folder: str,
     output_folder: str = "./output",
     config: Optional[TopicModelConfig] = None,
-    include_datamap: bool = False
+    force_retrain: bool = False
 ) -> Dict[str, Any]:
     """
     Run complete topic modeling pipeline.
@@ -803,7 +853,7 @@ def run_topic_modeling_pipeline(
         data_folder: Path to folder with CSV data files
         output_folder: Path to save outputs
         config: TopicModelConfig (uses defaults if None)
-        include_datamap: Whether to generate DataMapPlot visualizations
+        force_retrain: If True, ignore cached model/embeddings and retrain from scratch
 
     Returns:
         Dictionary with results
@@ -811,6 +861,9 @@ def run_topic_modeling_pipeline(
     config = config or TopicModelConfig()
     output_path = Path(output_folder)
     output_path.mkdir(parents=True, exist_ok=True)
+
+    # Log config for reproducibility
+    _write_config_log(output_path, config, force_retrain)
 
     print("\n" + "="*60)
     print("📂 LOADING DATA")
@@ -834,19 +887,48 @@ def run_topic_modeling_pipeline(
         print(f"🎯 TOPIC MODELING: {category.upper()}")
         print("="*60)
 
-        # Fit topic model
         modeler = TopicModeler(config)
-        df, topics, probs = modeler.fit_transform(df, category)
+        model_path = str(output_path / category)
+
+        # Try to load cached model + embeddings (unless force_retrain)
+        if not force_retrain and os.path.exists(f"{model_path}_model"):
+            print(f"📂 Loading cached model from {model_path}_model")
+            modeler.load(model_path)
+            texts = df[category].tolist()
+            topics, probs = modeler.topic_model.transform(
+                texts, modeler._embeddings)
+            df = df.copy()
+            df['topic'] = topics
+        else:
+            if force_retrain:
+                print("🔄 Force retrain enabled, ignoring cache")
+            # Fit topic model from scratch
+            df, topics, probs = modeler.fit_transform(df, category)
+            modeler.save(model_path)
+
         modeler.print_topics()
 
-        # Save model and results
+        # Generate LLM labels for topics
+        labels, keywords_map = modeler.generate_topic_labels()
+        modeler.set_topic_labels(labels)
+
+        # Save labels to CSV (with keywords for interpretability)
+        labels_df = pd.DataFrame([
+            {"topic_id": tid, "label": labels[tid], "keywords": keywords_map[tid]}
+            for tid in labels.keys()
+        ])
+        labels_df.to_csv(output_path / f"{category}_labels.csv", index=False)
+        print(f"  ✓ Saved {category}_labels.csv")
+
+        # Save topics CSV
         df.to_csv(output_path / f"{category}_topics.csv", index=False)
-        modeler.save(str(output_path / category))
 
         results[category] = {
             'df': df,
             'topics': topics,
-            'topic_info': modeler.get_topic_info()
+            'topic_info': modeler.get_topic_info(),
+            'labels': labels,
+            'keywords': keywords_map
         }
 
         # Generate visualizations
@@ -854,8 +936,7 @@ def run_topic_modeling_pipeline(
             df=df,
             text_column=category,
             output_path=str(output_path),
-            category=category,
-            include_datamap=include_datamap
+            category=category
         )
         results[category]['viz'] = viz_results
 
