@@ -110,38 +110,59 @@ class TopicModelConfig:
 
 # ==================== Prompt ====================
 
-TOPIC_LABEL_PROMPT = ChatPromptTemplate.from_template("""You are a classifier.
+TOPIC_LABEL_PROMPT = ChatPromptTemplate.from_template("""You are an expert analyst specializing in thematic classification and topic labeling.
 
 KEYWORDS:
 {keywords}
 
+IMPORTANT:
+If the output violates ANY rule below, it is incorrect.
+You must self-check before answering.
+
 OUTPUT RULES:
-- Return ONLY the label text.
-- No punctuation. No quotes. No comments. No extra text.
+Return ONLY the label text
+No punctuation
+No quotes
+No comments
+No extra text
 
 INSTRUCTIONS:
-1. Read all sample documents carefully
-2. Identify the common theme across all samples
-3. Create a descriptive label that captures this theme
+Read all keywords carefully
+Identify the single common underlying issue they represent
+Generate a concise, stakeholder-ready label
 
 LABEL REQUIREMENTS:
-- Length: 3-5 words (e.g., "Carbon Pricing & ETS Uncertainty")
-- Style: Title Case with & for conjunctions
-- Focus: Be specific about what barrier/motivator this represents
-- Clarity: A stakeholder should immediately understand what this topic is about
+Length: 3–5 words
+Style: Title Case
+Use & instead of "and" where appropriate
+Describe a specific barrier or motivator
+Avoid generic or abstract terms
+
+A GOOD LABEL:
+Names a concrete issue
+Uses a clear noun phrase
+Describes the issue itself, not the documents
+
+DO NOT:
+Explain reasoning
+Mention keywords or documents
+Use meta terms like Theme, Topic, or Issue
 
 EXAMPLES OF GOOD LABELS:
-- "Raw Materials & Energy Availability"
-- "Fossil-Free Steel Innovation"
-- "Import Competition & Overcapacity"
-- "Environmental Permits & Compliance"
+Raw Materials & Energy Availability
+Fossil-Free Steel Innovation
+Import Competition & Overcapacity
+Environmental Permits & Compliance
 
 EXAMPLES OF BAD LABELS:
-- "Operations" (too vague)
-- "Identify Barriers" (too vague, makes no sense)
-- "Cost" (too general)
-- "SSAB Production Issues" (company-specific)
-- "Various challenges in the steel production process" (too long)
+Operations
+Identify Barriers
+Cost
+SSAB Production Issues
+Various challenges in the steel production process
+
+Before answering, internally verify all rules are satisfied.
+Then output the label only.
 """)
 
 
@@ -504,7 +525,8 @@ class TopicModeler:
 
             keywords_raw = ", ".join([word for word, _ in top_words[:10]])
             keywords_filtered = _filter_keywords(keywords_raw)
-            keywords_map[topic_id] = keywords_raw  # Store original for reference
+            # Store original for reference
+            keywords_map[topic_id] = keywords_raw
 
             try:
                 response = chain.invoke({"keywords": keywords_filtered})
@@ -949,7 +971,8 @@ def run_topic_modeling_pipeline(
 
         # Save labels to CSV (with keywords for interpretability)
         labels_df = pd.DataFrame([
-            {"topic_id": tid, "label": labels[tid], "keywords": keywords_map[tid]}
+            {"topic_id": tid, "label": labels[tid],
+                "keywords": keywords_map[tid]}
             for tid in labels.keys()
         ])
         labels_df.to_csv(output_path / f"{category}_labels.csv", index=False)
