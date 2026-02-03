@@ -145,6 +145,40 @@ EXAMPLES OF BAD LABELS:
 """)
 
 
+# ==================== Keyword Filtering ====================
+
+# Company names and other terms to filter from keywords before LLM labeling
+KEYWORD_STOPWORDS = {
+    # Steel companies
+    "outokumpu", "ssab", "baosteel", "arcelormittal", "thyssenkrupp",
+    "voestalpine", "tata", "nippon", "posco", "jfe", "nucor", "salzgitter",
+    "aperam", "acerinox", "nlmk", "severstal", "evraz",
+    # Generic terms that don't help labeling
+    "company", "group", "companies", "report", "annual", "year", "years",
+    "million", "billion", "EUR", "USD",
+    # Filler words that sometimes appear
+    "also", "including", "various", "related", "based", "using",
+}
+
+
+def _filter_keywords(keywords: str) -> str:
+    """Filter out company names and generic terms from keywords.
+
+    Args:
+        keywords: Comma-separated keyword string
+
+    Returns:
+        Filtered comma-separated keyword string
+    """
+    words = [w.strip() for w in keywords.split(",")]
+    filtered = [
+        w for w in words
+        if w.lower() not in KEYWORD_STOPWORDS
+        and not any(stop in w.lower() for stop in KEYWORD_STOPWORDS)
+    ]
+    return ", ".join(filtered)
+
+
 # ==================== Topic Modeler ====================
 
 class TopicModeler:
@@ -468,11 +502,12 @@ class TopicModeler:
                 keywords_map[topic_id] = ""
                 continue
 
-            keywords = ", ".join([word for word, _ in top_words[:10]])
-            keywords_map[topic_id] = keywords
+            keywords_raw = ", ".join([word for word, _ in top_words[:10]])
+            keywords_filtered = _filter_keywords(keywords_raw)
+            keywords_map[topic_id] = keywords_raw  # Store original for reference
 
             try:
-                response = chain.invoke({"keywords": keywords})
+                response = chain.invoke({"keywords": keywords_filtered})
                 label = response.content if hasattr(
                     response, "content") else str(response)
                 label = label.strip().strip('"\'')
