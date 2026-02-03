@@ -34,7 +34,7 @@ import pandas as pd
 
 from umap import UMAP
 from hdbscan import HDBSCAN
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
 from bertopic import BERTopic
 from bertopic.representation import KeyBERTInspired, MaximalMarginalRelevance
 from bertopic.vectorizers import ClassTfidfTransformer
@@ -62,23 +62,22 @@ class TopicModelConfig:
     batch_size: int = 64  # embed (increase if GPU memory allows)
 
     # UMAP parameters
-    umap_n_neighbors: int = 15
+    umap_n_neighbors: int = 30
     umap_n_components: int = 15  # Reduce to 5D for clustering
-    umap_min_dist: float = 0.2  # higher = worse cluster, but better viz
+    umap_min_dist: float = 0.05  # higher = worse cluster, but better viz
     umap_metric: str = 'cosine'  # 'cosine'
     umap_random_state: int = 42
 
     # HDBSCAN parameters
     # min_cluster_size controls number of topics (higher = fewer topics)
-    hdbscan_min_cluster_size: int = 25  # 1-3% datasize > 0.02 * 1000 cluster
-    hdbscan_min_samples: int = 3  # Lower = less noise/outliers
+    hdbscan_min_cluster_size: int = 15  # 1-3% datasize > 0.02 * 1000 cluster // 15
+    hdbscan_min_samples: int = 2  # Lower = less noise/outliers
     hdbscan_metric: str = 'euclidean'
-    hdbscan_cluster_selection_method: str = 'leaf'  # 'eom' or 'leaf'
-    # prediction_data ?
+    hdbscan_cluster_selection_method: str = 'eom'  # 'eom' or 'leaf'
 
     vectorizer_ngram_range: Tuple[int, int] = (1, 2)  # Include bigrams
-    # Minimum document frequency (dont rm too aggresively)
-    vectorizer_min_df: int = 2
+    # Minimum document frequency (use 1 for small topics, 2+ for large datasets)
+    vectorizer_min_df: int = 1
     vectorizer_max_df: float = 0.95  # rm common >95%
 
     mmr_diversity: float = 0.3
@@ -89,13 +88,17 @@ class TopicModelConfig:
     nr_topics: Optional[int] = 7
     # Set True for soft clustering (slower)
     calculate_probabilities: bool = False
+    # Reduce outliers by assigning to nearest topic (post-hoc)
+    reduce_outliers: bool = True
+    # 'embeddings', 'c-tf-idf', or 'distributions'
+    reduce_outliers_strategy: str = "embeddings"
 
     # Processing
     verbose: bool = True
 
     # Visualization
     # 2D UMAP for visualization (separate from clustering)
-    viz_umap_n_neighbors: int = 10
+    viz_umap_n_neighbors: int = 10  # +
     viz_umap_n_components: int = 2
     viz_umap_min_dist: float = 0.0
 
@@ -176,7 +179,9 @@ KEYWORD_STOPWORDS = {
     "aperam", "acerinox", "nlmk", "severstal", "evraz",
     # Generic terms that don't help labeling
     "company", "group", "companies", "report", "annual", "year", "years",
-    "million", "billion", "EUR", "USD",
+    "million", "billion", "EUR", "USD", "barriers", "barrier", "risk", "risks"
+    "mention", "mentioned", "mentions",
+    "qualifying", "motivators", "motivating", "motivator",
     # Filler words that sometimes appear
     "also", "including", "various", "related", "based", "using",
 }
@@ -191,6 +196,7 @@ def _filter_keywords(keywords: str) -> str:
     Returns:
         Filtered comma-separated keyword string
     """
+    # TODO: can company names slip?
     words = [w.strip() for w in keywords.split(",")]
     filtered = [
         w for w in words
@@ -317,8 +323,10 @@ class TopicModeler:
                   f"min_samples={self.config.hdbscan_min_samples}")
 
         # Step 3: Vectorizer for c-TF-IDF
+        # Combine English stop words with custom domain stopwords (company names, generic terms)
+        combined_stop_words = list(ENGLISH_STOP_WORDS | KEYWORD_STOPWORDS)
         vectorizer_model = CountVectorizer(
-            stop_words="english",
+            stop_words=combined_stop_words,
             ngram_range=self.config.vectorizer_ngram_range,
             min_df=self.config.vectorizer_min_df,
             max_df=self.config.vectorizer_max_df
@@ -328,14 +336,17 @@ class TopicModeler:
         ctfidf_model = ClassTfidfTransformer()
 
         # Step 5: Representation models
-        # KeyBERTInspired improves topic word coherence using embeddings
-        # MMR adds diversity to reduce redundancy in topic words
+        # KeyBERTInspired: refines keywords using embedding similarity
+        # MMR: adds diversity to reduce redundant keywords
+        keybert_model = KeyBERTInspired(
+            top_n_words=self.config.top_n_words
+        )
         mmr_model = MaximalMarginalRelevance(
-            diversity=self.config.mmr_diversity)
-        keybert_model = KeyBERTInspired()
+            diversity=self.config.mmr_diversity
+        )
         representation_model = [keybert_model, mmr_model]
         self._log(
-            f"  🔑 Using KeyBERTInspired + MMR (diversity={self.config.mmr_diversity}) for topic representation")
+            f"  🔑 Using KeyBERTInspired + MMR (diversity={self.config.mmr_diversity})")
 
         # Create BERTopic model
         topic_model = BERTopic(
@@ -489,7 +500,7 @@ class TopicModeler:
             self._log(
                 f"\nOutliers (Topic -1): {outliers['Count'].values[0]} docs")
 
-    def generate_topic_labels(self) -> Tuple[Dict[int, str], Dict[int, str]]:
+    def generate_topic_labels(self) -> Tuple[Dict[int, str], Dict[int, str], Dict[int, int]]:
         """
         Generate human-readable labels for topics using Ollama LLM.
 
@@ -497,11 +508,12 @@ class TopicModeler:
         short descriptive labels (2-4 words) for each topic.
 
         Returns:
-            Tuple of (labels_dict, keywords_dict) where both map topic_id -> string
+            Tuple of (labels_dict, keywords_dict, doc_count_dict)
         """
         topic_info = self.get_topic_info()
         labels = {}
         keywords_map = {}
+        doc_counts = {}
 
         self._log("\n🏷️  Generating topic labels with LLM...")
 
@@ -509,11 +521,17 @@ class TopicModeler:
 
         for _, row in topic_info.iterrows():
             topic_id = row['Topic']
+            doc_counts[topic_id] = row['Count']
 
-            # Skip outlier topic
+            # Handle outlier topic - still get keywords for analysis
             if topic_id == -1:
-                labels[topic_id] = "Outliers"
-                keywords_map[topic_id] = ""
+                labels[topic_id] = "Outliers (unassigned)"
+                top_words = self.topic_model.get_topic(topic_id)
+                if top_words:
+                    keywords_map[topic_id] = ", ".join(
+                        [w for w, _ in top_words[:10]])
+                else:
+                    keywords_map[topic_id] = ""
                 continue
 
             # Get keywords for this topic
@@ -539,7 +557,7 @@ class TopicModeler:
                 self._log(f"  ⚠️ Topic {topic_id}: Error - {e}")
                 labels[topic_id] = f"Topic {topic_id}"
 
-        return labels, keywords_map
+        return labels, keywords_map, doc_counts
 
     def set_topic_labels(self, labels: Dict[int, str]):
         """
@@ -568,7 +586,14 @@ class TopicModeler:
         Returns:
             Updated topic assignments
         """
-        self._log(f"\n🔄 Reducing outliers using '{strategy}' strategy...")
+        # Check if there are any outliers to reduce
+        n_outliers = sum(1 for t in topics if t == -1)
+        if n_outliers == 0:
+            self._log("✅ No outliers to reduce (0 documents in topic -1)")
+            return topics
+
+        self._log(
+            f"\n🔄 Reducing {n_outliers} outliers using '{strategy}' strategy...")
 
         if strategy == "embeddings" and self._embeddings is not None:
             new_topics = self.topic_model.reduce_outliers(
@@ -890,8 +915,8 @@ def _write_config_log(output_path: Path, config: TopicModelConfig, force_retrain
     lines.append("")
     lines.append("=" * 60 + "\n")
 
-    # Append to log file (keeps history of all runs)
-    with open(log_file, "a") as f:
+    # write to log file
+    with open(log_file, "w") as f:
         f.write("\n".join(lines))
 
     print(f"📝 Config logged to {log_file}")
@@ -963,16 +988,28 @@ def run_topic_modeling_pipeline(
             df, topics, probs = modeler.fit_transform(df, category)
             modeler.save(model_path)
 
+        # Reduce outliers if enabled
+        texts = df[category].tolist()
+        if config.reduce_outliers:
+            topics = modeler.reduce_outliers(
+                texts, topics, strategy=config.reduce_outliers_strategy
+            )
+            df['topic'] = topics
+
         modeler.print_topics()
 
         # Generate LLM labels for topics
-        labels, keywords_map = modeler.generate_topic_labels()
+        labels, keywords_map, doc_counts = modeler.generate_topic_labels()
         modeler.set_topic_labels(labels)
 
-        # Save labels to CSV (with keywords for interpretability)
+        # Save labels to CSV (with keywords and doc counts for interpretability)
         labels_df = pd.DataFrame([
-            {"topic_id": tid, "label": labels[tid],
-                "keywords": keywords_map[tid]}
+            {
+                "topic_id": tid,
+                "label": labels[tid],
+                "doc_count": doc_counts[tid],
+                "keywords": keywords_map[tid]
+            }
             for tid in labels.keys()
         ])
         labels_df.to_csv(output_path / f"{category}_labels.csv", index=False)
@@ -986,7 +1023,8 @@ def run_topic_modeling_pipeline(
             'topics': topics,
             'topic_info': modeler.get_topic_info(),
             'labels': labels,
-            'keywords': keywords_map
+            'keywords': keywords_map,
+            'doc_counts': doc_counts
         }
 
         # Generate visualizations
