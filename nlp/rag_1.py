@@ -52,15 +52,20 @@ class RAGConfig:
     output_folder: str = "../out"
 
     # LLM settings (Ollama)
-    ollama_model: str = "llama3.1:8b"
+    # ollama_model: str = "llama3.1:8b"
+    ollama_model: str = "qwen3:4b"
     # phi3:mini
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
     # Fits ~20 chunks + prompt per LLM call
-    llm_num_ctx: int = 8192
+    llm_num_ctx: int = 8096
 
     # Extraction settings
-    max_chunks_per_group: int = 25  # Safety limit per company-year group
+    max_chunks_per_group: int = 7  # Safety limit per company-year group
+
+    # BERT filtering (applied at load time)
+    # Filter chunks below this climate detector confidence
+    min_detector_score: float = 0.0
 
 
 # =============================================================================
@@ -229,6 +234,17 @@ class RAGPipeline:
                 f"Check cache files exist in {self.config.cache_dir}"
             )
 
+        # Filter by detector score if threshold is set
+        if self.config.min_detector_score > 0:
+            original_count = len(self.chunks)
+            self.chunks = [
+                c for c in self.chunks
+                if c.metadata.get("detector_score", 0) >= self.config.min_detector_score
+            ]
+            filtered_count = original_count - len(self.chunks)
+            print(f"✓ Filtered {filtered_count} chunks below detector_score={self.config.min_detector_score} "
+                  f"({len(self.chunks)} remaining)")
+
         # Group chunks by (company_id, year)
         self._group_chunks()
 
@@ -249,6 +265,9 @@ class RAGPipeline:
 
             if company_id and year:
                 self.grouped_chunks[(company_id, year)].append(chunk)
+
+        for key, chunks in sorted(self.grouped_chunks.items(), key=lambda x: -len(x[1]))[:10]:
+            print(f"{key}: {len(chunks)} chunks")
 
     # -------------------------------------------------------------------------
     # Overview / Statistics
@@ -405,14 +424,12 @@ class RAGPipeline:
 
     def _sort_chunks_by_quality(self, chunks: List) -> List:
         """Sort chunks by composite quality score (best first).
-
-        Score = 30% detector + 35% specificity + 35% commitment
         """
         def score(c):
             return (
-                c.metadata.get("detector_score", 0) * 0.3 +
-                c.metadata.get("specificity_score", 0) * 0.35 +
-                c.metadata.get("commitment_score", 0) * 0.35
+                c.metadata.get("detector_score", 0) * 0.4 +
+                c.metadata.get("specificity_score", 0) * 0.4 +
+                c.metadata.get("commitment_score", 0) * 0.2
             )
         return sorted(chunks, key=score, reverse=True)
 
@@ -782,17 +799,178 @@ class RAGPipeline:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
+def analyze_token_usage(pipeline: RAGPipeline) -> dict:
+    """Analyze chunk and token usage to help tune context window settings.
+
+    Args:
+        pipeline: Initialized RAGPipeline with loaded chunks
+
+    Returns:
+        Dict with statistics and recommendations
+    """
+    if not pipeline.grouped_chunks:
+        print("⚠️ No chunks loaded. Call pipeline.load_from_cache() first.")
+        return {}
+
+    # Calculate actual prompt token sizes
+    barrier_template = BARRIER_MAP_PROMPT.messages[0].prompt.template
+    motivator_template = MOTIVATOR_MAP_PROMPT.messages[0].prompt.template
+    barrier_tokens = len(barrier_template) // 4
+    motivator_tokens = len(motivator_template) // 4
+    prompt_overhead = max(barrier_tokens, motivator_tokens)
+
+    print("=" * 60)
+    print("PROMPT OVERHEAD")
+    print("=" * 60)
+    print(
+        f"  BARRIER_MAP_PROMPT:   ~{barrier_tokens} tokens ({len(barrier_template)} chars)")
+    print(
+        f"  MOTIVATOR_MAP_PROMPT: ~{motivator_tokens} tokens ({len(motivator_template)} chars)")
+    print(f"  Using max as overhead: {prompt_overhead} tokens")
+
+    # Chunk-level statistics
+    all_chunk_sizes = [
+        len(c.page_content)
+        for chunks in pipeline.grouped_chunks.values()
+        for c in chunks
+    ]
+    chunk_tokens = [size // 4 for size in all_chunk_sizes]
+
+    print("\n" + "=" * 60)
+    print("CHUNK-LEVEL STATISTICS")
+    print("=" * 60)
+    print(f"Total chunks: {len(all_chunk_sizes)}")
+    print(f"\nChunk size (characters):")
+    print(f"  Min: {min(all_chunk_sizes)}, Max: {max(all_chunk_sizes)}, "
+          f"Mean: {np.mean(all_chunk_sizes):.0f}, Median: {np.median(all_chunk_sizes):.0f}")
+    print(f"\nChunk size (tokens, approx):")
+    print(f"  Min: {min(chunk_tokens)}, Max: {max(chunk_tokens)}, "
+          f"Mean: {np.mean(chunk_tokens):.0f}, Median: {np.median(chunk_tokens):.0f}")
+
+    # Group-level statistics
+    group_stats = []
+    for (company, year), chunks in pipeline.grouped_chunks.items():
+        n_chunks = len(chunks)
+        total_chars = sum(len(c.page_content) for c in chunks)
+        est_tokens = total_chars // 4 + prompt_overhead
+        group_stats.append({
+            "company": company,
+            "year": year,
+            "n_chunks": n_chunks,
+            "total_chars": total_chars,
+            "est_tokens": est_tokens
+        })
+
+    group_tokens = [g["est_tokens"] for g in group_stats]
+    group_chunks = [g["n_chunks"] for g in group_stats]
+
+    print("\n" + "=" * 60)
+    print("GROUP-LEVEL STATISTICS (company-year)")
+    print("=" * 60)
+    print(f"Total groups: {len(group_stats)}")
+    print(f"\nChunks per group:")
+    print(f"  Min: {min(group_chunks)}, Max: {max(group_chunks)}, "
+          f"Mean: {np.mean(group_chunks):.1f}, Median: {np.median(group_chunks):.0f}")
+    print(f"\nTokens per group (incl. prompt overhead):")
+    print(f"  Min: {min(group_tokens)}, Max: {max(group_tokens)}, "
+          f"Mean: {np.mean(group_tokens):.0f}, Median: {np.median(group_tokens):.0f}")
+
+    # Context window coverage analysis
+    current_ctx = pipeline.config.llm_num_ctx
+    print("\n" + "=" * 60)
+    print("CONTEXT WINDOW COVERAGE")
+    print("=" * 60)
+    ctx_options = [2048, 4096, 6144, 8192, 12288, 16384]
+    for ctx in ctx_options:
+        covered = sum(1 for t in group_tokens if t <= ctx)
+        pct = covered / len(group_tokens) * 100
+        marker = "◀── current" if ctx == current_ctx else ""
+        print(
+            f"  ctx={ctx:5d}: {covered:3d}/{len(group_tokens)} groups covered ({pct:5.1f}%) {marker}")
+
+    # Recommendations
+    p90 = np.percentile(group_tokens, 90)
+    p95 = np.percentile(group_tokens, 95)
+    p99 = np.percentile(group_tokens, 99)
+
+    print("\n" + "=" * 60)
+    print("RECOMMENDATIONS")
+    print("=" * 60)
+    print(f"Token percentiles: P90={p90:.0f}, P95={p95:.0f}, P99={p99:.0f}")
+    print(
+        f"\nTo cover 90% of groups: set llm_num_ctx >= {int(np.ceil(p90 / 1024) * 1024)}")
+    print(
+        f"To cover 95% of groups: set llm_num_ctx >= {int(np.ceil(p95 / 1024) * 1024)}")
+    print(
+        f"To cover 99% of groups: set llm_num_ctx >= {int(np.ceil(p99 / 1024) * 1024)}")
+
+    # Alternative: limit chunks per group
+    avg_tokens_per_chunk = np.mean(chunk_tokens)
+    max_chunks_for_ctx = int(
+        (current_ctx - prompt_overhead) / avg_tokens_per_chunk)
+    print(
+        f"\nWith current ctx={current_ctx}, max ~{max_chunks_for_ctx} chunks/group fit")
+    print(
+        f"Consider setting max_chunks_per_group={max_chunks_for_ctx} in RAGConfig")
+
+    # Show largest groups
+    print("\n" + "=" * 60)
+    print("LARGEST GROUPS (potential truncation)")
+    print("=" * 60)
+    sorted_groups = sorted(group_stats, key=lambda x: -x["est_tokens"])[:10]
+    for g in sorted_groups:
+        status = "⚠️" if g["est_tokens"] > current_ctx else "✓"
+        print(
+            f"{status} {g['company']} {g['year']}: {g['n_chunks']} chunks, ~{g['est_tokens']} tokens")
+
+    return {
+        "prompt_stats": {
+            "barrier_tokens": barrier_tokens,
+            "motivator_tokens": motivator_tokens,
+            "overhead_used": prompt_overhead,
+        },
+        "chunk_stats": {
+            "count": len(all_chunk_sizes),
+            "tokens_mean": np.mean(chunk_tokens),
+            "tokens_median": np.median(chunk_tokens),
+        },
+        "group_stats": {
+            "count": len(group_stats),
+            "tokens_p90": p90,
+            "tokens_p95": p95,
+            "tokens_p99": p99,
+        },
+        "recommendations": {
+            "max_chunks_for_ctx": max_chunks_for_ctx,
+            "ctx_for_p90": int(np.ceil(p90 / 1024) * 1024),
+            "ctx_for_p95": int(np.ceil(p95 / 1024) * 1024),
+        }
+    }
+
+
 def quick_start(
     cache_dir: str = "cache",
     use_bert_cache: bool = True,
-    ollama_model: str = "llama3.1:8b"
+    ollama_model: str = "llama3.1:8b",
+    config: Optional[RAGConfig] = None
 ) -> RAGPipeline:
-    """Quick start: load cache and prepare for extraction."""
-    config = RAGConfig(
-        cache_dir=cache_dir,
-        use_bert_cache=use_bert_cache,
-        ollama_model=ollama_model,
-    )
+    """Quick start: load cache and prepare for extraction.
+
+    Args:
+        cache_dir: Path to cache directory
+        use_bert_cache: Whether to use bert.json (filtered) or prep.json
+        ollama_model: Ollama model name (ignored if config provided)
+        config: Optional RAGConfig to override all settings
+
+    Returns:
+        Initialized RAGPipeline ready for extraction
+    """
+    if config is None:
+        config = RAGConfig(
+            cache_dir=cache_dir,
+            use_bert_cache=use_bert_cache,
+            ollama_model=ollama_model,
+        )
     pipeline = RAGPipeline(config)
     pipeline.load_from_cache()
     return pipeline
@@ -814,17 +992,3 @@ def extract_all(
     pipeline.load_from_cache()
     pipeline.print_chunk_overview()
     return pipeline.extract_all_companies()
-
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    # Quick test
-    pipeline = RAGPipeline()
-    pipeline.load_from_cache()
-    pipeline.print_status()
-
-    # Uncomment to run extraction:
-    pipeline.extract_all_companies()
