@@ -18,9 +18,10 @@ Usage:
 """
 
 import os
+import re
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple, Set, Any
+from typing import List, Dict, Optional, Tuple, Any
 
 import numpy as np
 import pandas as pd
@@ -53,6 +54,7 @@ class RAGConfig:
 
     # LLM settings (Ollama)
     # ollama_model: str = "llama3.1:8b"
+    # llama3.2: 3b - fast
     ollama_model: str = "qwen3:4b"
     # phi3:mini
     ollama_base_url: str = "http://localhost:11434"
@@ -75,98 +77,105 @@ class RAGConfig:
 # MAP phase: Extract from a single company-year group
 # basically using the LLM as a semantic filter + high-recall extractor, not a generator
 # scopeREQ: The sentence MUST explicitly mention at least one emissions-related term (e.g. "emissions", "CO₂", "GHG", "carbon", "decarbonisation", "net zero", "carbon neutral").
-BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""
-You are analyzing sustainability report excerpts from {company} ({year}) to extract BARRIERS to DECARBONISATION.
+BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""You are analyzing sustainability report excerpts from {company} ({year}).
 
-TASK:
-Extract ALL barriers that explicitly hinder, slow, limit, or complicate efforts to reduce greenhouse gas (GHG) emissions or to decarbonise operations, products, or value chains.
+GOAL:
+Extract ALL BARRIERS to DECARBONISATION.
 
 DEFINITION:
-A "barrier" is any stated challenge, constraint, limitation, obstacle, risk, dependency, or external factor that makes decarbonisation or GHG emissions reduction more difficult, slower, more expensive, or more uncertain.
+A barrier is any stated challenge, constraint, limitation, risk, dependency, or external factor that explicitly makes reducing GHG emissions or decarbonising operations, products, or value chains more difficult, slower, more costly, or uncertain.
 
-CHUNK ANNOTATIONS:
-- Chunks marked [NET-ZERO] contain net-zero/reduction targets
-- Chunks marked [COMMITMENT] contain firm commitments
-- Chunks marked [SPECIFIC] contain specific/quantified claims
-- Prioritize extracting from marked chunks, but also check unmarked chunks
+CRITICAL EXTRACTION RULES (STRICT):
+- Copy text EXACTLY as written (verbatim)
+- No paraphrasing, rewriting, summarizing, or normalization
+- Do NOT infer or assume anything not stated
+- Each sentence or bullet point is evaluated independently
+- NEVER combine information across sentences
 
 SCOPE REQUIREMENT (MANDATORY):
-To qualify, the barrier MUST be explicitly linked in the text to at least one of the following:
+The sentence itself MUST explicitly mention at least one of:
 - Decarbonisation
-- Reduction of CO₂ or other greenhouse gas emissions
+- Reduction of CO₂ or other GHG emissions
 - Net-zero, carbon neutrality, or emissions targets
 - Transition away from fossil fuels or high-carbon activities
 
-DO NOT include barriers that relate only to:
+Exclude barriers related only to:
 - General sustainability or ESG topics
 - Biodiversity, water, waste, safety, or social issues
-- Business or operational challenges unless they are explicitly tied to emissions reduction or decarbonisation
+- Business or operational challenges unless explicitly linked to emissions reduction
 
-RULES:
-- Extract EVERY qualifying barrier mentioned; do NOT filter, rank, or prioritize
-- Include barriers even if mentioned briefly or indirectly, as long as the link to decarbonisation or emissions reduction is explicit
-- Do NOT infer or assume a link to decarbonisation if it is not stated in the text
-- Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting)
-- Do NOT normalize capitalization, punctuation, spacing, or units.
-- Each output must be the full original sentence or bullet text that contains the barrier
-- If a single sentence contains multiple qualifying barriers, include the same sentence multiple times (once per barrier)
-- Evaluate each sentence independently. Do NOT combine information across sentences or infer missing context from earlier or later text
-- If no qualifying barriers are found, respond with exactly: NONE_FOUND
+CHUNK ANNOTATIONS:
+- Each chunk starts with its ID (e.g., [01_042])
+- [NET-ZERO]: targets or reductions
+- [COMMITMENT]: firm commitments
+- [SPECIFIC]: quantified or specific claims
+Prioritize marked chunks, but also check unmarked ones.
+
+OUTPUT RULES:
+- Extract EVERY qualifying barrier
+- Return the FULL original sentence or bullet text
+- Prefix each line with the source chunk ID in brackets
+- Format: [chunk_id] - verbatim text
+- Example: [01_042] - The high cost of hydrogen limits our decarbonisation options.
+- If one sentence contains multiple barriers, repeat with same chunk ID
+- No commentary or headers
+- If none found, output exactly: NONE_FOUND
 
 REPORT EXCERPTS:
 {context}
 
-OUTPUT FORMAT:
-- One line per extracted sentence
-- Each line must start with "- "
-- No empty lines
-- No commentary or headers
-
-Extract ALL qualifying barriers:
+Extract ALL qualifying barriers (one per line, prefixed with chunk ID):
 """)
 
 MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""
-You are analyzing sustainability report excerpts from {company} ({year}) to extract MOTIVATORS for DECARBONISATION.
+You are analyzing sustainability report excerpts from {company} ({year}).
 
-TASK:
-Extract ALL motivators that explicitly drive, encourage, justify, or accelerate efforts to reduce greenhouse gas (GHG) emissions or to decarbonise operations, products, or value chains.
+GOAL:
+Extract ALL MOTIVATORS for DECARBONISATION.
 
 DEFINITION:
-A "motivator" is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that encourages or justifies decarbonisation or GHG emissions reduction.
+A motivator is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that explicitly encourages or justifies reducing GHG emissions or decarbonising operations, products, or value chains.
 
-CHUNK ANNOTATIONS:
-- Chunks marked [NET-ZERO] contain net-zero/reduction targets
-- Chunks marked [COMMITMENT] contain firm commitments
-- Chunks marked [SPECIFIC] contain specific/quantified claims
-- Prioritize extracting from marked chunks, but also check unmarked chunks
+CRITICAL EXTRACTION RULES (STRICT):
+- Copy text EXACTLY as written (verbatim)
+- No paraphrasing, rewriting, summarizing, or normalization
+- Do NOT infer or assume anything not stated
+- Each sentence or bullet point is evaluated independently
+- NEVER combine information across sentences
 
 SCOPE REQUIREMENT (MANDATORY):
-To qualify, the motivator MUST be explicitly linked in the text to at least one of the following:
+The sentence itself MUST explicitly mention at least one of:
 - Decarbonisation
-- Reduction of CO₂ or other greenhouse gas emissions
+- Reduction of CO₂ or other GHG emissions
 - Net-zero, carbon neutrality, or emissions targets
 - Transition away from fossil fuels or high-carbon activities
 
-DO NOT include motivators that relate only to:
+Exclude motivators related only to:
 - General sustainability or ESG ambitions
 - Biodiversity, water, waste, safety, or social performance
-- Business strategies or opportunities unless they are explicitly connected to emissions reduction or decarbonisation
+- Business strategies unless explicitly linked to emissions reduction
 
-RULES:
-- Extract EVERY qualifying motivator mentioned; do NOT filter, rank, or prioritize
-- Include motivators even if mentioned briefly or indirectly, as long as the link to decarbonisation or emissions reduction is explicit
-- Do NOT infer or assume a link to decarbonisation if it is not stated in the text
-- Return ONLY verbatim text copied exactly from the report (no paraphrasing, no rewriting)
-- Do NOT normalize capitalization, punctuation, spacing, or units.
-- Each output must be the full original sentence or bullet text that contains the motivator
-- If a single sentence contains multiple qualifying motivators, include the same sentence multiple times (once per motivator)
-- Evaluate each sentence independently. Do NOT combine information across sentences or infer missing context from earlier or later text
-- If no qualifying motivators are found, respond with exactly: NONE_FOUND
+CHUNK ANNOTATIONS:
+- Each chunk starts with its ID (e.g., [01_042])
+- [NET-ZERO]: targets or reductions
+- [COMMITMENT]: firm commitments
+- [SPECIFIC]: quantified or specific claims
+Prioritize marked chunks, but also check unmarked ones.
+
+OUTPUT RULES:
+- Extract EVERY qualifying motivator
+- Return the FULL original sentence or bullet text
+- Prefix each line with the source chunk ID in brackets
+- Format: [chunk_id] - verbatim text
+- Example: [01_042] - Regulatory pressure is driving our net-zero commitment.
+- If one sentence contains multiple motivators, repeat with same chunk ID
+- No commentary or headers
+- If none found, output exactly: NONE_FOUND
 
 REPORT EXCERPTS:
 {context}
 
-Extract ALL qualifying motivators (one per line, starting with "- "):
+Extract ALL qualifying motivators (one per line, prefixed with chunk ID):
 """)
 
 
@@ -374,43 +383,28 @@ class RAGPipeline:
     # BERT Metadata Helpers
     # -------------------------------------------------------------------------
 
-    def _find_source_chunk_exact(self, extracted_text: str, chunks: List) -> Optional[Dict[str, Any]]:
-        """Find source chunk using exact substring match.
+    def _get_chunk_metadata(self, chunk) -> Dict[str, Any]:
+        """Extract BERT metadata dict from a chunk for output row."""
+        return {
+            "source_chunk_id": chunk.metadata.get("chunk_id"),
+            "detector_score": chunk.metadata.get("detector_score", 0),
+            "specificity_score": chunk.metadata.get("specificity_score", 0),
+            "specificity_label": chunk.metadata.get("specificity_label"),
+            "commitment_score": chunk.metadata.get("commitment_score", 0),
+            "commitment_label": chunk.metadata.get("commitment_label"),
+            "sentiment_label": chunk.metadata.get("sentiment_label"),
+            "sentiment_score": chunk.metadata.get("sentiment_score", 0),
+            "netzero_label": chunk.metadata.get("netzero_label"),
+            "netzero_score": chunk.metadata.get("netzero_score", 0),
+        }
 
-        Since prompts require verbatim extraction, we can use exact string matching
-        to trace extracted sentences back to source chunks.
+    def _format_chunk_with_metadata(self, chunk) -> str:
+        """Format chunk with chunk_id and BERT labels for prompt context.
 
-        Returns dict with source chunk ID and all BERT metadata, or None if not found.
+        Includes chunk_id in the annotation to enable direct lookup
+        from LLM output back to source chunk.
         """
-        if not extracted_text or not chunks:
-            return None
-
-        extracted_clean = extracted_text.strip().lower()
-
-        for chunk in chunks:
-            chunk_text = chunk.page_content.lower() if hasattr(
-                chunk, 'page_content') else str(chunk).lower()
-            if extracted_clean in chunk_text:
-                return {
-                    "source_chunk_id": chunk.metadata.get("chunk_id"),
-                    "detector_score": chunk.metadata.get("detector_score", 0),
-                    "specificity_score": chunk.metadata.get("specificity_score", 0),
-                    "specificity_label": chunk.metadata.get("specificity_label"),
-                    "commitment_score": chunk.metadata.get("commitment_score", 0),
-                    "commitment_label": chunk.metadata.get("commitment_label"),
-                    "sentiment_label": chunk.metadata.get("sentiment_label"),
-                    "sentiment_score": chunk.metadata.get("sentiment_score", 0),
-                    "netzero_label": chunk.metadata.get("netzero_label"),
-                    "netzero_score": chunk.metadata.get("netzero_score", 0),
-                }
-        return None
-
-    def _format_chunk_with_metadata(self, i: int, chunk) -> str:
-        """Format chunk with BERT labels for prompt context.
-
-        Annotates chunks with labels like [NET-ZERO], [COMMITMENT], [SPECIFIC]
-        to help the LLM prioritize high-quality chunks.
-        """
+        chunk_id = chunk.metadata.get("chunk_id", "unknown")
         labels = []
         if chunk.metadata.get("netzero_label") == "reduction":
             labels.append("NET-ZERO")
@@ -419,8 +413,8 @@ class RAGPipeline:
         if chunk.metadata.get("specificity_label") == "specific":
             labels.append("SPECIFIC")
 
-        tag = f" [{', '.join(labels)}]" if labels else ""
-        return f"[Chunk {i+1}{tag}]\n{chunk.page_content}"
+        tag = f" | {', '.join(labels)}" if labels else ""
+        return f"[{chunk_id}{tag}]\n{chunk.page_content}"
 
     def _sort_chunks_by_quality(self, chunks: List) -> List:
         """Sort chunks by composite quality score (best first).
@@ -433,112 +427,36 @@ class RAGPipeline:
             )
         return sorted(chunks, key=score, reverse=True)
 
-    def _compute_group_metadata(self, chunks: List) -> Dict[str, Any]:
-        """Compute aggregate BERT metadata for a group of chunks.
+    def _parse_llm_response(self, response_text: str) -> List[Tuple[str, str]]:
+        """Parse strict format: [chunk_id] - text
 
-        Used as fallback when exact substring match fails (e.g., LLM slightly modified text).
-        Returns mean scores and most common labels.
+        Returns list of (chunk_id, text) tuples. Warns on unparseable lines.
         """
-        if not chunks:
-            return {
-                "source_chunk_id": None,
-                "detector_score": 0,
-                "specificity_score": 0,
-                "specificity_label": None,
-                "commitment_score": 0,
-                "commitment_label": None,
-                "sentiment_label": None,
-                "sentiment_score": 0,
-                "netzero_label": None,
-                "netzero_score": 0,
-            }
-
-        # Compute mean scores
-        detector_scores = [c.metadata.get("detector_score", 0) for c in chunks]
-        specificity_scores = [c.metadata.get(
-            "specificity_score", 0) for c in chunks]
-        commitment_scores = [c.metadata.get(
-            "commitment_score", 0) for c in chunks]
-        sentiment_scores = [c.metadata.get(
-            "sentiment_score", 0) for c in chunks]
-        netzero_scores = [c.metadata.get("netzero_score", 0) for c in chunks]
-
-        # Get most common labels (mode)
-        def mode(values: List) -> Optional[str]:
-            filtered = [v for v in values if v is not None]
-            if not filtered:
-                return None
-            from collections import Counter
-            return Counter(filtered).most_common(1)[0][0]
-
-        specificity_labels = [c.metadata.get(
-            "specificity_label") for c in chunks]
-        commitment_labels = [c.metadata.get(
-            "commitment_label") for c in chunks]
-        sentiment_labels = [c.metadata.get("sentiment_label") for c in chunks]
-        netzero_labels = [c.metadata.get("netzero_label") for c in chunks]
-
-        return {
-            "source_chunk_id": None,  # No exact match
-            "detector_score": float(np.mean(detector_scores)) if detector_scores else 0,
-            "specificity_score": float(np.mean(specificity_scores)) if specificity_scores else 0,
-            "specificity_label": mode(specificity_labels),
-            "commitment_score": float(np.mean(commitment_scores)) if commitment_scores else 0,
-            "commitment_label": mode(commitment_labels),
-            "sentiment_label": mode(sentiment_labels),
-            "sentiment_score": float(np.mean(sentiment_scores)) if sentiment_scores else 0,
-            "netzero_label": mode(netzero_labels),
-            "netzero_score": float(np.mean(netzero_scores)) if netzero_scores else 0,
-        }
-
-    def _parse_llm_response(self, response_text: str) -> List[str]:
-        """Parse LLM response into list of items."""
-        if not response_text:
+        if not response_text or "NONE_FOUND" in response_text.upper():
             return []
 
-        text = response_text.strip()
-        if "NONE_FOUND" in text.upper():
-            return []
+        # Pattern: [chunk_id] - text (with optional leading bullet)
+        pattern = re.compile(r'^(?:[-•*–·]\s*)?\[([^\]]+)\]\s*-\s*(.+)$')
+        results = []
+        seen = set()
 
-        items = []
-        seen: Set[str] = set()
-
-        for line in text.splitlines():
+        for line in response_text.strip().splitlines():
             line = line.strip()
             if not line or len(line) < 10:
                 continue
 
-            # Remove bullet points
-            if line.startswith(("-", "•", "*", "–", "·")):
-                line = line[1:].strip()
-            # Remove numbering
-            if len(line) > 2 and line[0].isdigit() and line[1] in ".):":
-                line = line[2:].strip()
+            match = pattern.match(line)
+            if match:
+                chunk_id = match.group(1).strip()
+                text = match.group(2).strip()
+                # Simple deduplication by text
+                if text.lower() not in seen:
+                    results.append((chunk_id, text))
+                    seen.add(text.lower())
+            elif not line.upper().startswith("NONE"):
+                print(f"    ⚠️ Could not parse: {line[:60]}...")
 
-            if not line:
-                continue
-
-            normalized = line.lower().strip()
-            if normalized in seen:
-                continue
-
-            # Fuzzy deduplication: check word overlap
-            is_duplicate = False
-            for existing in seen:
-                existing_words = set(existing.split())
-                line_words = set(normalized.split())
-                if len(existing_words) > 3 and len(line_words) > 3:
-                    overlap = len(existing_words & line_words)
-                    min_len = min(len(existing_words), len(line_words))
-                    if overlap >= min_len * 0.7:
-                        is_duplicate = True
-                        break
-
-            if not is_duplicate:
-                items.append(line)
-                seen.add(normalized)
-
-        return items
+        return results
 
     def _map_extract(
         self,
@@ -546,12 +464,11 @@ class RAGPipeline:
         company: str,
         year: str,
         extract_type: str
-    ) -> List[str]:
+    ) -> List[Tuple[str, str]]:
         """MAP phase: Extract barriers/motivators from a single company-year group.
 
-        Uses BERT metadata to:
-        1. Sort chunks by quality (best first)
-        2. Annotate chunks with BERT labels in the prompt
+        Returns list of (chunk_id, extracted_text) tuples.
+        Processes ALL chunks in batches of max_chunks_per_group for high recall.
         """
         if not chunks:
             return []
@@ -559,39 +476,50 @@ class RAGPipeline:
         # Sort by BERT quality score (best chunks first)
         chunks = self._sort_chunks_by_quality(chunks)
 
-        # Limit chunks if too many
-        if len(chunks) > self.config.max_chunks_per_group:
-            chunks = chunks[:self.config.max_chunks_per_group]
-
-        # Build context WITH metadata annotations
-        context = "\n\n---\n\n".join(
-            self._format_chunk_with_metadata(i, chunk)
-            for i, chunk in enumerate(chunks)
-        )
-
         # Select prompt
         prompt = BARRIER_MAP_PROMPT if extract_type == "barriers" else MOTIVATOR_MAP_PROMPT
         chain = prompt | self.llm
 
-        try:
-            response = chain.invoke({
-                "company": company,
-                "year": year,
-                "context": context
-            })
-            raw_text = response.content if hasattr(
-                response, "content") else str(response)
-            return self._parse_llm_response(raw_text)
-        except Exception as e:
-            print(f"    ⚠️ Error in map phase: {e}")
-            return []
+        batch_size = self.config.max_chunks_per_group
+        n_batches = (len(chunks) + batch_size - 1) // batch_size
+        all_results = []
+
+        # Process all chunks in batches
+        for batch_idx in range(n_batches):
+            start = batch_idx * batch_size
+            end = min(start + batch_size, len(chunks))
+            batch = chunks[start:end]
+
+            # Build context WITH chunk IDs and metadata annotations
+            context = "\n\n---\n\n".join(
+                self._format_chunk_with_metadata(chunk)
+                for chunk in batch
+            )
+
+            try:
+                response = chain.invoke({
+                    "company": company,
+                    "year": year,
+                    "context": context
+                })
+                raw_text = response.content if hasattr(
+                    response, "content") else str(response)
+                batch_results = self._parse_llm_response(raw_text)
+                all_results.extend(batch_results)
+            except Exception as e:
+                print(f"    ⚠️ Error in batch {batch_idx+1}/{n_batches}: {e}")
+
+        return all_results
 
     def extract_company_year(
         self,
         company_id: str,
         year: str
-    ) -> Tuple[List[str], List[str]]:
-        """Extract barriers and motivators for a single company-year group."""
+    ) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
+        """Extract barriers and motivators for a single company-year group.
+
+        Returns two lists of (chunk_id, text) tuples.
+        """
         key = (company_id, year)
         chunks = self.grouped_chunks.get(key, [])
 
@@ -602,17 +530,15 @@ class RAGPipeline:
 
         # MAP: Extract from this group
         barriers = self._map_extract(chunks, company_name, year, "barriers")
-        motivators = self._map_extract(
-            chunks, company_name, year, "motivators")
+        motivators = self._map_extract(chunks, company_name, year, "motivators")
 
         return barriers, motivators
 
     def extract_company_data(self, company_id: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Extract barriers and motivators for a company across all years.
 
-        Each extracted item is traced back to its source chunk via exact substring
-        matching, inheriting all BERT metadata (detector, specificity, commitment,
-        sentiment, netzero scores and labels).
+        Each extracted item is traced back to its source chunk via chunk_id
+        embedded in LLM output, inheriting all BERT metadata.
         """
         company_name = self._get_company_name(company_id)
 
@@ -621,9 +547,14 @@ class RAGPipeline:
         print(f"{'='*60}")
 
         years = self.get_years_for_company(company_id)
+        batch_size = self.config.max_chunks_per_group
+        total_chunks = sum(len(self.grouped_chunks.get(
+            (company_id, y), [])) for y in years)
+        total_batches = sum((len(self.grouped_chunks.get(
+            (company_id, y), [])) + batch_size - 1) // batch_size for y in years)
         print(f"Years: {years}")
         print(
-            f"Groups: {len(years)} | Avg chunks/group: {len(self.chunks) / max(len(self.grouped_chunks), 1):.1f}")
+            f"Chunks: {total_chunks} | Batches: {total_batches} × 2 (barriers+motivators) = {total_batches * 2} LLM calls")
 
         barrier_rows, motivator_rows = [], []
         total_barriers, total_motivators = 0, 0
@@ -633,43 +564,48 @@ class RAGPipeline:
             key = (company_id, year)
             chunks = self.grouped_chunks.get(key, [])
 
+            # Build chunk_id -> chunk lookup for this group
+            chunk_lookup = {
+                c.metadata.get("chunk_id"): c
+                for c in chunks
+                if c.metadata.get("chunk_id")
+            }
+
             barriers, motivators = self.extract_company_year(company_id, year)
 
             # Create one row per barrier with BERT metadata
-            for barrier in barriers:
+            for chunk_id, barrier_text in barriers:
                 row = {
                     "company_id": company_id,
                     "company": company_name,
                     "year": year,
-                    "barriers": barrier,
+                    "barriers": barrier_text,
                 }
-                # Find source chunk and inherit BERT scores
-                source = self._find_source_chunk_exact(barrier, chunks)
-                if source:
-                    row.update(source)
+                # Look up source chunk by chunk_id
+                if chunk_id in chunk_lookup:
+                    row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
                     matched_barriers += 1
                 else:
-                    # Fallback: use group-level aggregates
-                    row.update(self._compute_group_metadata(chunks))
+                    print(f"    ⚠️ chunk_id '{chunk_id}' not found in lookup")
+                    row["source_chunk_id"] = chunk_id  # Still record the ID
                 barrier_rows.append(row)
             total_barriers += len(barriers)
 
             # Create one row per motivator with BERT metadata
-            for motivator in motivators:
+            for chunk_id, motivator_text in motivators:
                 row = {
                     "company_id": company_id,
                     "company": company_name,
                     "year": year,
-                    "motivators": motivator,
+                    "motivators": motivator_text,
                 }
-                # Find source chunk and inherit BERT scores
-                source = self._find_source_chunk_exact(motivator, chunks)
-                if source:
-                    row.update(source)
+                # Look up source chunk by chunk_id
+                if chunk_id in chunk_lookup:
+                    row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
                     matched_motivators += 1
                 else:
-                    # Fallback: use group-level aggregates
-                    row.update(self._compute_group_metadata(chunks))
+                    print(f"    ⚠️ chunk_id '{chunk_id}' not found in lookup")
+                    row["source_chunk_id"] = chunk_id  # Still record the ID
                 motivator_rows.append(row)
             total_motivators += len(motivators)
 
@@ -679,8 +615,8 @@ class RAGPipeline:
         motivator_match_rate = matched_motivators / \
             total_motivators * 100 if total_motivators > 0 else 0
         print(
-            f"  ✓ Extracted {total_barriers} barriers ({barrier_match_rate:.0f}% matched), "
-            f"{total_motivators} motivators ({motivator_match_rate:.0f}% matched)")
+            f"  ✓ Extracted {total_barriers} barriers ({barrier_match_rate:.0f}% ID-matched), "
+            f"{total_motivators} motivators ({motivator_match_rate:.0f}% ID-matched)")
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 
@@ -753,7 +689,7 @@ class RAGPipeline:
         status = {
             "Chunks loaded": len(self.chunks) if self.chunks else 0,
             "Company-year groups": len(self.grouped_chunks),
-            "LLM": "✓" if self._llm else "○ (lazy)",
+            "LLM": "✓" if self._llm else "🐗 (lazy)",
         }
 
         for k, v in status.items():
@@ -904,24 +840,38 @@ def analyze_token_usage(pipeline: RAGPipeline) -> dict:
     print(
         f"To cover 99% of groups: set llm_num_ctx >= {int(np.ceil(p99 / 1024) * 1024)}")
 
-    # Alternative: limit chunks per group
+    # Batch processing info
     avg_tokens_per_chunk = np.mean(chunk_tokens)
     max_chunks_for_ctx = int(
         (current_ctx - prompt_overhead) / avg_tokens_per_chunk)
+    current_batch_size = pipeline.config.max_chunks_per_group
+
+    total_batches = sum((g["n_chunks"] + current_batch_size - 1) //
+                        current_batch_size for g in group_stats)
+    total_llm_calls = total_batches * 2  # barriers + motivators
+
     print(
-        f"\nWith current ctx={current_ctx}, max ~{max_chunks_for_ctx} chunks/group fit")
+        f"\nWith current ctx={current_ctx}, max ~{max_chunks_for_ctx} chunks/batch fit")
+    print(f"Current batch size: {current_batch_size} chunks")
+
+    print("\n" + "=" * 60)
+    print("BATCH PROCESSING ESTIMATE")
+    print("=" * 60)
     print(
-        f"Consider setting max_chunks_per_group={max_chunks_for_ctx} in RAGConfig")
+        f"Total batches: {total_batches} × 2 (barriers+motivators) = {total_llm_calls} LLM calls")
+    print(
+        f"Estimated time: {total_llm_calls * 3 // 60} - {total_llm_calls * 10 // 60} minutes (at 3-10s/call)")
 
     # Show largest groups
     print("\n" + "=" * 60)
-    print("LARGEST GROUPS (potential truncation)")
+    print("LARGEST GROUPS (most batches)")
     print("=" * 60)
-    sorted_groups = sorted(group_stats, key=lambda x: -x["est_tokens"])[:10]
+    sorted_groups = sorted(group_stats, key=lambda x: -x["n_chunks"])[:10]
     for g in sorted_groups:
-        status = "⚠️" if g["est_tokens"] > current_ctx else "✓"
+        n_batches = (g["n_chunks"] + current_batch_size -
+                     1) // current_batch_size
         print(
-            f"{status} {g['company']} {g['year']}: {g['n_chunks']} chunks, ~{g['est_tokens']} tokens")
+            f"  {g['company']} {g['year']}: {g['n_chunks']} chunks → {n_batches} batches")
 
     return {
         "prompt_stats": {
@@ -939,6 +889,13 @@ def analyze_token_usage(pipeline: RAGPipeline) -> dict:
             "tokens_p90": p90,
             "tokens_p95": p95,
             "tokens_p99": p99,
+        },
+        "batch_stats": {
+            "batch_size": current_batch_size,
+            "total_batches": total_batches,
+            "total_llm_calls": total_llm_calls,
+            "estimated_minutes_min": total_llm_calls * 3 // 60,
+            "estimated_minutes_max": total_llm_calls * 10 // 60,
         },
         "recommendations": {
             "max_chunks_for_ctx": max_chunks_for_ctx,
