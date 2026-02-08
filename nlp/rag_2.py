@@ -57,8 +57,11 @@ class TopicModelConfig:
     """Configuration for topic modeling pipeline."""
 
     # Embedding model
-    embedding_model: str = "sentence-transformers/all-mpnet-base-v2"
+    embedding_model: str = "snowflake-arctic-embed-s"  # top MTEB for size
+    # embedding_model: str = "sentence-transformers/all-mpnet-base-v2"
     # embedding_model: str = "Octen/Octen-Embedding-4B"
+    # embedding_model: str = "bge-small-en-v1.5" # ⚡/384d
+
     batch_size: int = 64  # embed (increase if GPU memory allows)
 
     # UMAP parameters
@@ -382,7 +385,8 @@ class TopicModeler:
             texts,
             batch_size=self.config.batch_size,
             show_progress_bar=self.config.verbose,
-            convert_to_numpy=True
+            convert_to_numpy=True,
+            normalize_embeddings=True  # for BGE embed
         )
 
         return embeddings
