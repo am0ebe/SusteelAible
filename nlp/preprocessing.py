@@ -620,13 +620,18 @@ class PDFPreprocessor:
                     if len(merged) <= max_chars:
                         current_chunk = merged
                     else:
-                        chunks.append(current_chunk)
-                        current_chunk = para
+                        # Only append if meets min_chars, otherwise merge anyway
+                        if len(current_chunk) >= min_chars:
+                            chunks.append(current_chunk)
+                            current_chunk = para
+                        else:
+                            # Small current_chunk - try to fit with para even if over max
+                            current_chunk = merged
                 else:
                     current_chunk = para
 
             elif para_len > max_chars:
-                if current_chunk:
+                if current_chunk and len(current_chunk) >= min_chars:
                     chunks.append(current_chunk)
                     current_chunk = ""
 
@@ -634,6 +639,21 @@ class PDFPreprocessor:
                 temp_chunk = ""
 
                 for sent in sentences:
+                    # Split oversized sentences by character boundary
+                    if len(sent) > max_chars:
+                        # Flush temp_chunk first
+                        if temp_chunk and len(temp_chunk) >= min_chars:
+                            chunks.append(temp_chunk)
+                            temp_chunk = ""
+                        # Split long sentence into max_chars pieces
+                        for i in range(0, len(sent), max_chars):
+                            piece = sent[i:i + max_chars].strip()
+                            if len(piece) >= min_chars:
+                                chunks.append(piece)
+                            elif piece:
+                                temp_chunk = piece
+                        continue
+
                     if not temp_chunk:
                         temp_chunk = sent
                     elif len(temp_chunk) + len(sent) + 1 <= max_chars:
@@ -649,6 +669,7 @@ class PDFPreprocessor:
                     else:
                         current_chunk = temp_chunk
             else:
+                # para_len < min_chars - accumulate
                 if current_chunk:
                     current_chunk += " " + para
                 else:
