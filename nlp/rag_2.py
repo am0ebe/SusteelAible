@@ -106,7 +106,7 @@ class TopicModelConfig:
     viz_umap_min_dist: float = 0.0
 
     # LLM settings (Ollama) for topic labeling
-    ollama_model: str = "llama3.1:8b"
+    ollama_model: str = "gemma3:4b"  # Fast + follows format. Avoid qwen3 (hidden thinking)
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
 

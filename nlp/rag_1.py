@@ -53,10 +53,9 @@ class RAGConfig:
     output_folder: str = "../out"
 
     # LLM settings (Ollama)
-    # ollama_model: str = "llama3.1:8b"
-    # llama3.2: 3b - fast
-    ollama_model: str = "qwen3:4b"
-    # phi3:mini
+    # qwen3:4b - has hidden "thinking" that can't be disabled, very slow
+    # phi3:mini - fast but mangles output format
+    ollama_model: str = "gemma3:4b"  # Fast + follows format correctly
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
     # Fits ~20 chunks + prompt per LLM call
