@@ -63,120 +63,59 @@ class RAGConfig:
     llm_num_ctx: int = 8096
 
     # Extraction settings
-    max_chunks_per_group: int = 7  # Safety limit per company-year group
+    max_chunks_per_group: int = 7  # Chunks per LLM call
 
     # BERT filtering (applied at load time)
-    # Filter chunks below this climate detector confidence
-    min_detector_score: float = 0.0
+    min_detector_score: float = 0.0  # Filter by climate detector confidence
 
 
 # =============================================================================
 # PROMPTS
 # =============================================================================
 
-# MAP phase: Extract from a single company-year group
-# basically using the LLM as a semantic filter + high-recall extractor, not a generator
-# scopeREQ: The sentence MUST explicitly mention at least one emissions-related term (e.g. "emissions", "CO₂", "GHG", "carbon", "decarbonisation", "net zero", "carbon neutral").
-BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""You are analyzing sustainability report excerpts from {company} ({year}).
+BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract BARRIERS to decarbonisation from {company} ({year}) report.
 
-GOAL:
-Extract ALL BARRIERS to DECARBONISATION.
+BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissions harder.
 
-DEFINITION:
-A barrier is any stated challenge, constraint, limitation, risk, dependency, or external factor that explicitly makes reducing GHG emissions or decarbonising operations, products, or value chains more difficult, slower, more costly, or uncertain.
-
-CRITICAL EXTRACTION RULES (STRICT):
+RULES:
 - Copy text EXACTLY as written (verbatim)
-- No paraphrasing, rewriting, summarizing, or normalization
-- Do NOT infer or assume anything not stated
-- Each sentence or bullet point is evaluated independently
-- NEVER combine information across sentences
+- Each chunk starts with [chunk_id] - use that exact ID
 
-SCOPE REQUIREMENT (MANDATORY):
-The sentence itself MUST explicitly mention at least one of:
-- Decarbonisation
-- Reduction of CO₂ or other GHG emissions
-- Net-zero, carbon neutrality, or emissions targets
-- Transition away from fossil fuels or high-carbon activities
+OUTPUT FORMAT (STRICT):
+[chunk_id]|||verbatim text
 
-Exclude barriers related only to:
-- General sustainability or ESG topics
-- Biodiversity, water, waste, safety, or social issues
-- Business or operational challenges unless explicitly linked to emissions reduction
+EXAMPLE:
+[012_003]|||The high cost of green hydrogen limits our decarbonisation options.
+[012_007]|||Carbon capture technology remains expensive and unproven at scale.
 
-CHUNK ANNOTATIONS:
-- Each chunk starts with its ID (e.g., [01_042])
-- [NET-ZERO]: targets or reductions
-- [COMMITMENT]: firm commitments
-- [SPECIFIC]: quantified or specific claims
-Prioritize marked chunks, but also check unmarked ones.
+One per line. No other text. No JSON. No explanations. No quotes.
+If none found: NONE_FOUND
 
-OUTPUT RULES:
-- Extract EVERY qualifying barrier
-- Return the FULL original sentence or bullet text
-- Prefix each line with the source chunk ID in brackets
-- Format: [chunk_id] - verbatim text
-- Example: [01_042] - The high cost of hydrogen limits our decarbonisation options.
-- If one sentence contains multiple barriers, repeat with same chunk ID
-- No commentary or headers
-- If none found, output exactly: NONE_FOUND
-
-REPORT EXCERPTS:
+TEXT:
 {context}
+/no_think""")
 
-Extract ALL qualifying barriers (one per line, prefixed with chunk ID):
-""")
+MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract MOTIVATORS for decarbonisation from {company} ({year}) report.
 
-MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""
-You are analyzing sustainability report excerpts from {company} ({year}).
+MOTIVATOR = driver, incentive, commitment, or pressure that encourages reducing GHG emissions.
 
-GOAL:
-Extract ALL MOTIVATORS for DECARBONISATION.
-
-DEFINITION:
-A motivator is any stated driver, incentive, benefit, opportunity, pressure, commitment, obligation, or strategic reason that explicitly encourages or justifies reducing GHG emissions or decarbonising operations, products, or value chains.
-
-CRITICAL EXTRACTION RULES (STRICT):
+RULES:
 - Copy text EXACTLY as written (verbatim)
-- No paraphrasing, rewriting, summarizing, or normalization
-- Do NOT infer or assume anything not stated
-- Each sentence or bullet point is evaluated independently
-- NEVER combine information across sentences
+- Each chunk starts with [chunk_id] - use that exact ID
 
-SCOPE REQUIREMENT (MANDATORY):
-The sentence itself MUST explicitly mention at least one of:
-- Decarbonisation
-- Reduction of CO₂ or other GHG emissions
-- Net-zero, carbon neutrality, or emissions targets
-- Transition away from fossil fuels or high-carbon activities
+OUTPUT FORMAT (STRICT):
+[chunk_id]|||verbatim sentence
 
-Exclude motivators related only to:
-- General sustainability or ESG ambitions
-- Biodiversity, water, waste, safety, or social performance
-- Business strategies unless explicitly linked to emissions reduction
+EXAMPLE:
+[012_003]|||EU regulations require 55% emissions reduction by 2030.
+[012_007]|||Customer demand for green steel is driving our net-zero commitment.
 
-CHUNK ANNOTATIONS:
-- Each chunk starts with its ID (e.g., [01_042])
-- [NET-ZERO]: targets or reductions
-- [COMMITMENT]: firm commitments
-- [SPECIFIC]: quantified or specific claims
-Prioritize marked chunks, but also check unmarked ones.
+One per line. No other text. No JSON. No explanations. No quotes.
+If none found: NONE_FOUND
 
-OUTPUT RULES:
-- Extract EVERY qualifying motivator
-- Return the FULL original sentence or bullet text
-- Prefix each line with the source chunk ID in brackets
-- Format: [chunk_id] - verbatim text
-- Example: [01_042] - Regulatory pressure is driving our net-zero commitment.
-- If one sentence contains multiple motivators, repeat with same chunk ID
-- No commentary or headers
-- If none found, output exactly: NONE_FOUND
-
-REPORT EXCERPTS:
+TEXT:
 {context}
-
-Extract ALL qualifying motivators (one per line, prefixed with chunk ID):
-""")
+/no_think""")
 
 
 # =============================================================================
@@ -398,23 +337,14 @@ class RAGPipeline:
             "netzero_score": chunk.metadata.get("netzero_score", 0),
         }
 
-    def _format_chunk_with_metadata(self, chunk) -> str:
-        """Format chunk with chunk_id and BERT labels for prompt context.
+    def _format_chunk(self, chunk) -> str:
+        """Format chunk with chunk_id for prompt context.
 
-        Includes chunk_id in the annotation to enable direct lookup
-        from LLM output back to source chunk.
+        BERT labels are NOT included - they're looked up after extraction
+        via chunk_id to avoid confusing the LLM.
         """
         chunk_id = chunk.metadata.get("chunk_id", "unknown")
-        labels = []
-        if chunk.metadata.get("netzero_label") == "reduction":
-            labels.append("NET-ZERO")
-        if chunk.metadata.get("commitment_label") == "yes":
-            labels.append("COMMITMENT")
-        if chunk.metadata.get("specificity_label") == "specific":
-            labels.append("SPECIFIC")
-
-        tag = f" | {', '.join(labels)}" if labels else ""
-        return f"[{chunk_id}{tag}]\n{chunk.page_content}"
+        return f"[{chunk_id}]\n{chunk.page_content}"
 
     def _sort_chunks_by_quality(self, chunks: List) -> List:
         """Sort chunks by composite quality score (best first).
@@ -428,33 +358,26 @@ class RAGPipeline:
         return sorted(chunks, key=score, reverse=True)
 
     def _parse_llm_response(self, response_text: str) -> List[Tuple[str, str]]:
-        """Parse strict format: [chunk_id] - text
+        """Parse text response: [chunk_id]|||verbatim text
 
-        Returns list of (chunk_id, text) tuples. Warns on unparseable lines.
+        Returns list of (chunk_id, text) tuples.
         """
         if not response_text or "NONE_FOUND" in response_text.upper():
             return []
 
-        # Pattern: [chunk_id] - text (with optional leading bullet)
-        pattern = re.compile(r'^(?:[-•*–·]\s*)?\[([^\]]+)\]\s*-\s*(.+)$')
+        # Pattern: [chunk_id]|||text
+        pattern = re.compile(r'^\[([^\]]+)\]\|\|\|(.+)$', re.MULTILINE)
+
         results = []
         seen = set()
 
-        for line in response_text.strip().splitlines():
-            line = line.strip()
-            if not line or len(line) < 10:
-                continue
-
-            match = pattern.match(line)
-            if match:
-                chunk_id = match.group(1).strip()
-                text = match.group(2).strip()
-                # Simple deduplication by text
-                if text.lower() not in seen:
-                    results.append((chunk_id, text))
-                    seen.add(text.lower())
-            elif not line.upper().startswith("NONE"):
-                print(f"    ⚠️ Could not parse: {line[:60]}...")
+        for match in pattern.finditer(response_text):
+            chunk_id = match.group(1).strip()
+            text = match.group(2).strip()
+            # Deduplicate by text
+            if text.lower() not in seen:
+                results.append((chunk_id, text))
+                seen.add(text.lower())
 
         return results
 
@@ -490,9 +413,9 @@ class RAGPipeline:
             end = min(start + batch_size, len(chunks))
             batch = chunks[start:end]
 
-            # Build context WITH chunk IDs and metadata annotations
+            # Build context with chunk IDs (no BERT labels - looked up after)
             context = "\n\n---\n\n".join(
-                self._format_chunk_with_metadata(chunk)
+                self._format_chunk(chunk)
                 for chunk in batch
             )
 
@@ -530,7 +453,8 @@ class RAGPipeline:
 
         # MAP: Extract from this group
         barriers = self._map_extract(chunks, company_name, year, "barriers")
-        motivators = self._map_extract(chunks, company_name, year, "motivators")
+        motivators = self._map_extract(
+            chunks, company_name, year, "motivators")
 
         return barriers, motivators
 
@@ -583,7 +507,8 @@ class RAGPipeline:
                 }
                 # Look up source chunk by chunk_id
                 if chunk_id in chunk_lookup:
-                    row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
+                    row.update(self._get_chunk_metadata(
+                        chunk_lookup[chunk_id]))
                     matched_barriers += 1
                 else:
                     print(f"    ⚠️ chunk_id '{chunk_id}' not found in lookup")
@@ -601,7 +526,8 @@ class RAGPipeline:
                 }
                 # Look up source chunk by chunk_id
                 if chunk_id in chunk_lookup:
-                    row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
+                    row.update(self._get_chunk_metadata(
+                        chunk_lookup[chunk_id]))
                     matched_motivators += 1
                 else:
                     print(f"    ⚠️ chunk_id '{chunk_id}' not found in lookup")
@@ -905,47 +831,22 @@ def analyze_token_usage(pipeline: RAGPipeline) -> dict:
     }
 
 
-def quick_start(
-    cache_dir: str = "cache",
-    use_bert_cache: bool = True,
-    ollama_model: str = "llama3.1:8b",
-    config: Optional[RAGConfig] = None
-) -> RAGPipeline:
+def quick_start(config: RAGConfig = RAGConfig()) -> RAGPipeline:
     """Quick start: load cache and prepare for extraction.
 
     Args:
-        cache_dir: Path to cache directory
-        use_bert_cache: Whether to use bert.json (filtered) or prep.json
-        ollama_model: Ollama model name (ignored if config provided)
-        config: Optional RAGConfig to override all settings
+        config: Optional RAGConfig (uses defaults if None)
 
     Returns:
         Initialized RAGPipeline ready for extraction
     """
-    if config is None:
-        config = RAGConfig(
-            cache_dir=cache_dir,
-            use_bert_cache=use_bert_cache,
-            ollama_model=ollama_model,
-        )
     pipeline = RAGPipeline(config)
     pipeline.load_from_cache()
     return pipeline
 
 
-def extract_all(
-    cache_dir: str = "cache",
-    output_folder: str = "out",
-    ollama_model: str = "llama3.1:8b"
-) -> Dict:
+def extract_all(config: RAGConfig = RAGConfig()) -> Dict:
     """Run full extraction pipeline."""
-    config = RAGConfig(
-        cache_dir=cache_dir,
-        output_folder=output_folder,
-        ollama_model=ollama_model,
-        use_bert_cache=True,
-    )
-    pipeline = RAGPipeline(config)
-    pipeline.load_from_cache()
+    pipeline = quick_start(config)
     pipeline.print_chunk_overview()
     return pipeline.extract_all_companies()
