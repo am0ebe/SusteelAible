@@ -17,22 +17,25 @@ Usage:
     pipeline.extract_all_companies()
 """
 
+from nlp.gpu_utils import GPUManager
+from nlp.data_loader import load_prep_cache, load_bert_cache
 import os
 import re
 from collections import defaultdict
-from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple, Any
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Tuple, Any, Literal
 
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from tqdm import tqdm
 from tabulate import tabulate
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
+load_dotenv()
 
-from nlp.data_loader import load_prep_cache, load_bert_cache
-from nlp.gpu_utils import GPUManager
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -43,29 +46,29 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 @dataclass
 class RAGConfig:
-    """Configuration for the RAG pipeline."""
+    """Configuration for RAG pipeline. See rag_test.py for model options."""
 
-    # Cache source
-    cache_dir: str = "cache"
-    use_bert_cache: bool = True  # Default to bert.json (ClimateBERT filtered)
+    # LLM (REQUIRED)
+    llm_provider: Literal["ollama", "groq"]
+    model: str
 
-    # Output
-    output_folder: str = "../out"
-
-    # LLM settings (Ollama)
-    # qwen3:4b - has hidden "thinking" that can't be disabled, very slow
-    # phi3:mini - fast but mangles output format
-    ollama_model: str = "gemma3:4b"  # Fast + follows format correctly
-    ollama_base_url: str = "http://localhost:11434"
+    # LLM optional
     llm_temperature: float = 0.0
-    # Fits ~20 chunks + prompt per LLM call
+    ollama_base_url: str = "http://localhost:11434"
+
+    # !! Context window: Ollama uses for actual context, Groq uses for batch size calc only
     llm_num_ctx: int = 8096
 
-    # Extraction settings
-    max_chunks_per_group: int = 7  # Chunks per LLM call
+    # Stop sequences to halt generation early
+    # Extensions: "Note:", "Explanation:", "Here are", "I found"
+    stop_tokens: tuple = ("NONE_FOUND\n", "\n\n\n")
 
-    # BERT filtering (applied at load time)
-    min_detector_score: float = 0.0  # Filter by climate detector confidence
+    # Pipeline
+    cache_dir: str = "../cache"
+    use_bert_cache: bool = True
+    output_folder: str = "../out"
+    max_chunks_per_group: int = 7
+    min_detector_score: float = 0.7
 
 
 # =============================================================================
@@ -91,8 +94,7 @@ One per line. No other text. No JSON. No explanations. No quotes.
 If none found: NONE_FOUND
 
 TEXT:
-{context}
-/no_think""")
+{context}""")
 
 MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract MOTIVATORS for decarbonisation from {company} ({year}) report.
 
@@ -113,8 +115,7 @@ One per line. No other text. No JSON. No explanations. No quotes.
 If none found: NONE_FOUND
 
 TEXT:
-{context}
-/no_think""")
+{context}""")
 
 
 # =============================================================================
@@ -124,9 +125,9 @@ TEXT:
 class RAGPipeline:
     """RAG pipeline for extracting barriers and motivators from sustainability reports."""
 
-    def __init__(self, config: Optional[RAGConfig] = None):
+    def __init__(self, config: RAGConfig):
         """Initialize the pipeline."""
-        self.config = config or RAGConfig()
+        self.config = config
         self.gpu = GPUManager()
 
         # Lazy-loaded LLM
@@ -145,15 +146,29 @@ class RAGPipeline:
 
     @property
     def llm(self):
-        """Lazy-load the Ollama LLM."""
+        """Lazy-load the LLM (Ollama or Groq based on config)."""
         if self._llm is None:
-            print(f"Loading Ollama model: {self.config.ollama_model}")
-            self._llm = ChatOllama(
-                model=self.config.ollama_model,
-                base_url=self.config.ollama_base_url,
-                temperature=self.config.llm_temperature,
-                num_ctx=self.config.llm_num_ctx,
-            )
+            if self.config.llm_provider == "groq":
+                api_key = os.getenv("GROQ_API_KEY")
+                if not api_key:
+                    raise ValueError(
+                        "GROQ_API_KEY not found in environment. Check .env file.")
+                print(f"Loading Groq model: {self.config.model}")
+                self._llm = ChatGroq(
+                    model=self.config.model,
+                    api_key=api_key,
+                    temperature=self.config.llm_temperature,
+                    stop_sequences=list(self.config.stop_tokens),
+                )
+            else:
+                print(f"Loading Ollama model: {self.config.model}")
+                self._llm = ChatOllama(
+                    model=self.config.model,
+                    base_url=self.config.ollama_base_url,
+                    temperature=self.config.llm_temperature,
+                    num_ctx=self.config.llm_num_ctx,
+                    stop=list(self.config.stop_tokens),
+                )
         return self._llm
 
     # -------------------------------------------------------------------------
@@ -419,6 +434,12 @@ class RAGPipeline:
             )
 
             try:
+                # DEBUG: Show context being sent (first batch only)
+                if batch_idx == 0:
+                    print(
+                        f"    [DEBUG] Context preview ({len(context)} chars):")
+                    print(f"    {context[:500]}...")
+
                 response = chain.invoke({
                     "company": company,
                     "year": year,
@@ -426,6 +447,13 @@ class RAGPipeline:
                 })
                 raw_text = response.content if hasattr(
                     response, "content") else str(response)
+
+                # DEBUG: Show raw LLM output for first batch
+                if batch_idx == 0:
+                    print(
+                        f"    [DEBUG] Raw LLM output ({len(raw_text)} chars):")
+                    print(f"    {raw_text[:300]}...")
+
                 batch_results = self._parse_llm_response(raw_text)
                 all_results.extend(batch_results)
             except Exception as e:
@@ -624,7 +652,10 @@ class RAGPipeline:
         print(f"  Cache: {self.config.cache_dir}")
         print(
             f"  Source: {'bert.json' if self.config.use_bert_cache else 'prep.json'}")
-        print(f"  Ollama: {self.config.ollama_model}")
+        if self.config.llm_provider == "groq":
+            print(f"  LLM: Groq API ({self.config.model})")
+        else:
+            print(f"  LLM: Ollama ({self.config.model})")
         print(f"  Context: {self.config.llm_num_ctx} tokens")
 
         # Print chunk matrix
@@ -660,192 +691,15 @@ class RAGPipeline:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-def analyze_token_usage(pipeline: RAGPipeline) -> dict:
-    """Analyze chunk and token usage to help tune context window settings.
-
-    Args:
-        pipeline: Initialized RAGPipeline with loaded chunks
-
-    Returns:
-        Dict with statistics and recommendations
-    """
-    if not pipeline.grouped_chunks:
-        print("⚠️ No chunks loaded. Call pipeline.load_from_cache() first.")
-        return {}
-
-    # Calculate actual prompt token sizes
-    barrier_template = BARRIER_MAP_PROMPT.messages[0].prompt.template
-    motivator_template = MOTIVATOR_MAP_PROMPT.messages[0].prompt.template
-    barrier_tokens = len(barrier_template) // 4
-    motivator_tokens = len(motivator_template) // 4
-    prompt_overhead = max(barrier_tokens, motivator_tokens)
-
-    print("=" * 60)
-    print("PROMPT OVERHEAD")
-    print("=" * 60)
-    print(
-        f"  BARRIER_MAP_PROMPT:   ~{barrier_tokens} tokens ({len(barrier_template)} chars)")
-    print(
-        f"  MOTIVATOR_MAP_PROMPT: ~{motivator_tokens} tokens ({len(motivator_template)} chars)")
-    print(f"  Using max as overhead: {prompt_overhead} tokens")
-
-    # Chunk-level statistics
-    all_chunk_sizes = [
-        len(c.page_content)
-        for chunks in pipeline.grouped_chunks.values()
-        for c in chunks
-    ]
-    chunk_tokens = [size // 4 for size in all_chunk_sizes]
-
-    print("\n" + "=" * 60)
-    print("CHUNK-LEVEL STATISTICS")
-    print("=" * 60)
-    print(f"Total chunks: {len(all_chunk_sizes)}")
-    print(f"\nChunk size (characters):")
-    print(f"  Min: {min(all_chunk_sizes)}, Max: {max(all_chunk_sizes)}, "
-          f"Mean: {np.mean(all_chunk_sizes):.0f}, Median: {np.median(all_chunk_sizes):.0f}")
-    print(f"\nChunk size (tokens, approx):")
-    print(f"  Min: {min(chunk_tokens)}, Max: {max(chunk_tokens)}, "
-          f"Mean: {np.mean(chunk_tokens):.0f}, Median: {np.median(chunk_tokens):.0f}")
-
-    # Group-level statistics
-    group_stats = []
-    for (company, year), chunks in pipeline.grouped_chunks.items():
-        n_chunks = len(chunks)
-        total_chars = sum(len(c.page_content) for c in chunks)
-        est_tokens = total_chars // 4 + prompt_overhead
-        group_stats.append({
-            "company": company,
-            "year": year,
-            "n_chunks": n_chunks,
-            "total_chars": total_chars,
-            "est_tokens": est_tokens
-        })
-
-    group_tokens = [g["est_tokens"] for g in group_stats]
-    group_chunks = [g["n_chunks"] for g in group_stats]
-
-    print("\n" + "=" * 60)
-    print("GROUP-LEVEL STATISTICS (company-year)")
-    print("=" * 60)
-    print(f"Total groups: {len(group_stats)}")
-    print(f"\nChunks per group:")
-    print(f"  Min: {min(group_chunks)}, Max: {max(group_chunks)}, "
-          f"Mean: {np.mean(group_chunks):.1f}, Median: {np.median(group_chunks):.0f}")
-    print(f"\nTokens per group (incl. prompt overhead):")
-    print(f"  Min: {min(group_tokens)}, Max: {max(group_tokens)}, "
-          f"Mean: {np.mean(group_tokens):.0f}, Median: {np.median(group_tokens):.0f}")
-
-    # Context window coverage analysis
-    current_ctx = pipeline.config.llm_num_ctx
-    print("\n" + "=" * 60)
-    print("CONTEXT WINDOW COVERAGE")
-    print("=" * 60)
-    ctx_options = [2048, 4096, 6144, 8192, 12288, 16384]
-    for ctx in ctx_options:
-        covered = sum(1 for t in group_tokens if t <= ctx)
-        pct = covered / len(group_tokens) * 100
-        marker = "◀── current" if ctx == current_ctx else ""
-        print(
-            f"  ctx={ctx:5d}: {covered:3d}/{len(group_tokens)} groups covered ({pct:5.1f}%) {marker}")
-
-    # Recommendations
-    p90 = np.percentile(group_tokens, 90)
-    p95 = np.percentile(group_tokens, 95)
-    p99 = np.percentile(group_tokens, 99)
-
-    print("\n" + "=" * 60)
-    print("RECOMMENDATIONS")
-    print("=" * 60)
-    print(f"Token percentiles: P90={p90:.0f}, P95={p95:.0f}, P99={p99:.0f}")
-    print(
-        f"\nTo cover 90% of groups: set llm_num_ctx >= {int(np.ceil(p90 / 1024) * 1024)}")
-    print(
-        f"To cover 95% of groups: set llm_num_ctx >= {int(np.ceil(p95 / 1024) * 1024)}")
-    print(
-        f"To cover 99% of groups: set llm_num_ctx >= {int(np.ceil(p99 / 1024) * 1024)}")
-
-    # Batch processing info
-    avg_tokens_per_chunk = np.mean(chunk_tokens)
-    max_chunks_for_ctx = int(
-        (current_ctx - prompt_overhead) / avg_tokens_per_chunk)
-    current_batch_size = pipeline.config.max_chunks_per_group
-
-    total_batches = sum((g["n_chunks"] + current_batch_size - 1) //
-                        current_batch_size for g in group_stats)
-    total_llm_calls = total_batches * 2  # barriers + motivators
-
-    print(
-        f"\nWith current ctx={current_ctx}, max ~{max_chunks_for_ctx} chunks/batch fit")
-    print(f"Current batch size: {current_batch_size} chunks")
-
-    print("\n" + "=" * 60)
-    print("BATCH PROCESSING ESTIMATE")
-    print("=" * 60)
-    print(
-        f"Total batches: {total_batches} × 2 (barriers+motivators) = {total_llm_calls} LLM calls")
-    print(
-        f"Estimated time: {total_llm_calls * 3 // 60} - {total_llm_calls * 10 // 60} minutes (at 3-10s/call)")
-
-    # Show largest groups
-    print("\n" + "=" * 60)
-    print("LARGEST GROUPS (most batches)")
-    print("=" * 60)
-    sorted_groups = sorted(group_stats, key=lambda x: -x["n_chunks"])[:10]
-    for g in sorted_groups:
-        n_batches = (g["n_chunks"] + current_batch_size -
-                     1) // current_batch_size
-        print(
-            f"  {g['company']} {g['year']}: {g['n_chunks']} chunks → {n_batches} batches")
-
-    return {
-        "prompt_stats": {
-            "barrier_tokens": barrier_tokens,
-            "motivator_tokens": motivator_tokens,
-            "overhead_used": prompt_overhead,
-        },
-        "chunk_stats": {
-            "count": len(all_chunk_sizes),
-            "tokens_mean": np.mean(chunk_tokens),
-            "tokens_median": np.median(chunk_tokens),
-        },
-        "group_stats": {
-            "count": len(group_stats),
-            "tokens_p90": p90,
-            "tokens_p95": p95,
-            "tokens_p99": p99,
-        },
-        "batch_stats": {
-            "batch_size": current_batch_size,
-            "total_batches": total_batches,
-            "total_llm_calls": total_llm_calls,
-            "estimated_minutes_min": total_llm_calls * 3 // 60,
-            "estimated_minutes_max": total_llm_calls * 10 // 60,
-        },
-        "recommendations": {
-            "max_chunks_for_ctx": max_chunks_for_ctx,
-            "ctx_for_p90": int(np.ceil(p90 / 1024) * 1024),
-            "ctx_for_p95": int(np.ceil(p95 / 1024) * 1024),
-        }
-    }
-
-
-def quick_start(config: RAGConfig = RAGConfig()) -> RAGPipeline:
-    """Quick start: load cache and prepare for extraction.
-
-    Args:
-        config: Optional RAGConfig (uses defaults if None)
-
-    Returns:
-        Initialized RAGPipeline ready for extraction
-    """
+def load_pipeline(config: RAGConfig) -> RAGPipeline:
+    """Create pipeline and load chunks from cache."""
     pipeline = RAGPipeline(config)
     pipeline.load_from_cache()
     return pipeline
 
 
-def extract_all(config: RAGConfig = RAGConfig()) -> Dict:
+def extract_all(config: RAGConfig) -> Dict:
     """Run full extraction pipeline."""
-    pipeline = quick_start(config)
+    pipeline = load_pipeline(config)
     pipeline.print_chunk_overview()
     return pipeline.extract_all_companies()

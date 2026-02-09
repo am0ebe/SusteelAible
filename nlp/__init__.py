@@ -18,8 +18,7 @@ from .data_loader import (
 from .rag_1 import (
     RAGPipeline,
     RAGConfig,
-    quick_start,
-    analyze_token_usage,
+    load_pipeline,
 )
 # Topic modeling with BERTopic (HDBSCAN + UMAP + KeyBERTInspired)
 from .rag_2 import (
