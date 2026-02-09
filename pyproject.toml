@@ -54,7 +54,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["jupyterlab==4.2.5"]
+dev = ["jupyterlab==4.2.5", "ipywidgets>=8.0"] # get rid of tqdm warning
 gpu = ["faiss-gpu==1.12.0"]
 
 [build-system]
