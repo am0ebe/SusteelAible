@@ -17,13 +17,17 @@ Usage:
     pipeline.extract_all_companies()
 """
 
-from nlp.gpu_utils import GPUManager
-from nlp.data_loader import load_prep_cache, load_bert_cache
+import json
 import os
 import re
+import time
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Dict, Optional, Tuple, Any, Literal
+
+from nlp.gpu_utils import GPUManager
+from nlp.data_loader import load_prep_cache, load_bert_cache
 
 import numpy as np
 import pandas as pd
@@ -64,11 +68,33 @@ class RAGConfig:
     stop_tokens: tuple = ("NONE_FOUND\n", "\n\n\n")
 
     # Pipeline
-    cache_dir: str = "../cache"
     use_bert_cache: bool = True
+    cache_dir: str = "../cache"
     output_folder: str = "../out"
-    max_chunks_per_group: int = 7
-    min_detector_score: float = 0.7
+    # Auto-calculated from llm_num_ctx
+    max_chunks_per_group: Optional[int] = None
+    min_detector_score: float = 0.0
+
+    def __post_init__(self):
+        """Auto-calculate max_chunks_per_group from context window if not set."""
+        if self.max_chunks_per_group is None:
+            # Calculate prompt overhead from actual template
+            prompt_chars = len(BARRIER_MAP_PROMPT.messages[0].prompt.template)
+            prompt_tokens = prompt_chars // 4  # ~4 chars per token
+
+            # Estimates (can't calc without loading data first):
+            # - avg_chunk_tokens: chunks are 600-1600 chars, avg ~1100 chars = ~275 tokens
+            #   Using 400 as conservative estimate for longer chunks
+            # - output_per_chunk: each extraction is ~120 chars = ~30 tokens
+            #   Not all chunks produce output (~30%), but reserve space for high-yield batches
+            avg_chunk_tokens = 400
+            output_per_chunk = 30
+            safety_margin = 500
+
+            available = self.llm_num_ctx - prompt_tokens - safety_margin
+            tokens_per_chunk = avg_chunk_tokens + output_per_chunk
+            self.max_chunks_per_group = max(
+                1, int(available / tokens_per_chunk))
 
 
 # =============================================================================
@@ -153,15 +179,19 @@ class RAGPipeline:
                 if not api_key:
                     raise ValueError(
                         "GROQ_API_KEY not found in environment. Check .env file.")
-                print(f"Loading Groq model: {self.config.model}")
-                self._llm = ChatGroq(
-                    model=self.config.model,
-                    api_key=api_key,
-                    temperature=self.config.llm_temperature,
-                    stop_sequences=list(self.config.stop_tokens),
-                )
+                print(f"Loading Groq: {self.config.model}")
+                groq_kwargs = {
+                    "model": self.config.model,
+                    "api_key": api_key,
+                    "temperature": self.config.llm_temperature,
+                    "stop_sequences": list(self.config.stop_tokens),
+                }
+                # Only thinking models (qwq) support reasoning_format
+                if "qwq" in self.config.model.lower():
+                    groq_kwargs["reasoning_format"] = "hidden"
+                self._llm = ChatGroq(**groq_kwargs)
             else:
-                print(f"Loading Ollama model: {self.config.model}")
+                print(f"Loading Ollama: {self.config.model}")
                 self._llm = ChatOllama(
                     model=self.config.model,
                     base_url=self.config.ollama_base_url,
@@ -227,9 +257,6 @@ class RAGPipeline:
 
             if company_id and year:
                 self.grouped_chunks[(company_id, year)].append(chunk)
-
-        for key, chunks in sorted(self.grouped_chunks.items(), key=lambda x: -len(x[1]))[:10]:
-            print(f"{key}: {len(chunks)} chunks")
 
     # -------------------------------------------------------------------------
     # Overview / Statistics
@@ -434,12 +461,6 @@ class RAGPipeline:
             )
 
             try:
-                # DEBUG: Show context being sent (first batch only)
-                if batch_idx == 0:
-                    print(
-                        f"    [DEBUG] Context preview ({len(context)} chars):")
-                    print(f"    {context[:500]}...")
-
                 response = chain.invoke({
                     "company": company,
                     "year": year,
@@ -447,13 +468,6 @@ class RAGPipeline:
                 })
                 raw_text = response.content if hasattr(
                     response, "content") else str(response)
-
-                # DEBUG: Show raw LLM output for first batch
-                if batch_idx == 0:
-                    print(
-                        f"    [DEBUG] Raw LLM output ({len(raw_text)} chars):")
-                    print(f"    {raw_text[:300]}...")
-
                 batch_results = self._parse_llm_response(raw_text)
                 all_results.extend(batch_results)
             except Exception as e:
@@ -573,49 +587,127 @@ class RAGPipeline:
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 
-    def extract_all_companies(self, save_results: bool = True) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
-        """Extract barriers and motivators for all companies."""
+    def extract_all_companies(self) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
+        """Extract barriers and motivators for all companies. Always saves results."""
+        # Chunk statistics
+        chunk_sizes = [len(c.page_content) for c in self.chunks]
+        total_chunks = len(chunk_sizes)
+        avg_chunk_chars = sum(
+            chunk_sizes) // total_chunks if total_chunks else 0
+        chunk_range = (min(chunk_sizes), max(chunk_sizes)
+                       ) if chunk_sizes else (0, 0)
+
+        # Estimate LLM calls
+        batch_size = self.config.max_chunks_per_group
+        total_batches = sum(
+            (len(chunks) + batch_size - 1) // batch_size
+            for chunks in self.grouped_chunks.values()
+        )
+        total_llm_calls = total_batches * 2  # barriers + motivators
+
         print(f"\n{'='*70}")
-        print("EXTRACTING ALL COMPANIES")
+        print("EXTRACTION RUN")
         print(f"{'='*70}")
-        print(f"Total groups: {len(self.grouped_chunks)}")
-        print(f"LLM context: {self.config.llm_num_ctx} tokens")
+        print(f"  LLM: {self.config.llm_provider}/{self.config.model}")
+        print(
+            f"  Context: {self.config.llm_num_ctx:,} tokens → {batch_size} chunks/batch")
+        print(
+            f"  Chunks: {total_chunks} ({avg_chunk_chars} avg chars, {chunk_range[0]}-{chunk_range[1]} range)")
+        print(
+            f"  Groups: {len(self.grouped_chunks)} | Est. LLM calls: {total_llm_calls}")
+        print(f"{'='*70}\n")
 
+        start_time = time.time()
         results = {}
-        companies = self.get_companies()
 
-        for company_id in companies:
+        for company_id in self.get_companies():
             try:
                 df_barriers, df_motivators = self.extract_company_data(
                     company_id)
                 results[company_id] = (df_barriers, df_motivators)
-
-                if save_results:
-                    self.save_company_tables(
-                        company_id, df_barriers, df_motivators)
-
+                self.save_company_tables(
+                    company_id, df_barriers, df_motivators)
             except Exception as e:
                 print(f"✗ {company_id}: {e}")
 
-        # Summary
+        elapsed = time.time() - start_time
         total_barriers = sum(len(df[0]) for df in results.values())
         total_motivators = sum(len(df[1]) for df in results.values())
+
+        # Save run stats
+        run_stats = self._save_stats(
+            elapsed=elapsed,
+            total_chunks=total_chunks,
+            avg_chunk_chars=avg_chunk_chars,
+            chunk_range=chunk_range,
+            total_llm_calls=total_llm_calls,
+            total_barriers=total_barriers,
+            total_motivators=total_motivators,
+            n_companies=len(results),
+        )
 
         print(f"\n{'='*70}")
         print("✓ EXTRACTION COMPLETE")
         print(f"{'='*70}")
-        print(f"  Companies: {len(results)}")
-        print(f"  Total barriers: {total_barriers}")
-        print(f"  Total motivators: {total_motivators}")
+        print(f"  Time: {elapsed:.1f}s ({elapsed/60:.1f}min)")
+        print(
+            f"  Results: {total_barriers} barriers, {total_motivators} motivators")
+        print(
+            f"  Speed: {run_stats['performance']['chunks_per_second']} chunks/s")
+        print(f"  Saved: {self.config.output_folder}/stats.json")
         print(f"{'='*70}\n")
 
         return results
 
-    def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
-        """Save extraction results to CSV and Excel.
+    def _save_stats(
+        self,
+        elapsed: float,
+        total_chunks: int,
+        avg_chunk_chars: int,
+        chunk_range: Tuple[int, int],
+        total_llm_calls: int,
+        total_barriers: int,
+        total_motivators: int,
+        n_companies: int,
+    ) -> Dict:
+        """Build and save run statistics to stats.json."""
+        run_stats = {
+            "timestamp": datetime.now().isoformat(),
+            "elapsed_seconds": round(elapsed, 1),
+            "config": {
+                "llm_provider": self.config.llm_provider,
+                "model": self.config.model,
+                "llm_num_ctx": self.config.llm_num_ctx,
+                "max_chunks_per_group": self.config.max_chunks_per_group,
+                "min_detector_score": self.config.min_detector_score,
+            },
+            "data": {
+                "total_chunks": total_chunks,
+                "avg_chunk_chars": avg_chunk_chars,
+                "chunk_range": list(chunk_range),
+                "groups": len(self.grouped_chunks),
+                "companies": n_companies,
+            },
+            "results": {
+                "barriers": total_barriers,
+                "motivators": total_motivators,
+                "llm_calls": total_llm_calls,
+            },
+            "performance": {
+                "seconds_per_call": round(elapsed / total_llm_calls, 2) if total_llm_calls else 0,
+                "chunks_per_second": round(total_chunks / elapsed, 1) if elapsed else 0,
+            },
+        }
 
-        Each barrier/motivator is already its own row with metadata preserved.
-        """
+        os.makedirs(self.config.output_folder, exist_ok=True)
+        stats_path = os.path.join(self.config.output_folder, "stats.json")
+        with open(stats_path, "w") as f:
+            json.dump(run_stats, f, indent=2)
+
+        return run_stats
+
+    def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
+        """Save extraction results to CSV and Excel."""
         os.makedirs(self.config.output_folder, exist_ok=True)
 
         base_barrier = os.path.join(
@@ -623,7 +715,6 @@ class RAGPipeline:
         base_motivator = os.path.join(
             self.config.output_folder, f"motivators_{company_id}")
 
-        # Save directly (already one row per item)
         df_barriers.to_csv(f"{base_barrier}.csv", index=False)
         df_barriers.to_excel(f"{base_barrier}.xlsx", index=False)
         df_motivators.to_csv(f"{base_motivator}.csv", index=False)
@@ -632,35 +723,6 @@ class RAGPipeline:
     # -------------------------------------------------------------------------
     # Inspection
     # -------------------------------------------------------------------------
-
-    def print_status(self):
-        """Show pipeline status."""
-        print(f"\n{'='*60}")
-        print("PIPELINE STATUS")
-        print(f"{'='*60}")
-
-        status = {
-            "Chunks loaded": len(self.chunks) if self.chunks else 0,
-            "Company-year groups": len(self.grouped_chunks),
-            "LLM": "✓" if self._llm else "🐗 (lazy)",
-        }
-
-        for k, v in status.items():
-            print(f"  {k}: {v}")
-
-        print(f"\nConfig:")
-        print(f"  Cache: {self.config.cache_dir}")
-        print(
-            f"  Source: {'bert.json' if self.config.use_bert_cache else 'prep.json'}")
-        if self.config.llm_provider == "groq":
-            print(f"  LLM: Groq API ({self.config.model})")
-        else:
-            print(f"  LLM: Ollama ({self.config.model})")
-        print(f"  Context: {self.config.llm_num_ctx} tokens")
-
-        # Print chunk matrix
-        if self.chunks:
-            self.print_chunk_overview()
 
     def display_results(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
         """Display extraction results."""
@@ -696,10 +758,3 @@ def load_pipeline(config: RAGConfig) -> RAGPipeline:
     pipeline = RAGPipeline(config)
     pipeline.load_from_cache()
     return pipeline
-
-
-def extract_all(config: RAGConfig) -> Dict:
-    """Run full extraction pipeline."""
-    pipeline = load_pipeline(config)
-    pipeline.print_chunk_overview()
-    return pipeline.extract_all_companies()

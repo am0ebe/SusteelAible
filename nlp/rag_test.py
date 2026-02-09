@@ -108,7 +108,7 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
 
     for config in configs:
         name = f"{config.llm_provider}/{config.model}"
-        print(f"\n--- {name} ---")
+        print(f"\n--- {name} (ctx={config.llm_num_ctx:,} → {config.max_chunks_per_group} chunks) ---")
 
         try:
             fmt = test_format(config)
@@ -143,51 +143,6 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
             print(f"{name:<40} {fmt:<6} {t:<7} {b:<5} {m:<5}")
 
     return results
-
-
-def calc_batch_size(config: RAGConfig, avg_chunk_tokens: int = 400) -> Dict:
-    """Calculate optimal max_chunks_per_group based on config.llm_num_ctx.
-
-    Args:
-        config: RAGConfig (llm_num_ctx used for both Ollama context and Groq batch calc)
-        avg_chunk_tokens: Average tokens per chunk (default 400, ~1600 chars)
-
-    Returns:
-        Dict with ctx_window, recommended batch size, and efficiency stats
-    """
-    from nlp.rag_1 import BARRIER_MAP_PROMPT
-
-    # Use llm_num_ctx for both providers (Ollama: actual context, Groq: batch calc only)
-    ctx = config.llm_num_ctx
-
-    # Calculate actual prompt overhead from template
-    prompt_template = BARRIER_MAP_PROMPT.messages[0].prompt.template
-    prompt_overhead = len(prompt_template) // 4  # ~4 chars per token
-
-    output_per_chunk = 50  # ~200 chars output per extraction
-    safety_margin = 500    # buffer for variance
-
-    available = ctx - prompt_overhead - safety_margin
-    tokens_per_chunk = avg_chunk_tokens + output_per_chunk
-    max_chunks = int(available / tokens_per_chunk)
-
-    # Efficiency: how many batches needed for typical group sizes
-    typical_group = 300  # chunks per company-year
-    batches_needed = (typical_group + max_chunks - 1) // max_chunks
-
-    print("=" * 60)
-    print(f"BATCH SIZE CALCULATION - {config.llm_provider}/{config.model}")
-    print("=" * 60)
-    print(f"Context window:     {ctx:,} tokens (llm_num_ctx)")
-    print(f"Prompt overhead:    {prompt_overhead} tokens (from template)")
-    print(f"Safety margin:      {safety_margin} tokens")
-    print(f"Available:          {available:,} tokens")
-    print(f"Per chunk:          {tokens_per_chunk} tokens (input + output)")
-    print(f"Max chunks/batch:   {max_chunks}")
-    print()
-    print(f"For {typical_group}-chunk group: {batches_needed} batches × 2 = {batches_needed * 2} LLM calls")
-
-    return {"ctx_window": ctx, "max_chunks": max_chunks, "batches_for_300": batches_needed}
 
 
 def compare_extractions(results: Dict):
