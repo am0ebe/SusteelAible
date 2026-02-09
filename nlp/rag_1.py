@@ -38,6 +38,7 @@ from tabulate import tabulate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
 
@@ -53,7 +54,7 @@ class RAGConfig:
     """Configuration for RAG pipeline. See rag_test.py for model options."""
 
     # LLM (REQUIRED)
-    llm_provider: Literal["ollama", "groq"]
+    llm_provider: Literal["ollama", "groq", "gemini"]
     model: str
 
     # LLM optional
@@ -172,13 +173,12 @@ class RAGPipeline:
 
     @property
     def llm(self):
-        """Lazy-load the LLM (Ollama or Groq based on config)."""
+        """Lazy-load the LLM based on config.llm_provider."""
         if self._llm is None:
             if self.config.llm_provider == "groq":
                 api_key = os.getenv("GROQ_API_KEY")
                 if not api_key:
-                    raise ValueError(
-                        "GROQ_API_KEY not found in environment. Check .env file.")
+                    raise ValueError("GROQ_API_KEY not found. Check .env file.")
                 print(f"Loading Groq: {self.config.model}")
                 groq_kwargs = {
                     "model": self.config.model,
@@ -186,11 +186,22 @@ class RAGPipeline:
                     "temperature": self.config.llm_temperature,
                     "stop_sequences": list(self.config.stop_tokens),
                 }
-                # Only thinking models (qwq) support reasoning_format
                 if "qwq" in self.config.model.lower():
                     groq_kwargs["reasoning_format"] = "hidden"
                 self._llm = ChatGroq(**groq_kwargs)
-            else:
+
+            elif self.config.llm_provider == "gemini":
+                api_key = os.getenv("GOOGLE_API_KEY")
+                if not api_key:
+                    raise ValueError("GOOGLE_API_KEY not found. Check .env file.")
+                print(f"Loading Gemini: {self.config.model}")
+                self._llm = ChatGoogleGenerativeAI(
+                    model=self.config.model,
+                    google_api_key=api_key,
+                    temperature=self.config.llm_temperature,
+                )
+
+            else:  # ollama
                 print(f"Loading Ollama: {self.config.model}")
                 self._llm = ChatOllama(
                     model=self.config.model,

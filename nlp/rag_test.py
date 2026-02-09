@@ -11,6 +11,7 @@ import os
 
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 from nlp.rag_1 import RAGConfig, RAGPipeline
 
@@ -41,6 +42,11 @@ def get_llm(config: RAGConfig):
         if not api_key:
             raise ValueError("GROQ_API_KEY not set in .env")
         return ChatGroq(model=config.model, api_key=api_key, temperature=config.llm_temperature)
+    elif config.llm_provider == "gemini":
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY not set in .env")
+        return ChatGoogleGenerativeAI(model=config.model, google_api_key=api_key, temperature=config.llm_temperature)
     return ChatOllama(model=config.model, temperature=config.llm_temperature, num_ctx=config.llm_num_ctx, base_url=config.ollama_base_url)
 
 
