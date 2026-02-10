@@ -38,7 +38,6 @@ from tabulate import tabulate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
 
@@ -54,15 +53,16 @@ class RAGConfig:
     """Configuration for RAG pipeline. See rag_test.py for model options."""
 
     # LLM (REQUIRED)
-    llm_provider: Literal["ollama", "groq", "gemini"]
+    llm_provider: Literal["ollama", "groq"]
     model: str
 
     # LLM optional
     llm_temperature: float = 0.0
     ollama_base_url: str = "http://localhost:11434"
 
-    # !! Context window: Ollama uses for actual context, Groq uses for batch size calc only
-    llm_num_ctx: int = 8096
+    # Context window size (tokens). Ollama: actual context. Cloud APIs: batch size calc only.
+    # Capped at 32k for batch_size calculation — larger windows don't improve extraction quality.
+    ctx: int = 8096
 
     # Stop sequences to halt generation early
     # Extensions: "Note:", "Explanation:", "Here are", "I found"
@@ -72,13 +72,20 @@ class RAGConfig:
     use_bert_cache: bool = True
     cache_dir: str = "../cache"
     output_folder: str = "../out"
-    # Auto-calculated from llm_num_ctx (chunks per LLM call)
+    # Auto-calculated from ctx (chunks per LLM call)
     batch_size: Optional[int] = None
     min_detector_score: float = 0.0
+
+    # Max ctx used for batch_size calc. Cloud APIs have huge windows (1M+),
+    # but batches >~70 chunks hurt extraction quality (model loses focus).
+    _BATCH_CTX_CAP: int = 32000
 
     def __post_init__(self):
         """Auto-calculate batch_size from context window if not set."""
         if self.batch_size is None:
+            # Cap ctx for batch calc — huge windows don't improve extraction
+            effective_ctx = min(self.ctx, self._BATCH_CTX_CAP)
+
             # Calculate prompt overhead from actual template
             prompt_chars = len(BARRIER_MAP_PROMPT.messages[0].prompt.template)
             prompt_tokens = prompt_chars // 4  # ~4 chars per token
@@ -92,7 +99,7 @@ class RAGConfig:
             output_per_chunk = 30
             safety_margin = 500
 
-            available = self.llm_num_ctx - prompt_tokens - safety_margin
+            available = effective_ctx - prompt_tokens - safety_margin
             tokens_per_chunk = avg_chunk_tokens + output_per_chunk
             self.batch_size = max(1, int(available / tokens_per_chunk))
 
@@ -202,21 +209,8 @@ class RAGPipeline:
                     "temperature": self.config.llm_temperature,
                     "stop_sequences": list(self.config.stop_tokens),
                 }
-                if "qwq" in self.config.model.lower():
-                    groq_kwargs["reasoning_format"] = "hidden"
-                self._llm = ChatGroq(**groq_kwargs)
 
-            elif self.config.llm_provider == "gemini":
-                api_key = os.getenv("GOOGLE_API_KEY")
-                if not api_key:
-                    raise ValueError(
-                        "GOOGLE_API_KEY not found. Check .env file.")
-                print(f"Loading Gemini: {self.config.model}")
-                self._llm = ChatGoogleGenerativeAI(
-                    model=self.config.model,
-                    google_api_key=api_key,
-                    temperature=self.config.llm_temperature,
-                )
+                self._llm = ChatGroq(**groq_kwargs)
 
             else:  # ollama
                 print(f"Loading Ollama: {self.config.model}")
@@ -224,7 +218,7 @@ class RAGPipeline:
                     model=self.config.model,
                     base_url=self.config.ollama_base_url,
                     temperature=self.config.llm_temperature,
-                    num_ctx=self.config.llm_num_ctx,
+                    num_ctx=self.config.ctx,
                     stop=list(self.config.stop_tokens),
                 )
         return self._llm
@@ -467,6 +461,9 @@ class RAGPipeline:
         all_results = []
 
         # Process all chunks in batches
+        label = extract_type[0].upper()  # B or M
+        extract_start = time.time()
+
         for batch_idx in range(n_batches):
             start = batch_idx * batch_size
             end = min(start + batch_size, len(chunks))
@@ -478,18 +475,38 @@ class RAGPipeline:
                 for chunk in batch
             )
 
-            try:
-                response = chain.invoke({
-                    "company": company,
-                    "company_id": company_id,
-                    "year": year,
-                    "context": context
-                })
-                raw_text = response.content if hasattr(response, "content") else str(response)
-                batch_results = self._parse_llm_response(raw_text)
-                all_results.extend(batch_results)
-            except Exception as e:
-                print(f"    ⚠️ Error in batch {batch_idx+1}/{n_batches}: {e}")
+            # Progress: overwrite line in-place
+            elapsed = time.time() - extract_start
+            print(f"    {label} {batch_idx+1}/{n_batches} | {len(all_results)} found | {elapsed:.0f}s", end="\r", flush=True)
+
+            for attempt in range(3):
+                try:
+                    response = chain.invoke({
+                        "company": company,
+                        "company_id": company_id,
+                        "year": year,
+                        "context": context
+                    })
+                    raw_text = response.content if hasattr(response, "content") else str(response)
+                    batch_results = self._parse_llm_response(raw_text)
+                    all_results.extend(batch_results)
+                    break
+                except Exception as e:
+                    err = str(e)
+                    if ("429" in err or "rate_limit" in err or "RESOURCE_EXHAUSTED" in err) and attempt < 2:
+                        delay = 60
+                        retry_match = re.search(r'retry.*?(\d+)', err, re.IGNORECASE)
+                        if retry_match:
+                            delay = max(int(retry_match.group(1)), 10)
+                        print(f"    ⏳ {label} batch {batch_idx+1}/{n_batches}: rate limited, waiting {delay}s (attempt {attempt+1}/3)")
+                        time.sleep(delay)
+                    else:
+                        print(f"    ⚠️ {label} batch {batch_idx+1}/{n_batches}: {e}")
+                        break
+
+        # Final summary line (overwrites progress)
+        elapsed = time.time() - extract_start
+        print(f"    {label} done: {len(all_results)} found in {n_batches} batches ({elapsed:.1f}s)          ")
 
         return all_results
 
@@ -629,7 +646,7 @@ class RAGPipeline:
         print(f"{'='*70}")
         print(f"  LLM: {self.config.llm_provider}/{self.config.model}")
         print(
-            f"  Context: {self.config.llm_num_ctx:,} tokens → {batch_size} chunks/batch")
+            f"  Context: {self.config.ctx:,} tokens → {batch_size} chunks/batch")
         print(
             f"  Chunks: {total_chunks} ({avg_chunk_chars} avg chars, {chunk_range[0]}-{chunk_range[1]} range)")
         print(
@@ -667,7 +684,8 @@ class RAGPipeline:
         print("✓ EXTRACTION COMPLETE")
         print(f"{'='*70}")
         print(f"  Time: {elapsed:.1f}s ({elapsed/60:.1f}min)")
-        print(f"  Results: {total_barriers} barriers, {total_motivators} motivators")
+        print(
+            f"  Results: {total_barriers} barriers, {total_motivators} motivators")
         print(f"  Saved: {self.config.output_folder}/stats.json")
         print(f"{'='*70}\n")
 
@@ -705,7 +723,8 @@ class RAGPipeline:
         # Build rows with BERT metadata (same as extract_company_data)
         barrier_rows = []
         for chunk_id, text in barriers:
-            row = {"company_id": company_id, "company": company_name, "year": year, "barriers": text}
+            row = {"company_id": company_id, "company": company_name,
+                   "year": year, "barriers": text}
             if chunk_id in chunk_lookup:
                 row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
             else:
@@ -714,7 +733,8 @@ class RAGPipeline:
 
         motivator_rows = []
         for chunk_id, text in motivators:
-            row = {"company_id": company_id, "company": company_name, "year": year, "motivators": text}
+            row = {"company_id": company_id, "company": company_name,
+                   "year": year, "motivators": text}
             if chunk_id in chunk_lookup:
                 row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
             else:
@@ -725,7 +745,8 @@ class RAGPipeline:
         df_motivators = pd.DataFrame(motivator_rows)
 
         # Save CSVs
-        self.save_company_tables(company_id, df_barriers, df_motivators, output_folder)
+        self.save_company_tables(
+            company_id, df_barriers, df_motivators, output_folder)
 
         # Save stats
         self._save_stats(
@@ -762,7 +783,7 @@ class RAGPipeline:
             "config": {
                 "llm_provider": self.config.llm_provider,
                 "model": self.config.model,
-                "llm_num_ctx": self.config.llm_num_ctx,
+                "ctx": self.config.ctx,
                 "batch_size": self.config.batch_size,
                 "min_detector_score": self.config.min_detector_score,
             },

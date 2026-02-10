@@ -11,7 +11,6 @@ import os
 
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 from nlp.rag_1 import RAGConfig, RAGPipeline
 
@@ -39,12 +38,7 @@ def get_llm(config: RAGConfig):
         if not api_key:
             raise ValueError("GROQ_API_KEY not set in .env")
         return ChatGroq(model=config.model, api_key=api_key, temperature=config.llm_temperature)
-    elif config.llm_provider == "gemini":
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            raise ValueError("GOOGLE_API_KEY not set in .env")
-        return ChatGoogleGenerativeAI(model=config.model, google_api_key=api_key, temperature=config.llm_temperature)
-    return ChatOllama(model=config.model, temperature=config.llm_temperature, num_ctx=config.llm_num_ctx, base_url=config.ollama_base_url)
+    return ChatOllama(model=config.model, temperature=config.llm_temperature, num_ctx=config.ctx, base_url=config.ollama_base_url)
 
 
 # Format test uses chunk IDs matching TEST_COMPANY
@@ -108,13 +102,15 @@ def test_extraction(config: RAGConfig, save: bool = False, output_folder: str = 
     pipeline.load_from_cache()
 
     start = time.time()
-    barriers, motivators = pipeline.extract_company_year(TEST_COMPANY, TEST_YEAR)
+    barriers, motivators = pipeline.extract_company_year(
+        TEST_COMPANY, TEST_YEAR)
     elapsed = time.time() - start
 
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
 
-    result = {"barriers": barriers, "motivators": motivators, "time": elapsed, "pipeline": pipeline}
+    result = {"barriers": barriers, "motivators": motivators,
+              "time": elapsed, "pipeline": pipeline}
 
     if save:
         df_b, df_m = pipeline.save_test_run(
@@ -126,7 +122,7 @@ def test_extraction(config: RAGConfig, save: bool = False, output_folder: str = 
     return result
 
 
-def save_test_results(results: Dict, output_folder: str = "../out/test"):
+def save_test_results(results: Dict, output_folder: str = "../out"):
     """Save results from test_models() using pipeline's save_test_run.
 
     Call this after test_models() to save all successful extractions.
@@ -164,7 +160,7 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
     for config in configs:
         name = f"{config.llm_provider}/{config.model}"
         print(
-            f"\n--- {name} (ctx={config.llm_num_ctx:,} → {config.batch_size} chunks) ---")
+            f"\n--- {name} (ctx={config.ctx:,} → {config.batch_size} chunks) ---")
 
         try:
             fmt = test_format(config)
@@ -177,7 +173,8 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
 
             if not skip_extraction and fmt["format_ok"]:
                 ext = test_extraction(config)
-                print(f"    Extraction: {len(ext['barriers'])}B, {len(ext['motivators'])}M ({ext['time']:.1f}s)")
+                print(
+                    f"    Extraction: {len(ext['barriers'])}B, {len(ext['motivators'])}M ({ext['time']:.1f}s)")
                 result.update({
                     "barriers": ext["barriers"],
                     "motivators": ext["motivators"],
