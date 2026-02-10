@@ -18,18 +18,15 @@ from nlp.rag_1 import RAGConfig, RAGPipeline
 load_dotenv()
 
 # Test data (used by format test and extraction test)
-TEST_COMPANY = "012"
-TEST_YEAR = "2021"
-
-# Available models (for reference):
-# Groq:   llama-3.1-8b-instant, llama-3.3-70b-versatile, mixtral-8x7b-32768, gemma2-9b-it
-# Ollama: qwen2.5:3b, gemma3:4b, gemma3:1b, phi3:mini
+TEST_COMPANY = "006"
+TEST_YEAR = "2024"
 
 
 def unload_ollama(model: str):
     """Unload Ollama model from VRAM."""
     try:
-        subprocess.run(["ollama", "stop", model], capture_output=True, timeout=10)
+        subprocess.run(["ollama", "stop", model],
+                       capture_output=True, timeout=10)
         time.sleep(1)
     except:
         pass
@@ -52,8 +49,16 @@ def get_llm(config: RAGConfig):
 
 # Format test uses chunk IDs matching TEST_COMPANY
 FORMAT_TEST_PROMPT = f"""Extract BARRIERS to decarbonisation from this text.
-OUTPUT FORMAT: [chunk_id]|||verbatim text
-If none: NONE_FOUND
+
+RULES:
+- Copy text EXACTLY as written (verbatim)
+- Each chunk starts with [{TEST_COMPANY}_XXX] - use that EXACT ID
+- Valid IDs start with {TEST_COMPANY}_ (e.g., {TEST_COMPANY}_001, {TEST_COMPANY}_002)
+- NEVER invent IDs
+
+OUTPUT FORMAT: [{TEST_COMPANY}_XXX]|||verbatim text
+
+One per line. No explanations. If none: NONE_FOUND
 
 TEXT:
 [{TEST_COMPANY}_001]
@@ -86,8 +91,16 @@ def test_format(config: RAGConfig) -> Dict:
     return {"format_ok": format_ok, "time": elapsed, "sample": response.content[:150]}
 
 
-def test_extraction(config: RAGConfig) -> Dict:
-    """Test real extraction on TEST_COMPANY/TEST_YEAR. Returns dict with barriers, motivators, time."""
+def test_extraction(config: RAGConfig, save: bool = False, output_folder: str = "../out/test") -> Dict:
+    """Test real extraction on TEST_COMPANY/TEST_YEAR.
+
+    Args:
+        config: RAGConfig for the model to test
+        save: If True, save results in same format as full pipeline
+        output_folder: Where to save if save=True
+
+    Returns dict with barriers, motivators, time, and optionally DataFrames.
+    """
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
 
@@ -101,7 +114,42 @@ def test_extraction(config: RAGConfig) -> Dict:
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
 
-    return {"barriers": barriers, "motivators": motivators, "time": elapsed}
+    result = {"barriers": barriers, "motivators": motivators, "time": elapsed, "pipeline": pipeline}
+
+    if save:
+        df_b, df_m = pipeline.save_test_run(
+            TEST_COMPANY, TEST_YEAR, barriers, motivators, elapsed, output_folder
+        )
+        result["df_barriers"] = df_b
+        result["df_motivators"] = df_m
+
+    return result
+
+
+def save_test_results(results: Dict, output_folder: str = "../out/test"):
+    """Save results from test_models() using pipeline's save_test_run.
+
+    Call this after test_models() to save all successful extractions.
+    Folder format: {output_folder}/{MMDD_HHMM}_{model_name}/
+    """
+    import os
+    from datetime import datetime
+
+    datestamp = datetime.now().strftime("%m%d")
+
+    for model_name, r in results.items():
+        if "barriers" not in r or "pipeline" not in r:
+            continue
+
+        safe_name = model_name.replace("/", "_").replace(":", "-")
+        model_folder = os.path.join(output_folder, f"{datestamp}_{safe_name}")
+
+        r["pipeline"].save_test_run(
+            TEST_COMPANY, TEST_YEAR,
+            r["barriers"], r["motivators"],
+            r.get("extraction_time", 0),
+            model_folder
+        )
 
 
 def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict:
@@ -109,24 +157,33 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
     results = {}
 
     print("=" * 70)
-    print(f"RAG MODEL TESTING ({len(configs)} models) - {TEST_COMPANY}/{TEST_YEAR}")
+    print(
+        f"RAG MODEL TESTING ({len(configs)} models) - {TEST_COMPANY}/{TEST_YEAR}")
     print("=" * 70)
 
     for config in configs:
         name = f"{config.llm_provider}/{config.model}"
-        print(f"\n--- {name} (ctx={config.llm_num_ctx:,} → {config.max_chunks_per_group} chunks) ---")
+        print(
+            f"\n--- {name} (ctx={config.llm_num_ctx:,} → {config.batch_size} chunks) ---")
 
         try:
             fmt = test_format(config)
-            print(f"    Format: {'PASS' if fmt['format_ok'] else 'FAIL'} ({fmt['time']:.1f}s)")
+            print(
+                f"    Format: {'PASS' if fmt['format_ok'] else 'FAIL'} ({fmt['time']:.1f}s)")
             print(f"    Output: {fmt['sample']}...")
 
-            result = {"format_ok": fmt["format_ok"], "format_time": fmt["time"]}
+            result = {"format_ok": fmt["format_ok"],
+                      "format_time": fmt["time"]}
 
             if not skip_extraction and fmt["format_ok"]:
                 ext = test_extraction(config)
                 print(f"    Extraction: {len(ext['barriers'])}B, {len(ext['motivators'])}M ({ext['time']:.1f}s)")
-                result.update({"barriers": ext["barriers"], "motivators": ext["motivators"], "extraction_time": ext["time"]})
+                result.update({
+                    "barriers": ext["barriers"],
+                    "motivators": ext["motivators"],
+                    "extraction_time": ext["time"],
+                    "pipeline": ext["pipeline"],
+                })
 
             results[name] = result
 
@@ -164,7 +221,8 @@ def compare_extractions(results: Dict):
     print("=" * 70)
 
     for name, r in with_results.items():
-        print(f"\n--- {name} ({len(r['barriers'])}B / {len(r['motivators'])}M) ---")
+        print(
+            f"\n--- {name} ({len(r['barriers'])}B / {len(r['motivators'])}M) ---")
         for cid, text in r["barriers"][:3]:
             print(f"  [B] [{cid}] {text[:70]}...")
         for cid, text in r["motivators"][:2]:

@@ -72,13 +72,13 @@ class RAGConfig:
     use_bert_cache: bool = True
     cache_dir: str = "../cache"
     output_folder: str = "../out"
-    # Auto-calculated from llm_num_ctx
-    max_chunks_per_group: Optional[int] = None
+    # Auto-calculated from llm_num_ctx (chunks per LLM call)
+    batch_size: Optional[int] = None
     min_detector_score: float = 0.0
 
     def __post_init__(self):
-        """Auto-calculate max_chunks_per_group from context window if not set."""
-        if self.max_chunks_per_group is None:
+        """Auto-calculate batch_size from context window if not set."""
+        if self.batch_size is None:
             # Calculate prompt overhead from actual template
             prompt_chars = len(BARRIER_MAP_PROMPT.messages[0].prompt.template)
             prompt_tokens = prompt_chars // 4  # ~4 chars per token
@@ -94,13 +94,34 @@ class RAGConfig:
 
             available = self.llm_num_ctx - prompt_tokens - safety_margin
             tokens_per_chunk = avg_chunk_tokens + output_per_chunk
-            self.max_chunks_per_group = max(
-                1, int(available / tokens_per_chunk))
+            self.batch_size = max(1, int(available / tokens_per_chunk))
 
 
 # =============================================================================
 # PROMPTS
 # =============================================================================
+
+# OLD PROMPTS (caused hallucination - model reused example IDs like 012_003)
+# BARRIER_MAP_PROMPT_OLD = ChatPromptTemplate.from_template("""Extract BARRIERS to decarbonisation from {company} ({year}) report.
+#
+# BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissions harder.
+#
+# RULES:
+# - Copy text EXACTLY as written (verbatim)
+# - Each chunk starts with [chunk_id] - use that exact ID
+#
+# OUTPUT FORMAT (STRICT):
+# [chunk_id]|||verbatim text
+#
+# EXAMPLE:
+# [012_003]|||The high cost of green hydrogen limits our decarbonisation options.
+# [012_007]|||Carbon capture technology remains expensive and unproven at scale.
+#
+# One per line. No other text. No JSON. No explanations. No quotes.
+# If none found: NONE_FOUND
+#
+# TEXT:
+# {context}""")
 
 BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract BARRIERS to decarbonisation from {company} ({year}) report.
 
@@ -108,17 +129,14 @@ BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissio
 
 RULES:
 - Copy text EXACTLY as written (verbatim)
-- Each chunk starts with [chunk_id] - use that exact ID
+- Each chunk in TEXT starts with [{company_id}_XXX] - use that EXACT ID
+- Valid IDs start with {company_id}_ (e.g., {company_id}_001, {company_id}_042)
+- NEVER invent IDs or use IDs from other companies
 
-OUTPUT FORMAT (STRICT):
-[chunk_id]|||verbatim text
+OUTPUT FORMAT:
+[{company_id}_XXX]|||verbatim text
 
-EXAMPLE:
-[012_003]|||The high cost of green hydrogen limits our decarbonisation options.
-[012_007]|||Carbon capture technology remains expensive and unproven at scale.
-
-One per line. No other text. No JSON. No explanations. No quotes.
-If none found: NONE_FOUND
+One per line. No explanations. If none found: NONE_FOUND
 
 TEXT:
 {context}""")
@@ -129,17 +147,14 @@ MOTIVATOR = driver, incentive, commitment, or pressure that encourages reducing 
 
 RULES:
 - Copy text EXACTLY as written (verbatim)
-- Each chunk starts with [chunk_id] - use that exact ID
+- Each chunk in TEXT starts with [{company_id}_XXX] - use that EXACT ID
+- Valid IDs start with {company_id}_ (e.g., {company_id}_001, {company_id}_042)
+- NEVER invent IDs or use IDs from other companies
 
-OUTPUT FORMAT (STRICT):
-[chunk_id]|||verbatim sentence
+OUTPUT FORMAT:
+[{company_id}_XXX]|||verbatim text
 
-EXAMPLE:
-[012_003]|||EU regulations require 55% emissions reduction by 2030.
-[012_007]|||Customer demand for green steel is driving our net-zero commitment.
-
-One per line. No other text. No JSON. No explanations. No quotes.
-If none found: NONE_FOUND
+One per line. No explanations. If none found: NONE_FOUND
 
 TEXT:
 {context}""")
@@ -178,7 +193,8 @@ class RAGPipeline:
             if self.config.llm_provider == "groq":
                 api_key = os.getenv("GROQ_API_KEY")
                 if not api_key:
-                    raise ValueError("GROQ_API_KEY not found. Check .env file.")
+                    raise ValueError(
+                        "GROQ_API_KEY not found. Check .env file.")
                 print(f"Loading Groq: {self.config.model}")
                 groq_kwargs = {
                     "model": self.config.model,
@@ -193,7 +209,8 @@ class RAGPipeline:
             elif self.config.llm_provider == "gemini":
                 api_key = os.getenv("GOOGLE_API_KEY")
                 if not api_key:
-                    raise ValueError("GOOGLE_API_KEY not found. Check .env file.")
+                    raise ValueError(
+                        "GOOGLE_API_KEY not found. Check .env file.")
                 print(f"Loading Gemini: {self.config.model}")
                 self._llm = ChatGoogleGenerativeAI(
                     model=self.config.model,
@@ -410,40 +427,30 @@ class RAGPipeline:
         return sorted(chunks, key=score, reverse=True)
 
     def _parse_llm_response(self, response_text: str) -> List[Tuple[str, str]]:
-        """Parse text response: [chunk_id]|||verbatim text
+        """Parse [chunk_id]|||text format. No filtering - highest recall.
 
-        Returns list of (chunk_id, text) tuples.
+        Invalid chunk IDs are handled downstream (lookup warns + skips).
+        Deduplication happens in rag2/topic modeling.
         """
         if not response_text or "NONE_FOUND" in response_text.upper():
             return []
 
         # Pattern: [chunk_id]|||text
         pattern = re.compile(r'^\[([^\]]+)\]\|\|\|(.+)$', re.MULTILINE)
-
-        results = []
-        seen = set()
-
-        for match in pattern.finditer(response_text):
-            chunk_id = match.group(1).strip()
-            text = match.group(2).strip()
-            # Deduplicate by text
-            if text.lower() not in seen:
-                results.append((chunk_id, text))
-                seen.add(text.lower())
-
-        return results
+        return [(m.group(1).strip(), m.group(2).strip()) for m in pattern.finditer(response_text)]
 
     def _map_extract(
         self,
         chunks: List,
         company: str,
+        company_id: str,
         year: str,
         extract_type: str
     ) -> List[Tuple[str, str]]:
         """MAP phase: Extract barriers/motivators from a single company-year group.
 
         Returns list of (chunk_id, extracted_text) tuples.
-        Processes ALL chunks in batches of max_chunks_per_group for high recall.
+        No filtering - invalid chunk IDs handled downstream via lookup.
         """
         if not chunks:
             return []
@@ -455,7 +462,7 @@ class RAGPipeline:
         prompt = BARRIER_MAP_PROMPT if extract_type == "barriers" else MOTIVATOR_MAP_PROMPT
         chain = prompt | self.llm
 
-        batch_size = self.config.max_chunks_per_group
+        batch_size = self.config.batch_size
         n_batches = (len(chunks) + batch_size - 1) // batch_size
         all_results = []
 
@@ -474,11 +481,11 @@ class RAGPipeline:
             try:
                 response = chain.invoke({
                     "company": company,
+                    "company_id": company_id,
                     "year": year,
                     "context": context
                 })
-                raw_text = response.content if hasattr(
-                    response, "content") else str(response)
+                raw_text = response.content if hasattr(response, "content") else str(response)
                 batch_results = self._parse_llm_response(raw_text)
                 all_results.extend(batch_results)
             except Exception as e:
@@ -504,9 +511,10 @@ class RAGPipeline:
         company_name = self._get_company_name(company_id)
 
         # MAP: Extract from this group
-        barriers = self._map_extract(chunks, company_name, year, "barriers")
+        barriers = self._map_extract(
+            chunks, company_name, company_id, year, "barriers")
         motivators = self._map_extract(
-            chunks, company_name, year, "motivators")
+            chunks, company_name, company_id, year, "motivators")
 
         return barriers, motivators
 
@@ -523,7 +531,7 @@ class RAGPipeline:
         print(f"{'='*60}")
 
         years = self.get_years_for_company(company_id)
-        batch_size = self.config.max_chunks_per_group
+        batch_size = self.config.batch_size
         total_chunks = sum(len(self.grouped_chunks.get(
             (company_id, y), [])) for y in years)
         total_batches = sum((len(self.grouped_chunks.get(
@@ -609,7 +617,7 @@ class RAGPipeline:
                        ) if chunk_sizes else (0, 0)
 
         # Estimate LLM calls
-        batch_size = self.config.max_chunks_per_group
+        batch_size = self.config.batch_size
         total_batches = sum(
             (len(chunks) + batch_size - 1) // batch_size
             for chunks in self.grouped_chunks.values()
@@ -648,12 +656,10 @@ class RAGPipeline:
         # Save run stats
         run_stats = self._save_stats(
             elapsed=elapsed,
-            total_chunks=total_chunks,
-            avg_chunk_chars=avg_chunk_chars,
-            chunk_range=chunk_range,
-            total_llm_calls=total_llm_calls,
             total_barriers=total_barriers,
             total_motivators=total_motivators,
+            total_llm_calls=total_llm_calls,
+            total_chunks=total_chunks,
             n_companies=len(results),
         )
 
@@ -661,27 +667,95 @@ class RAGPipeline:
         print("✓ EXTRACTION COMPLETE")
         print(f"{'='*70}")
         print(f"  Time: {elapsed:.1f}s ({elapsed/60:.1f}min)")
-        print(
-            f"  Results: {total_barriers} barriers, {total_motivators} motivators")
-        print(
-            f"  Speed: {run_stats['performance']['chunks_per_second']} chunks/s")
+        print(f"  Results: {total_barriers} barriers, {total_motivators} motivators")
         print(f"  Saved: {self.config.output_folder}/stats.json")
         print(f"{'='*70}\n")
 
         return results
 
+    def save_test_run(
+        self,
+        company_id: str,
+        year: str,
+        barriers: List[Tuple[str, str]],
+        motivators: List[Tuple[str, str]],
+        elapsed: float,
+        output_folder: str = "../out/test",
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Save test run results with same format as full pipeline.
+
+        Args:
+            company_id: Company ID tested
+            year: Year tested
+            barriers: List of (chunk_id, text) tuples from extraction
+            motivators: List of (chunk_id, text) tuples from extraction
+            elapsed: Time taken in seconds
+            output_folder: Where to save results
+
+        Returns:
+            (df_barriers, df_motivators) DataFrames with BERT metadata
+        """
+        company_name = self._get_company_name(company_id)
+
+        # Build chunk lookup for BERT metadata
+        key = (company_id, year)
+        chunks = self.grouped_chunks.get(key, [])
+        chunk_lookup = {c.metadata.get("chunk_id"): c for c in chunks}
+
+        # Build rows with BERT metadata (same as extract_company_data)
+        barrier_rows = []
+        for chunk_id, text in barriers:
+            row = {"company_id": company_id, "company": company_name, "year": year, "barriers": text}
+            if chunk_id in chunk_lookup:
+                row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
+            else:
+                row["source_chunk_id"] = chunk_id
+            barrier_rows.append(row)
+
+        motivator_rows = []
+        for chunk_id, text in motivators:
+            row = {"company_id": company_id, "company": company_name, "year": year, "motivators": text}
+            if chunk_id in chunk_lookup:
+                row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
+            else:
+                row["source_chunk_id"] = chunk_id
+            motivator_rows.append(row)
+
+        df_barriers = pd.DataFrame(barrier_rows)
+        df_motivators = pd.DataFrame(motivator_rows)
+
+        # Save CSVs
+        self.save_company_tables(company_id, df_barriers, df_motivators, output_folder)
+
+        # Save stats
+        self._save_stats(
+            elapsed=elapsed,
+            total_barriers=len(barriers),
+            total_motivators=len(motivators),
+            total_llm_calls=2,  # 1 for barriers, 1 for motivators
+            total_chunks=len(chunks),
+            n_companies=1,
+            output_folder=output_folder,
+            extra={"test_run": {"company_id": company_id, "year": year}},
+        )
+
+        print(f"✓ Test run saved to {output_folder}/")
+        return df_barriers, df_motivators
+
     def _save_stats(
         self,
         elapsed: float,
-        total_chunks: int,
-        avg_chunk_chars: int,
-        chunk_range: Tuple[int, int],
-        total_llm_calls: int,
         total_barriers: int,
         total_motivators: int,
-        n_companies: int,
+        total_llm_calls: int = 0,
+        total_chunks: int = 0,
+        n_companies: int = 1,
+        output_folder: str = None,
+        extra: Dict = None,
     ) -> Dict:
         """Build and save run statistics to stats.json."""
+        folder = output_folder or self.config.output_folder
+
         run_stats = {
             "timestamp": datetime.now().isoformat(),
             "elapsed_seconds": round(elapsed, 1),
@@ -689,42 +763,42 @@ class RAGPipeline:
                 "llm_provider": self.config.llm_provider,
                 "model": self.config.model,
                 "llm_num_ctx": self.config.llm_num_ctx,
-                "max_chunks_per_group": self.config.max_chunks_per_group,
+                "batch_size": self.config.batch_size,
                 "min_detector_score": self.config.min_detector_score,
             },
-            "data": {
-                "total_chunks": total_chunks,
-                "avg_chunk_chars": avg_chunk_chars,
-                "chunk_range": list(chunk_range),
-                "groups": len(self.grouped_chunks),
-                "companies": n_companies,
+            "prompts": {
+                "barrier": BARRIER_MAP_PROMPT.messages[0].prompt.template,
+                "motivator": MOTIVATOR_MAP_PROMPT.messages[0].prompt.template,
             },
             "results": {
                 "barriers": total_barriers,
                 "motivators": total_motivators,
                 "llm_calls": total_llm_calls,
+                "companies": n_companies,
+                "chunks_processed": total_chunks,
             },
             "performance": {
                 "seconds_per_call": round(elapsed / total_llm_calls, 2) if total_llm_calls else 0,
-                "chunks_per_second": round(total_chunks / elapsed, 1) if elapsed else 0,
             },
         }
 
-        os.makedirs(self.config.output_folder, exist_ok=True)
-        stats_path = os.path.join(self.config.output_folder, "stats.json")
+        if extra:
+            run_stats.update(extra)
+
+        os.makedirs(folder, exist_ok=True)
+        stats_path = os.path.join(folder, "stats.json")
         with open(stats_path, "w") as f:
             json.dump(run_stats, f, indent=2)
 
         return run_stats
 
-    def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame):
-        """Save extraction results to CSV and Excel."""
-        os.makedirs(self.config.output_folder, exist_ok=True)
+    def save_company_tables(self, company_id: str, df_barriers: pd.DataFrame, df_motivators: pd.DataFrame, output_folder: str = None):
+        """Save extraction results to CSV."""
+        folder = output_folder or self.config.output_folder
+        os.makedirs(folder, exist_ok=True)
 
-        base_barrier = os.path.join(
-            self.config.output_folder, f"barriers_{company_id}")
-        base_motivator = os.path.join(
-            self.config.output_folder, f"motivators_{company_id}")
+        base_barrier = os.path.join(folder, f"barriers_{company_id}")
+        base_motivator = os.path.join(folder, f"motivators_{company_id}")
 
         df_barriers.to_csv(f"{base_barrier}.csv", index=False)
         df_barriers.to_excel(f"{base_barrier}.xlsx", index=False)
