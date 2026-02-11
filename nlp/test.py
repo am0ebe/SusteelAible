@@ -20,7 +20,7 @@ load_dotenv()
 
 # Test data (used by format test and extraction test)
 TEST_COMPANY = "006"
-TEST_YEAR = "2024"
+TEST_YEAR = "2023"
 
 
 def unload_ollama(model: str):
@@ -102,19 +102,25 @@ def test_extraction(config: Config, save: bool = False, output_folder: str = "..
 
     # Show approach-specific info
     if config.approach == "rag":
-        b_chunks = pipeline._retrieve_chunks(TEST_COMPANY, TEST_YEAR, "barriers")
-        m_chunks = pipeline._retrieve_chunks(TEST_COMPANY, TEST_YEAR, "motivators")
-        overlap = set(c.metadata["chunk_id"] for c in b_chunks) & set(c.metadata["chunk_id"] for c in m_chunks)
+        b_chunks = pipeline._retrieve_chunks(
+            TEST_COMPANY, TEST_YEAR, "barriers")
+        m_chunks = pipeline._retrieve_chunks(
+            TEST_COMPANY, TEST_YEAR, "motivators")
+        overlap = set(c.metadata["chunk_id"] for c in b_chunks) & set(
+            c.metadata["chunk_id"] for c in m_chunks)
         b_pages = set(c.metadata.get("page", "?") for c in b_chunks)
         m_pages = set(c.metadata.get("page", "?") for c in m_chunks)
-        print(f"    Retrieval: {len(b_chunks)}B + {len(m_chunks)}M chunks ({len(overlap)} overlap)")
-        print(f"    Distribution: {len(b_pages)} pages (B), {len(m_pages)} pages (M)")
+        print(
+            f"    Retrieval: {len(b_chunks)}B + {len(m_chunks)}M chunks ({len(overlap)} overlap)")
+        print(
+            f"    Distribution: {len(b_pages)} pages (B), {len(m_pages)} pages (M)")
     else:
         total = len(pipeline.grouped_chunks.get((TEST_COMPANY, TEST_YEAR), []))
         print(f"    Exhaustive: {total} chunks")
 
     start = time.time()
-    barriers, motivators = pipeline.extract_company_year(TEST_COMPANY, TEST_YEAR)
+    barriers, motivators = pipeline.extract_company_year(
+        TEST_COMPANY, TEST_YEAR)
     elapsed = time.time() - start
 
     if config.llm_provider == "ollama":
@@ -131,7 +137,8 @@ def test_extraction(config: Config, save: bool = False, output_folder: str = "..
         }
 
     if save:
-        extra = {"retrieval": result["retrieval"]} if "retrieval" in result else {}
+        extra = {"retrieval": result["retrieval"]
+                 } if "retrieval" in result else {}
         df_b, df_m = pipeline.save_test_run(
             TEST_COMPANY, TEST_YEAR, barriers, motivators, elapsed, output_folder
         )
@@ -155,6 +162,11 @@ def save_test_results(results: Dict, output_folder: str = "../out"):
 
         safe_name = model_name.replace("/", "_").replace(":", "-")
         model_folder = os.path.join(output_folder, f"{datestamp}_{safe_name}")
+        if os.path.exists(model_folder):
+            i = 2
+            while os.path.exists(f"{model_folder}_{i}"):
+                i += 1
+            model_folder = f"{model_folder}_{i}"
 
         r["pipeline"].save_test_run(
             TEST_COMPANY, TEST_YEAR,

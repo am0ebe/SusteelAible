@@ -566,8 +566,21 @@ class ExtractPipeline:
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 
-    def extract_all_companies(self) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
-        """Extract barriers and motivators for all companies. Always saves results."""
+    def _load_existing_results(self, company_id: str) -> Tuple[pd.DataFrame, pd.DataFrame] | None:
+        """Load previously saved CSVs for a company, or None if not found."""
+        folder = self.config.output_folder
+        b_path = os.path.join(folder, f"barriers_{company_id}.csv")
+        m_path = os.path.join(folder, f"motivators_{company_id}.csv")
+        if os.path.exists(b_path) and os.path.exists(m_path):
+            return pd.read_csv(b_path), pd.read_csv(m_path)
+        return None
+
+    def extract_all_companies(self, resume: bool = True) -> Dict[str, Tuple[pd.DataFrame, pd.DataFrame]]:
+        """Extract barriers and motivators for all companies. Always saves results.
+
+        Args:
+            resume: If True, skip companies that already have output CSVs.
+        """
         # Chunk statistics
         chunk_sizes = [len(c.page_content) for c in self.chunks]
         total_chunks = len(chunk_sizes)
@@ -584,6 +597,19 @@ class ExtractPipeline:
         )
         total_llm_calls = total_batches * 2  # barriers + motivators
 
+        # Check for existing results (resume support)
+        all_companies = self.get_companies()
+        results = {}
+        skipped = []
+        if resume:
+            for company_id in all_companies:
+                existing = self._load_existing_results(company_id)
+                if existing is not None:
+                    results[company_id] = existing
+                    skipped.append(company_id)
+
+        todo = [c for c in all_companies if c not in results]
+
         print(f"\n{'='*70}")
         print("EXTRACTION RUN")
         print(f"{'='*70}")
@@ -594,18 +620,33 @@ class ExtractPipeline:
             f"  Chunks: {total_chunks} ({avg_chunk_chars} avg chars, {chunk_range[0]}-{chunk_range[1]} range)")
         print(
             f"  Groups: {len(self.grouped_chunks)} | Est. LLM calls: {total_llm_calls}")
+        if skipped:
+            print(f"  Resuming: {len(skipped)} companies skipped (CSVs exist), {len(todo)} remaining")
         print(f"{'='*70}\n")
 
         start_time = time.time()
-        results = {}
+        llm_calls_made = 0
 
-        for company_id in self.get_companies():
+        for company_id in todo:
             try:
                 df_barriers, df_motivators = self.extract_company_data(
                     company_id)
                 results[company_id] = (df_barriers, df_motivators)
                 self.save_company_tables(
                     company_id, df_barriers, df_motivators)
+
+                # Incremental stats after each company
+                elapsed = time.time() - start_time
+                total_barriers = sum(len(df[0]) for df in results.values())
+                total_motivators = sum(len(df[1]) for df in results.values())
+                self._save_stats(
+                    elapsed=elapsed,
+                    total_barriers=total_barriers,
+                    total_motivators=total_motivators,
+                    total_llm_calls=total_llm_calls,
+                    total_chunks=total_chunks,
+                    n_companies=len(results),
+                )
             except Exception as e:
                 print(f"✗ {company_id}: {e}")
 
@@ -613,8 +654,8 @@ class ExtractPipeline:
         total_barriers = sum(len(df[0]) for df in results.values())
         total_motivators = sum(len(df[1]) for df in results.values())
 
-        # Save run stats
-        run_stats = self._save_stats(
+        # Final stats
+        self._save_stats(
             elapsed=elapsed,
             total_barriers=total_barriers,
             total_motivators=total_motivators,
@@ -629,6 +670,8 @@ class ExtractPipeline:
         print(f"  Time: {elapsed:.1f}s ({elapsed/60:.1f}min)")
         print(
             f"  Results: {total_barriers} barriers, {total_motivators} motivators")
+        if skipped:
+            print(f"  Resumed: {len(skipped)} companies from cache")
         print(f"  Saved: {self.config.output_folder}/stats.json")
         print(f"{'='*70}\n")
 
