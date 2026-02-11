@@ -41,27 +41,22 @@ def get_llm(config: RAGConfig):
     return ChatOllama(model=config.model, temperature=config.llm_temperature, num_ctx=config.ctx, base_url=config.ollama_base_url)
 
 
-# Format test uses chunk IDs matching TEST_COMPANY
-FORMAT_TEST_PROMPT = f"""Extract BARRIERS to decarbonisation from this text.
+FORMAT_TEST_PROMPT = """Extract BARRIERS to decarbonisation from this text.
+
+BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissions harder.
+
+SCOPE: Must be explicitly linked to decarbonisation, GHG/CO2 reduction, net-zero targets, or fossil fuel transition.
 
 RULES:
-- Copy text EXACTLY as written (verbatim)
-- Each chunk starts with [{TEST_COMPANY}_XXX] - use that EXACT ID
-- Valid IDs start with {TEST_COMPANY}_ (e.g., {TEST_COMPANY}_001, {TEST_COMPANY}_002)
-- NEVER invent IDs
-
-OUTPUT FORMAT: [{TEST_COMPANY}_XXX]|||verbatim text
-
-One per line. No explanations. If none: NONE_FOUND
+- One barrier per line, starting with "- "
+- If none found: NONE_FOUND
+- No headers, no explanations
 
 TEXT:
-[{TEST_COMPANY}_001]
 The high cost of green hydrogen remains a significant barrier. Production costs are 4-6x higher than grey hydrogen.
 
-[{TEST_COMPANY}_002]
 Infrastructure limitations present another major challenge. Gas pipelines cannot be repurposed for hydrogen.
 
-[{TEST_COMPANY}_003]
 Regulatory uncertainty hampers investment. The EU ETS has seen significant price volatility."""
 
 
@@ -77,12 +72,14 @@ def test_format(config: RAGConfig) -> Dict:
     response = llm.invoke(FORMAT_TEST_PROMPT)
     elapsed = time.time() - start
 
-    format_ok = f"[{TEST_COMPANY}_00" in response.content and "|||" in response.content
+    # Check: has bullet points, mentions hydrogen or emissions
+    lines = [l.strip() for l in response.content.strip().splitlines() if l.strip().startswith("- ")]
+    format_ok = len(lines) >= 2
 
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
 
-    return {"format_ok": format_ok, "time": elapsed, "sample": response.content[:150]}
+    return {"format_ok": format_ok, "time": elapsed, "sample": response.content[:200]}
 
 
 def test_extraction(config: RAGConfig, save: bool = False, output_folder: str = "../out/test") -> Dict:

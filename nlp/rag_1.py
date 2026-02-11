@@ -108,60 +108,35 @@ class RAGConfig:
 # PROMPTS
 # =============================================================================
 
-# OLD PROMPTS (caused hallucination - model reused example IDs like 012_003)
-# BARRIER_MAP_PROMPT_OLD = ChatPromptTemplate.from_template("""Extract BARRIERS to decarbonisation from {company} ({year}) report.
-#
-# BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissions harder.
-#
-# RULES:
-# - Copy text EXACTLY as written (verbatim)
-# - Each chunk starts with [chunk_id] - use that exact ID
-#
-# OUTPUT FORMAT (STRICT):
-# [chunk_id]|||verbatim text
-#
-# EXAMPLE:
-# [012_003]|||The high cost of green hydrogen limits our decarbonisation options.
-# [012_007]|||Carbon capture technology remains expensive and unproven at scale.
-#
-# One per line. No other text. No JSON. No explanations. No quotes.
-# If none found: NONE_FOUND
-#
-# TEXT:
-# {context}""")
 
 BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract BARRIERS to decarbonisation from {company} ({year}) report.
 
 BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissions harder.
 
+SCOPE: Must be explicitly linked to decarbonisation, GHG/CO2 reduction, net-zero targets, or fossil fuel transition.
+EXCLUDE: general ESG, biodiversity, water, waste, safety, or social issues.
+
 RULES:
-- Copy text EXACTLY as written (verbatim)
-- Each chunk in TEXT starts with [{company_id}_XXX] - use that EXACT ID
-- Valid IDs start with {company_id}_ (e.g., {company_id}_001, {company_id}_042)
-- NEVER invent IDs or use IDs from other companies
-
-OUTPUT FORMAT:
-[{company_id}_XXX]|||verbatim text
-
-One per line. No explanations. If none found: NONE_FOUND
+- Extract ALL qualifying barriers, do not filter or rank
+- One barrier per line, starting with "- "
+- If none found: NONE_FOUND
+- No headers, no explanations
 
 TEXT:
 {context}""")
 
 MOTIVATOR_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract MOTIVATORS for decarbonisation from {company} ({year}) report.
 
-MOTIVATOR = driver, incentive, commitment, or pressure that encourages reducing GHG emissions.
+MOTIVATOR = driver, incentive, commitment, pressure, or opportunity that encourages reducing GHG emissions.
+
+SCOPE: Must be explicitly linked to decarbonisation, GHG/CO2 reduction, net-zero targets, or fossil fuel transition.
+EXCLUDE: general ESG, biodiversity, water, waste, safety, or social issues.
 
 RULES:
-- Copy text EXACTLY as written (verbatim)
-- Each chunk in TEXT starts with [{company_id}_XXX] - use that EXACT ID
-- Valid IDs start with {company_id}_ (e.g., {company_id}_001, {company_id}_042)
-- NEVER invent IDs or use IDs from other companies
-
-OUTPUT FORMAT:
-[{company_id}_XXX]|||verbatim text
-
-One per line. No explanations. If none found: NONE_FOUND
+- Extract ALL qualifying motivators, do not filter or rank
+- One motivator per line, starting with "- "
+- If none found: NONE_FOUND
+- No headers, no explanations
 
 TEXT:
 {context}""")
@@ -385,29 +360,9 @@ class RAGPipeline:
     # BERT Metadata Helpers
     # -------------------------------------------------------------------------
 
-    def _get_chunk_metadata(self, chunk) -> Dict[str, Any]:
-        """Extract BERT metadata dict from a chunk for output row."""
-        return {
-            "source_chunk_id": chunk.metadata.get("chunk_id"),
-            "detector_score": chunk.metadata.get("detector_score", 0),
-            "specificity_score": chunk.metadata.get("specificity_score", 0),
-            "specificity_label": chunk.metadata.get("specificity_label"),
-            "commitment_score": chunk.metadata.get("commitment_score", 0),
-            "commitment_label": chunk.metadata.get("commitment_label"),
-            "sentiment_label": chunk.metadata.get("sentiment_label"),
-            "sentiment_score": chunk.metadata.get("sentiment_score", 0),
-            "netzero_label": chunk.metadata.get("netzero_label"),
-            "netzero_score": chunk.metadata.get("netzero_score", 0),
-        }
-
     def _format_chunk(self, chunk) -> str:
-        """Format chunk with chunk_id for prompt context.
-
-        BERT labels are NOT included - they're looked up after extraction
-        via chunk_id to avoid confusing the LLM.
-        """
-        chunk_id = chunk.metadata.get("chunk_id", "unknown")
-        return f"[{chunk_id}]\n{chunk.page_content}"
+        """Format chunk for prompt context."""
+        return chunk.page_content
 
     def _sort_chunks_by_quality(self, chunks: List) -> List:
         """Sort chunks by composite quality score (best first).
@@ -420,31 +375,43 @@ class RAGPipeline:
             )
         return sorted(chunks, key=score, reverse=True)
 
-    def _parse_llm_response(self, response_text: str) -> List[Tuple[str, str]]:
-        """Parse [chunk_id]|||text format. No filtering - highest recall.
+    def _parse_llm_response(self, response_text: str) -> List[str]:
+        """Parse bullet-point response into list of extracted items.
 
-        Invalid chunk IDs are handled downstream (lookup warns + skips).
         Deduplication happens in rag2/topic modeling.
         """
         if not response_text or "NONE_FOUND" in response_text.upper():
             return []
 
-        # Pattern: [chunk_id]|||text
-        pattern = re.compile(r'^\[([^\]]+)\]\|\|\|(.+)$', re.MULTILINE)
-        return [(m.group(1).strip(), m.group(2).strip()) for m in pattern.finditer(response_text)]
+        items = []
+        seen = set()
+        for line in response_text.strip().splitlines():
+            line = line.strip()
+            if not line or len(line) < 10:
+                continue
+            # Strip bullet prefixes
+            if line[0] in "-•*–·":
+                line = line[1:].strip()
+            elif len(line) > 2 and line[0].isdigit() and line[1] in ".):":
+                line = line[2:].strip()
+            if not line:
+                continue
+            key = line.lower().strip()
+            if key not in seen:
+                seen.add(key)
+                items.append(line)
+        return items
 
     def _map_extract(
         self,
         chunks: List,
         company: str,
-        company_id: str,
         year: str,
         extract_type: str
-    ) -> List[Tuple[str, str]]:
+    ) -> List[str]:
         """MAP phase: Extract barriers/motivators from a single company-year group.
 
-        Returns list of (chunk_id, extracted_text) tuples.
-        No filtering - invalid chunk IDs handled downstream via lookup.
+        Returns list of extracted text strings.
         """
         if not chunks:
             return []
@@ -477,17 +444,18 @@ class RAGPipeline:
 
             # Progress: overwrite line in-place
             elapsed = time.time() - extract_start
-            print(f"    {label} {batch_idx+1}/{n_batches} | {len(all_results)} found | {elapsed:.0f}s", end="\r", flush=True)
+            print(
+                f"    {label} {batch_idx+1}/{n_batches} | {len(all_results)} found | {elapsed:.0f}s", end="\r", flush=True)
 
             for attempt in range(3):
                 try:
                     response = chain.invoke({
                         "company": company,
-                        "company_id": company_id,
                         "year": year,
                         "context": context
                     })
-                    raw_text = response.content if hasattr(response, "content") else str(response)
+                    raw_text = response.content if hasattr(
+                        response, "content") else str(response)
                     batch_results = self._parse_llm_response(raw_text)
                     all_results.extend(batch_results)
                     break
@@ -495,29 +463,44 @@ class RAGPipeline:
                     err = str(e)
                     if ("429" in err or "rate_limit" in err or "RESOURCE_EXHAUSTED" in err) and attempt < 2:
                         delay = 60
-                        retry_match = re.search(r'retry.*?(\d+)', err, re.IGNORECASE)
+                        retry_match = re.search(
+                            r'retry.*?(\d+)', err, re.IGNORECASE)
                         if retry_match:
                             delay = max(int(retry_match.group(1)), 10)
-                        print(f"    ⏳ {label} batch {batch_idx+1}/{n_batches}: rate limited, waiting {delay}s (attempt {attempt+1}/3)")
+                        print(
+                            f"    ⏳ {label} batch {batch_idx+1}/{n_batches}: rate limited, waiting {delay}s (attempt {attempt+1}/3)")
                         time.sleep(delay)
                     else:
-                        print(f"    ⚠️ {label} batch {batch_idx+1}/{n_batches}: {e}")
+                        print(
+                            f"    ⚠️ {label} batch {batch_idx+1}/{n_batches}: {e}")
                         break
+
+        # Cross-batch exact dedup
+        seen = set()
+        unique_results = []
+        for item in all_results:
+            key = item.lower().strip()
+            if key not in seen:
+                seen.add(key)
+                unique_results.append(item)
+        n_dupes = len(all_results) - len(unique_results)
 
         # Final summary line (overwrites progress)
         elapsed = time.time() - extract_start
-        print(f"    {label} done: {len(all_results)} found in {n_batches} batches ({elapsed:.1f}s)          ")
+        dupe_info = f", {n_dupes} dupes removed" if n_dupes else ""
+        print(
+            f"    {label} done: {len(unique_results)} found in {n_batches} batches ({elapsed:.1f}s{dupe_info})          ")
 
-        return all_results
+        return unique_results
 
     def extract_company_year(
         self,
         company_id: str,
         year: str
-    ) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
+    ) -> Tuple[List[str], List[str]]:
         """Extract barriers and motivators for a single company-year group.
 
-        Returns two lists of (chunk_id, text) tuples.
+        Returns two lists of extracted text strings.
         """
         key = (company_id, year)
         chunks = self.grouped_chunks.get(key, [])
@@ -527,20 +510,13 @@ class RAGPipeline:
 
         company_name = self._get_company_name(company_id)
 
-        # MAP: Extract from this group
-        barriers = self._map_extract(
-            chunks, company_name, company_id, year, "barriers")
-        motivators = self._map_extract(
-            chunks, company_name, company_id, year, "motivators")
+        barriers = self._map_extract(chunks, company_name, year, "barriers")
+        motivators = self._map_extract(chunks, company_name, year, "motivators")
 
         return barriers, motivators
 
     def extract_company_data(self, company_id: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Extract barriers and motivators for a company across all years.
-
-        Each extracted item is traced back to its source chunk via chunk_id
-        embedded in LLM output, inheriting all BERT metadata.
-        """
+        """Extract barriers and motivators for a company across all years."""
         company_name = self._get_company_name(company_id)
 
         print(f"\n{'='*60}")
@@ -558,68 +534,27 @@ class RAGPipeline:
             f"Chunks: {total_chunks} | Batches: {total_batches} × 2 (barriers+motivators) = {total_batches * 2} LLM calls")
 
         barrier_rows, motivator_rows = [], []
-        total_barriers, total_motivators = 0, 0
-        matched_barriers, matched_motivators = 0, 0
 
         for year in tqdm(years, desc=f"  {company_id}", leave=False):
-            key = (company_id, year)
-            chunks = self.grouped_chunks.get(key, [])
-
-            # Build chunk_id -> chunk lookup for this group
-            chunk_lookup = {
-                c.metadata.get("chunk_id"): c
-                for c in chunks
-                if c.metadata.get("chunk_id")
-            }
-
             barriers, motivators = self.extract_company_year(company_id, year)
 
-            # Create one row per barrier with BERT metadata
-            for chunk_id, barrier_text in barriers:
-                row = {
+            for text in barriers:
+                barrier_rows.append({
                     "company_id": company_id,
                     "company": company_name,
                     "year": year,
-                    "barriers": barrier_text,
-                }
-                # Look up source chunk by chunk_id
-                if chunk_id in chunk_lookup:
-                    row.update(self._get_chunk_metadata(
-                        chunk_lookup[chunk_id]))
-                    matched_barriers += 1
-                else:
-                    print(f"    ⚠️ chunk_id '{chunk_id}' not found in lookup")
-                    row["source_chunk_id"] = chunk_id  # Still record the ID
-                barrier_rows.append(row)
-            total_barriers += len(barriers)
+                    "barriers": text,
+                })
 
-            # Create one row per motivator with BERT metadata
-            for chunk_id, motivator_text in motivators:
-                row = {
+            for text in motivators:
+                motivator_rows.append({
                     "company_id": company_id,
                     "company": company_name,
                     "year": year,
-                    "motivators": motivator_text,
-                }
-                # Look up source chunk by chunk_id
-                if chunk_id in chunk_lookup:
-                    row.update(self._get_chunk_metadata(
-                        chunk_lookup[chunk_id]))
-                    matched_motivators += 1
-                else:
-                    print(f"    ⚠️ chunk_id '{chunk_id}' not found in lookup")
-                    row["source_chunk_id"] = chunk_id  # Still record the ID
-                motivator_rows.append(row)
-            total_motivators += len(motivators)
+                    "motivators": text,
+                })
 
-        # Report match rates
-        barrier_match_rate = matched_barriers / \
-            total_barriers * 100 if total_barriers > 0 else 0
-        motivator_match_rate = matched_motivators / \
-            total_motivators * 100 if total_motivators > 0 else 0
-        print(
-            f"  ✓ Extracted {total_barriers} barriers ({barrier_match_rate:.0f}% ID-matched), "
-            f"{total_motivators} motivators ({motivator_match_rate:.0f}% ID-matched)")
+        print(f"  ✓ Extracted {len(barrier_rows)} barriers, {len(motivator_rows)} motivators")
 
         return pd.DataFrame(barrier_rows), pd.DataFrame(motivator_rows)
 
@@ -695,51 +630,18 @@ class RAGPipeline:
         self,
         company_id: str,
         year: str,
-        barriers: List[Tuple[str, str]],
-        motivators: List[Tuple[str, str]],
+        barriers: List[str],
+        motivators: List[str],
         elapsed: float,
         output_folder: str = "../out/test",
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Save test run results with same format as full pipeline.
-
-        Args:
-            company_id: Company ID tested
-            year: Year tested
-            barriers: List of (chunk_id, text) tuples from extraction
-            motivators: List of (chunk_id, text) tuples from extraction
-            elapsed: Time taken in seconds
-            output_folder: Where to save results
-
-        Returns:
-            (df_barriers, df_motivators) DataFrames with BERT metadata
-        """
+        """Save test run results with same format as full pipeline."""
         company_name = self._get_company_name(company_id)
-
-        # Build chunk lookup for BERT metadata
         key = (company_id, year)
         chunks = self.grouped_chunks.get(key, [])
-        chunk_lookup = {c.metadata.get("chunk_id"): c for c in chunks}
 
-        # Build rows with BERT metadata (same as extract_company_data)
-        barrier_rows = []
-        for chunk_id, text in barriers:
-            row = {"company_id": company_id, "company": company_name,
-                   "year": year, "barriers": text}
-            if chunk_id in chunk_lookup:
-                row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
-            else:
-                row["source_chunk_id"] = chunk_id
-            barrier_rows.append(row)
-
-        motivator_rows = []
-        for chunk_id, text in motivators:
-            row = {"company_id": company_id, "company": company_name,
-                   "year": year, "motivators": text}
-            if chunk_id in chunk_lookup:
-                row.update(self._get_chunk_metadata(chunk_lookup[chunk_id]))
-            else:
-                row["source_chunk_id"] = chunk_id
-            motivator_rows.append(row)
+        barrier_rows = [{"company_id": company_id, "company": company_name, "year": year, "barriers": text} for text in barriers]
+        motivator_rows = [{"company_id": company_id, "company": company_name, "year": year, "motivators": text} for text in motivators]
 
         df_barriers = pd.DataFrame(barrier_rows)
         df_motivators = pd.DataFrame(motivator_rows)
