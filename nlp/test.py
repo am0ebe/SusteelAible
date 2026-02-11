@@ -1,10 +1,12 @@
 """
-RAG Model Testing - Quick evaluation of LLM models for barrier/motivator extraction.
+Model Testing - Quick evaluation of LLM models for barrier/motivator extraction.
 
-Usage: Import in notebook and pass RAGConfig objects to test functions.
+Usage: Import in notebook and pass Config objects to test functions.
 """
 
+
 import time
+from datetime import datetime
 import subprocess
 from typing import List, Dict
 import os
@@ -12,7 +14,7 @@ import os
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
-from nlp.rag_1 import RAGConfig, RAGPipeline
+from nlp.llm_extract import Config, load_pipeline
 
 load_dotenv()
 
@@ -31,7 +33,7 @@ def unload_ollama(model: str):
         pass
 
 
-def get_llm(config: RAGConfig):
+def get_llm(config: Config):
     """Create LLM instance from config."""
     if config.llm_provider == "groq":
         api_key = os.getenv("GROQ_API_KEY")
@@ -60,7 +62,7 @@ Infrastructure limitations present another major challenge. Gas pipelines cannot
 Regulatory uncertainty hampers investment. The EU ETS has seen significant price volatility."""
 
 
-def test_format(config: RAGConfig) -> Dict:
+def test_format(config: Config) -> Dict:
     """Test if model follows output format. Returns dict with format_ok, time, sample."""
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
@@ -73,7 +75,8 @@ def test_format(config: RAGConfig) -> Dict:
     elapsed = time.time() - start
 
     # Check: has bullet points, mentions hydrogen or emissions
-    lines = [l.strip() for l in response.content.strip().splitlines() if l.strip().startswith("- ")]
+    lines = [l.strip() for l in response.content.strip().splitlines()
+             if l.strip().startswith("- ")]
     format_ok = len(lines) >= 2
 
     if config.llm_provider == "ollama":
@@ -82,11 +85,11 @@ def test_format(config: RAGConfig) -> Dict:
     return {"format_ok": format_ok, "time": elapsed, "sample": response.content[:200]}
 
 
-def test_extraction(config: RAGConfig, save: bool = False, output_folder: str = "../out/test") -> Dict:
+def test_extraction(config: Config, save: bool = False, output_folder: str = "../out/test") -> Dict:
     """Test real extraction on TEST_COMPANY/TEST_YEAR.
 
     Args:
-        config: RAGConfig for the model to test
+        config: Config for the model to test
         save: If True, save results in same format as full pipeline
         output_folder: Where to save if save=True
 
@@ -95,21 +98,40 @@ def test_extraction(config: RAGConfig, save: bool = False, output_folder: str = 
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
 
-    pipeline = RAGPipeline(config)
-    pipeline.load_from_cache()
+    pipeline = load_pipeline(config)
+
+    # Show approach-specific info
+    if config.approach == "rag":
+        b_chunks = pipeline._retrieve_chunks(TEST_COMPANY, TEST_YEAR, "barriers")
+        m_chunks = pipeline._retrieve_chunks(TEST_COMPANY, TEST_YEAR, "motivators")
+        overlap = set(c.metadata["chunk_id"] for c in b_chunks) & set(c.metadata["chunk_id"] for c in m_chunks)
+        b_pages = set(c.metadata.get("page", "?") for c in b_chunks)
+        m_pages = set(c.metadata.get("page", "?") for c in m_chunks)
+        print(f"    Retrieval: {len(b_chunks)}B + {len(m_chunks)}M chunks ({len(overlap)} overlap)")
+        print(f"    Distribution: {len(b_pages)} pages (B), {len(m_pages)} pages (M)")
+    else:
+        total = len(pipeline.grouped_chunks.get((TEST_COMPANY, TEST_YEAR), []))
+        print(f"    Exhaustive: {total} chunks")
 
     start = time.time()
-    barriers, motivators = pipeline.extract_company_year(
-        TEST_COMPANY, TEST_YEAR)
+    barriers, motivators = pipeline.extract_company_year(TEST_COMPANY, TEST_YEAR)
     elapsed = time.time() - start
 
     if config.llm_provider == "ollama":
         unload_ollama(config.model)
 
     result = {"barriers": barriers, "motivators": motivators,
-              "time": elapsed, "pipeline": pipeline}
+              "time": elapsed, "pipeline": pipeline, "approach": config.approach}
+    if config.approach == "rag":
+        result["retrieved_barrier_chunks"] = len(b_chunks)
+        result["retrieved_motivator_chunks"] = len(m_chunks)
+        result["retrieval"] = {
+            "barrier_chunks": len(b_chunks), "motivator_chunks": len(m_chunks),
+            "overlap": len(overlap), "barrier_pages": len(b_pages), "motivator_pages": len(m_pages),
+        }
 
     if save:
+        extra = {"retrieval": result["retrieval"]} if "retrieval" in result else {}
         df_b, df_m = pipeline.save_test_run(
             TEST_COMPANY, TEST_YEAR, barriers, motivators, elapsed, output_folder
         )
@@ -125,9 +147,6 @@ def save_test_results(results: Dict, output_folder: str = "../out"):
     Call this after test_models() to save all successful extractions.
     Folder format: {output_folder}/{MMDD_HHMM}_{model_name}/
     """
-    import os
-    from datetime import datetime
-
     datestamp = datetime.now().strftime("%m%d")
 
     for model_name, r in results.items():
@@ -145,19 +164,20 @@ def save_test_results(results: Dict, output_folder: str = "../out"):
         )
 
 
-def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict:
+def test_models(configs: List[Config], skip_extraction: bool = False) -> Dict:
     """Run format and extraction tests on multiple configs."""
     results = {}
 
     print("=" * 70)
     print(
-        f"RAG MODEL TESTING ({len(configs)} models) - {TEST_COMPANY}/{TEST_YEAR}")
+        f"MODEL TESTING ({len(configs)} models) - {TEST_COMPANY}/{TEST_YEAR}")
     print("=" * 70)
 
     for config in configs:
         name = f"{config.llm_provider}/{config.model}"
+        approach_info = f"{config.approach}, top_k={config.top_k}" if config.approach == "rag" else config.approach
         print(
-            f"\n--- {name} (ctx={config.ctx:,} → {config.batch_size} chunks) ---")
+            f"\n--- {name} [{approach_info}] (ctx={config.ctx:,} → {config.batch_size} chunks) ---")
 
         try:
             fmt = test_format(config)
@@ -166,7 +186,8 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
             print(f"    Output: {fmt['sample']}...")
 
             result = {"format_ok": fmt["format_ok"],
-                      "format_time": fmt["time"]}
+                      "format_time": fmt["time"],
+                      "approach": config.approach}
 
             if not skip_extraction and fmt["format_ok"]:
                 ext = test_extraction(config)
@@ -187,17 +208,19 @@ def test_models(configs: List[RAGConfig], skip_extraction: bool = False) -> Dict
 
     # Summary
     print("\n" + "=" * 70)
-    print(f"{'Model':<40} {'Fmt':<6} {'Time':<7} {'B':<5} {'M':<5}")
+    print(f"{'Model':<40} {'Approach':<12} {'Fmt':<6} {'Time':<7} {'B':<5} {'M':<5} {'Chunks'}")
     print("-" * 70)
     for name, r in results.items():
         if "error" in r:
-            print(f"{name:<40} ERROR")
+            print(f"{name:<40} {'':12} ERROR")
         else:
+            approach = r.get("approach", "?")
             fmt = "PASS" if r["format_ok"] else "FAIL"
             t = f"{r['format_time']:.1f}s"
             b = len(r["barriers"]) if "barriers" in r else "-"
             m = len(r["motivators"]) if "motivators" in r else "-"
-            print(f"{name:<40} {fmt:<6} {t:<7} {b:<5} {m:<5}")
+            chunks = f"{r.get('retrieved_barrier_chunks', '?')}B+{r.get('retrieved_motivator_chunks', '?')}M" if "retrieved_barrier_chunks" in r else "all"
+            print(f"{name:<40} {approach:<12} {fmt:<6} {t:<7} {b:<5} {m:<5} {chunks}")
 
     return results
 
