@@ -22,6 +22,7 @@ Requirements:
 from nlp import load_csv_data
 from nlp import GPUManager
 import os
+import time
 import warnings
 from datetime import datetime
 from pathlib import Path
@@ -111,8 +112,11 @@ class TopicModelConfig:
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
 
-    # Embedding cache (save immediately after computation to survive crashes)
-    embeddings_cache_path: Optional[str] = None  # e.g., "out/embeddings_cache"
+    # Embedding cache (skip re-encoding when only tuning BERTopic params)
+    cache_embeddings: bool = True
+
+    # Run naming — base prefix for auto-increment (run_01, run_02, ..., test_leaf_01, ...)
+    run_name: str = "run"
 
 
 # ==================== Prompt ====================
@@ -183,11 +187,17 @@ KEYWORD_STOPWORDS = {
     "aperam", "acerinox", "nlmk", "severstal", "evraz",
     # Generic terms that don't help labeling
     "company", "group", "companies", "report", "annual", "year", "years",
-    "million", "billion", "EUR", "USD", "barriers", "barrier", "risk", "risks"
+    "million", "billion", "EUR", "USD", "barriers", "barrier", "risk", "risks",
     "mention", "mentioned", "mentions",
     "qualifying", "motivators", "motivating", "motivator",
     # Filler words that sometimes appear
     "also", "including", "various", "related", "based", "using",
+    # Domain-generic filler terms
+    "use", "used", "need", "process", "increase", "help", "end", "example",
+    "implement", "impact", "product", "products", "measures", "term", "meet",
+    "support", "ways", "sources", "methods", "approach", "changes", "required",
+    "available", "information", "certain", "brand", "applications",
+    "requirements", "structure", "operations", "statement",
 }
 
 
@@ -301,7 +311,7 @@ class TopicModeler:
         else:
             self._log("⚠️  Using CPU for encoding (slower)")
 
-    def _create_topic_model(self):
+    def _create_topic_model(self, embedding_model=None):
         """Create BERTopic model with configured components."""
         self._log("\n🔧 Creating BERTopic model components...")
 
@@ -361,7 +371,7 @@ class TopicModeler:
         # Create BERTopic model
         topic_model = BERTopic(
             # Pipeline components
-            embedding_model=self.embedding_model,
+            embedding_model=embedding_model or self.embedding_model,
             umap_model=umap_model,
             hdbscan_model=hdbscan_model,
             vectorizer_model=vectorizer_model,
@@ -419,32 +429,16 @@ class TopicModeler:
         self._log(
             f"\n🔄 Processing {len(texts)} documents from '{text_column}'...")
 
-        # Generate or load embeddings
-        cache_path = self.config.embeddings_cache_path
-        if embeddings is None and cache_path:
-            cache_file = f"{cache_path}_{text_column}.npy"
-            if os.path.exists(cache_file):
-                self._log(f"📂 Loading cached embeddings from {cache_file}")
-                embeddings = np.load(cache_file)
-                if len(embeddings) != len(texts):
-                    self._log(
-                        f"⚠️ Cache size mismatch ({len(embeddings)} vs {len(texts)}), recomputing...")
-                    embeddings = None
-
-        if embeddings is None:
+        # Generate embeddings if not provided
+        embeddings_precomputed = embeddings is not None
+        if not embeddings_precomputed:
             embeddings = self.encode_documents(texts)
-            # Save immediately to survive crashes
-            if cache_path:
-                cache_file = f"{cache_path}_{text_column}.npy"
-                os.makedirs(os.path.dirname(cache_file), exist_ok=True) if os.path.dirname(
-                    cache_file) else None
-                np.save(cache_file, embeddings)
-                self._log(f"💾 Cached embeddings to {cache_file}")
 
         self._embeddings = embeddings
 
-        # Create and fit topic model
-        self._topic_model = self._create_topic_model()
+        # Pass string name when embeddings are pre-computed to skip eager model load
+        self._topic_model = self._create_topic_model(
+            embedding_model=self.config.embedding_model if embeddings_precomputed else None)
 
         self._log("\n📊 Fitting BERTopic model...")
         topics, probs = self._topic_model.fit_transform(texts, embeddings)
@@ -904,7 +898,7 @@ def aggregate_by_company_year(
 
 # ==================== Main Pipeline ====================
 
-def _write_config_log(output_path: Path, config: TopicModelConfig, force_retrain: bool):
+def _write_config_log(output_path: Path, config: TopicModelConfig, duration_s: float = 0.0, results: Optional[Dict[str, Any]] = None):
     """Write config parameters to a log file for reproducibility."""
     log_file = output_path / "config_log.txt"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -913,7 +907,7 @@ def _write_config_log(output_path: Path, config: TopicModelConfig, force_retrain
         f"{'='*60}",
         f"Topic Modeling Pipeline Run",
         f"Timestamp: {timestamp}",
-        f"Force Retrain: {force_retrain}",
+        f"Duration: {duration_s:.1f}s",
         f"{'='*60}",
         "",
         "TopicModelConfig:",
@@ -923,10 +917,22 @@ def _write_config_log(output_path: Path, config: TopicModelConfig, force_retrain
     for key, value in asdict(config).items():
         lines.append(f"  {key}: {value}")
 
+    # Outlier stats from results
+    if results:
+        lines.append("")
+        lines.append("Outlier Stats:")
+        lines.append("-" * 40)
+        for category, res in results.items():
+            doc_counts = res.get("doc_counts", {})
+            if -1 in doc_counts:
+                outlier_count = doc_counts[-1]
+                total = sum(doc_counts.values())
+                pct = outlier_count / total * 100 if total else 0
+                lines.append(f"  {category}: {outlier_count}/{total} ({pct:.1f}%)")
+
     lines.append("")
     lines.append("=" * 60 + "\n")
 
-    # write to log file
     with open(log_file, "w") as f:
         f.write("\n".join(lines))
 
@@ -937,7 +943,6 @@ def run_topic_modeling_pipeline(
     data_folder: str,
     output_folder: str = "./output",
     config: Optional[TopicModelConfig] = None,
-    force_retrain: bool = False
 ) -> Dict[str, Any]:
     """
     Run complete topic modeling pipeline.
@@ -946,17 +951,21 @@ def run_topic_modeling_pipeline(
         data_folder: Path to folder with CSV data files
         output_folder: Path to save outputs
         config: TopicModelConfig (uses defaults if None)
-        force_retrain: If True, ignore cached model/embeddings and retrain from scratch
 
     Returns:
         Dictionary with results
     """
+    start_time = time.time()
     config = config or TopicModelConfig()
-    output_path = Path(output_folder)
-    output_path.mkdir(parents=True, exist_ok=True)
+    output_base = Path(output_folder)
+    output_base.mkdir(parents=True, exist_ok=True)
 
-    # Log config for reproducibility
-    _write_config_log(output_path, config, force_retrain)
+    base = config.run_name
+    existing = [int(d.name.split(f"{base}_")[1]) for d in output_base.glob(f"{base}_*") if d.is_dir() and d.name.split(f"{base}_")[1].isdigit()]
+    run_dir = f"{base}_{max(existing, default=0) + 1:02d}"
+    output_path = output_base / run_dir
+    output_path.mkdir(parents=True, exist_ok=True)
+    print(f"📁 Run: {run_dir} → {output_path}")
 
     print("\n" + "="*60)
     print("📂 LOADING DATA")
@@ -983,21 +992,29 @@ def run_topic_modeling_pipeline(
         modeler = TopicModeler(config)
         model_path = str(output_path / category)
 
-        # Try to load cached model + embeddings (unless force_retrain)
-        if not force_retrain and os.path.exists(f"{model_path}_model"):
-            print(f"📂 Loading cached model from {model_path}_model")
-            modeler.load(model_path)
-            texts = df[category].tolist()
-            topics, probs = modeler.topic_model.transform(
-                texts, modeler._embeddings)
-            df = df.copy()
-            df['topic'] = topics
-        else:
-            if force_retrain:
-                print("🔄 Force retrain enabled, ignoring cache")
-            # Fit topic model from scratch
-            df, topics, probs = modeler.fit_transform(df, category)
-            modeler.save(model_path)
+        # Load cached embeddings if available
+        embeddings = None
+        if config.cache_embeddings:
+            embed_file = output_base / f"embeddings_{category}.npy"
+            if embed_file.exists():
+                embeddings = np.load(str(embed_file))
+                if len(embeddings) != len(df):
+                    print(f"⚠️ Embedding cache size mismatch, recomputing...")
+                    embeddings = None
+                else:
+                    print(f"📂 Loaded cached embeddings from {embed_file}")
+
+        # Always refit BERTopic (fast ~2s, only embeddings are slow ~10s)
+        df, topics, probs = modeler.fit_transform(df, category, embeddings=embeddings)
+
+        # Save embeddings after fit
+        if config.cache_embeddings and modeler._embeddings is not None:
+            embed_file = output_base / f"embeddings_{category}.npy"
+            np.save(str(embed_file), modeler._embeddings)
+            print(f"💾 Cached embeddings to {embed_file}")
+
+        # Save model for later inspection
+        modeler.save(model_path)
 
         # Reduce outliers if enabled
         texts = df[category].tolist()
@@ -1062,9 +1079,27 @@ def run_topic_modeling_pipeline(
 
         modeler.cleanup()
 
+    duration_s = time.time() - start_time
+
+    # Outlier summary
+    outlier_parts = []
+    for category, res in results.items():
+        doc_counts = res.get("doc_counts", {})
+        if -1 in doc_counts:
+            outlier_count = doc_counts[-1]
+            total = sum(doc_counts.values())
+            pct = outlier_count / total * 100 if total else 0
+            outlier_parts.append(f"{category} {outlier_count}/{total} ({pct:.1f}%)")
+
     print("\n" + "="*60)
     print("✅ PIPELINE COMPLETE")
     print("="*60)
     print(f"📁 Results saved to: {output_path}")
+    print(f"⏱️  Duration: {duration_s:.1f}s")
+    if outlier_parts:
+        print(f"📊 Outliers: {', '.join(outlier_parts)}")
+
+    # Log config + results for reproducibility
+    _write_config_log(output_path, config, duration_s=duration_s, results=results)
 
     return results
