@@ -41,6 +41,9 @@ from bertopic.vectorizers import ClassTfidfTransformer
 from sentence_transformers import SentenceTransformer
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Suppress warnings
@@ -56,12 +59,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 class TopicModelConfig:
     """Configuration for topic modeling pipeline."""
 
-    # Embedding model
-    embedding_model: str = "snowflake-arctic-embed-s"  # top MTEB for size
-    # embedding_model: str = "sentence-transformers/all-mpnet-base-v2"
-    # embedding_model: str = "Octen/Octen-Embedding-4B"
-    # embedding_model: str = "bge-small-en-v1.5" # ⚡/384d
-
+    # Embedding
+    embedding_model: str = "Snowflake/snowflake-arctic-embed-s"
     batch_size: int = 64  # embed (increase if GPU memory allows)
 
     # UMAP parameters
@@ -105,8 +104,10 @@ class TopicModelConfig:
     viz_umap_n_components: int = 2
     viz_umap_min_dist: float = 0.0
 
-    # LLM settings (Ollama) for topic labeling
-    ollama_model: str = "gemma3:4b"  # Fast + follows format. Avoid qwen3 (hidden thinking)
+    # LLM settings for topic labeling
+    llm_provider: str = "groq"
+    model: str = "llama-3.1-8b-instant"
+
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
 
@@ -269,14 +270,20 @@ class TopicModeler:
 
     @property
     def llm(self):
-        """Lazy-load the Ollama LLM."""
+        """Lazy-load the LLM (Ollama or Groq)."""
         if self._llm is None:
-            self._log(f"Loading Ollama model: {self.config.ollama_model}")
-            self._llm = ChatOllama(
-                model=self.config.ollama_model,
-                base_url=self.config.ollama_base_url,
-                temperature=self.config.llm_temperature,
-            )
+            if self.config.llm_provider == "groq":
+                api_key = os.getenv("GROQ_API_KEY")
+                if not api_key:
+                    raise ValueError(
+                        "GROQ_API_KEY not found. Check .env file.")
+                self._log(f"Loading Groq: {self.config.model}")
+                self._llm = ChatGroq(
+                    model=self.config.model, api_key=api_key, temperature=self.config.llm_temperature)
+            else:
+                self._log(f"Loading Ollama: {self.config.model}")
+                self._llm = ChatOllama(
+                    model=self.config.model, base_url=self.config.ollama_base_url, temperature=self.config.llm_temperature)
         return self._llm
 
     def _load_embedding_model(self):
