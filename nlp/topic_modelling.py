@@ -123,57 +123,30 @@ class TopicModelConfig:
 
 TOPIC_LABEL_PROMPT = ChatPromptTemplate.from_template("""You are an expert analyst specializing in thematic classification and topic labeling.
 
-KEYWORDS:
+Below are numbered topics, each with keywords. Generate a concise label for EACH topic.
+
 {keywords}
 
-IMPORTANT:
-If the output violates ANY rule below, it is incorrect.
-You must self-check before answering.
-
-OUTPUT RULES:
-Return ONLY the label text
-No punctuation
-No quotes
-No comments
-No extra text
-
-INSTRUCTIONS:
-Read all keywords carefully
-Identify the single common underlying issue they represent
-Generate a concise, stakeholder-ready label
+OUTPUT FORMAT (one per line, same numbering):
+1: Label Here
+2: Another Label
 
 LABEL REQUIREMENTS:
-Length: 3–5 words
-Style: Title Case
-Use & instead of "and" where appropriate
-Describe a specific barrier or motivator
-Avoid generic or abstract terms
-
-A GOOD LABEL:
-Names a concrete issue
-Uses a clear noun phrase
-Describes the issue itself, not the documents
+- Length: 3–5 words, Title Case
+- Use & instead of "and" where appropriate
+- Describe a specific barrier or motivator
+- Name a concrete issue using a clear noun phrase
 
 DO NOT:
-Explain reasoning
-Mention keywords or documents
-Use meta terms like Theme, Topic, or Issue
+- Explain reasoning or add comments
+- Mention keywords or documents
+- Use meta terms like Theme, Topic, or Issue
+- Add quotes, punctuation, or extra text
 
-EXAMPLES OF GOOD LABELS:
-Raw Materials & Energy Availability
-Fossil-Free Steel Innovation
-Import Competition & Overcapacity
-Environmental Permits & Compliance
+GOOD: Raw Materials & Energy Availability, Fossil-Free Steel Innovation
+BAD: Operations, Cost, Various challenges in the steel production process
 
-EXAMPLES OF BAD LABELS:
-Operations
-Identify Barriers
-Cost
-SSAB Production Issues
-Various challenges in the steel production process
-
-Before answering, internally verify all rules are satisfied.
-Then output the label only.
+Return ONLY the numbered labels, one per line.
 """)
 
 
@@ -507,10 +480,7 @@ class TopicModeler:
 
     def generate_topic_labels(self) -> Tuple[Dict[int, str], Dict[int, str], Dict[int, int]]:
         """
-        Generate human-readable labels for topics using Ollama LLM.
-
-        Uses the topic keywords from get_topic_info() to generate
-        short descriptive labels (2-4 words) for each topic.
+        Generate human-readable labels for topics using a single batched LLM call.
 
         Returns:
             Tuple of (labels_dict, keywords_dict, doc_count_dict)
@@ -520,47 +490,64 @@ class TopicModeler:
         keywords_map = {}
         doc_counts = {}
 
-        self._log("\n🏷️  Generating topic labels with LLM...")
-
-        chain = TOPIC_LABEL_PROMPT | self.llm
-
+        # Collect keywords for all non-outlier topics
+        batch_lines = []  # (line_number, topic_id)
         for _, row in topic_info.iterrows():
             topic_id = row['Topic']
             doc_counts[topic_id] = row['Count']
 
-            # Handle outlier topic - still get keywords for analysis
-            if topic_id == -1:
-                labels[topic_id] = "Outliers (unassigned)"
-                top_words = self.topic_model.get_topic(topic_id)
-                if top_words:
-                    keywords_map[topic_id] = ", ".join(
-                        [w for w, _ in top_words[:10]])
-                else:
-                    keywords_map[topic_id] = ""
-                continue
-
-            # Get keywords for this topic
             top_words = self.topic_model.get_topic(topic_id)
-            if not top_words:
-                labels[topic_id] = f"Topic {topic_id}"
-                keywords_map[topic_id] = ""
-                continue
-
-            keywords_raw = ", ".join([word for word, _ in top_words[:10]])
-            keywords_filtered = _filter_keywords(keywords_raw)
-            # Store original for reference
+            keywords_raw = ", ".join([w for w, _ in top_words[:10]]) if top_words else ""
             keywords_map[topic_id] = keywords_raw
 
-            try:
-                response = chain.invoke({"keywords": keywords_filtered})
-                label = response.content if hasattr(
-                    response, "content") else str(response)
-                label = label.strip().strip('"\'')
-                labels[topic_id] = label
-                self._log(f"  Topic {topic_id}: {label}")
-            except Exception as e:
-                self._log(f"  ⚠️ Topic {topic_id}: Error - {e}")
+            if topic_id == -1:
+                labels[topic_id] = "Outliers (unassigned)"
+                continue
+
+            if not top_words:
                 labels[topic_id] = f"Topic {topic_id}"
+                continue
+
+            keywords_filtered = _filter_keywords(keywords_raw)
+            line_num = len(batch_lines) + 1
+            batch_lines.append((line_num, topic_id))
+            labels[topic_id] = f"Topic {topic_id}"  # fallback
+
+        if not batch_lines:
+            return labels, keywords_map, doc_counts
+
+        # Build numbered keyword list
+        keyword_block = "\n".join(
+            f"{ln}: {_filter_keywords(keywords_map[tid])}" for ln, tid in batch_lines
+        )
+
+        self._log(f"\n🏷️  Generating {len(batch_lines)} topic labels with LLM (single batch)...")
+        chain = TOPIC_LABEL_PROMPT | self.llm
+
+        try:
+            response = chain.invoke({"keywords": keyword_block})
+            text = response.content if hasattr(response, "content") else str(response)
+
+            # Parse "1: Label" lines
+            parsed = {}
+            for line in text.strip().splitlines():
+                line = line.strip()
+                if ":" in line:
+                    num_str, label = line.split(":", 1)
+                    num_str = num_str.strip().rstrip(".")
+                    if num_str.isdigit():
+                        parsed[int(num_str)] = label.strip().strip('"\'')
+
+            # Map back to topic IDs
+            for line_num, topic_id in batch_lines:
+                if line_num in parsed:
+                    labels[topic_id] = parsed[line_num]
+                    self._log(f"  Topic {topic_id}: {labels[topic_id]}")
+                else:
+                    self._log(f"  ⚠️ Topic {topic_id}: no label parsed, using fallback")
+
+        except Exception as e:
+            self._log(f"  ⚠️ Batch labeling failed: {e}")
 
         return labels, keywords_map, doc_counts
 
