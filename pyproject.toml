@@ -1,6 +1,6 @@
 [project]
 name = "susteelaible"
-version = "0.3"
+version = "0.4"
 description = "Climate report analysis for steel industry"
 readme = "README.md"
 requires-python = ">=3.11"
