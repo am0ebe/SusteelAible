@@ -131,8 +131,8 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 │   ├── bert_1.py           # bert pipeline
 │   ├── bert_2.py           # visualization of results
 │   │
-│   ├── rag_1.ipynb
-│   ├── rag_2.ipynb
+│   ├── rag.py
+│   ├── topic_modelling.py
 │   │
 │   ├── cache/                 # Cached / preprocessed model outputs
 │   │

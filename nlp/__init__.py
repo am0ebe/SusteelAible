@@ -16,9 +16,9 @@ from .data_loader import (
     load_json_data,
 )
 from .llm_extract import Config, ExtractPipeline, load_pipeline
-from .rag_1 import RAGPipeline
+from .rag import RAGPipeline
 # Topic modeling with BERTopic (HDBSCAN + UMAP + KeyBERTInspired)
-from .rag_2 import (
+from .topic_modelling import (
     TopicModeler,
     TopicModelConfig,
     run_topic_modeling_pipeline,

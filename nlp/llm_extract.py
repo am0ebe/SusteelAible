@@ -3,7 +3,7 @@ LLM Extraction Pipeline for Company Decarbonisation Report Analysis
 ===================================================================
 
 Exhaustive extraction: loads all BERT-filtered chunks, batches them, sends to LLM.
-For retrieval-based extraction (FAISS), see rag_1.py which extends this.
+For retrieval-based extraction (FAISS), see rag.py which extends this.
 
 Usage:
     from nlp import Config, load_pipeline
@@ -816,7 +816,7 @@ class ExtractPipeline:
 def load_pipeline(config: Config):
     """Create pipeline based on config.approach and load from cache."""
     if config.approach == "rag":
-        from nlp.rag_1 import RAGPipeline
+        from nlp.rag import RAGPipeline
         pipeline = RAGPipeline(config)
     else:
         pipeline = ExtractPipeline(config)

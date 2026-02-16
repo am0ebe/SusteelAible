@@ -12,7 +12,7 @@ Key components:
 - Visualization: DataMapPlot for publication-ready figures
 
 Usage:
-    python rag_2.py --data-folder ./data --output-folder ./output
+    python topic_modelling.py --data-folder ./data --output-folder ./output
 
 Requirements:
     pip install bertopic sentence-transformers umap-learn hdbscan
