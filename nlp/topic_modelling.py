@@ -27,7 +27,7 @@ import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Tuple, Dict, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field, replace
 
 import numpy as np
 import pandas as pd
@@ -65,30 +65,30 @@ class TopicModelConfig:
     batch_size: int = 64  # embed (increase if GPU memory allows)
 
     # UMAP parameters
-    umap_n_neighbors: int = 30
-    umap_n_components: int = 15  # Reduce to 5D for clustering
+    umap_n_neighbors: int = 15
+    umap_n_components: int = 30
     umap_min_dist: float = 0.05  # higher = worse cluster, but better viz
     umap_metric: str = 'cosine'  # 'cosine'
     umap_random_state: int = 42
 
     # HDBSCAN parameters
     # min_cluster_size controls number of topics (higher = fewer topics)
-    hdbscan_min_cluster_size: int = 15  # 1-3% datasize > 0.02 * 1000 cluster // 15
-    hdbscan_min_samples: int = 2  # Lower = less noise/outliers
+    hdbscan_min_cluster_size: int = 20  # ~1% of dataset
+    hdbscan_min_samples: int = 3  # Lower = less noise/outliers
     hdbscan_metric: str = 'euclidean'
     hdbscan_cluster_selection_method: str = 'eom'  # 'eom' or 'leaf'
 
     vectorizer_ngram_range: Tuple[int, int] = (1, 2)  # Include bigrams
     # Minimum document frequency (use 1 for small topics, 2+ for large datasets)
-    vectorizer_min_df: int = 1
-    vectorizer_max_df: float = 0.95  # rm common >95%
+    vectorizer_min_df: int = 2
+    vectorizer_max_df: float = 0.92  # rm common >92%
 
     mmr_diversity: float = 0.3
 
     # BERTopic parameters
     top_n_words: int = 10
     # Set to reduce topics post-hoc # can use auto?
-    nr_topics: Optional[int] = 7
+    nr_topics: Optional[int] = None
     # Set True for soft clustering (slower)
     calculate_probabilities: bool = False
     # Reduce outliers by assigning to nearest topic (post-hoc)
@@ -117,6 +117,9 @@ class TopicModelConfig:
 
     # Run naming — base prefix for auto-increment (run_01, run_02, ..., test_leaf_01, ...)
     run_name: str = "run"
+
+    # Per-category config overrides (e.g. {"barriers": {"hdbscan_min_cluster_size": 10}})
+    category_overrides: Optional[Dict[str, Dict[str, Any]]] = field(default_factory=dict)
 
 
 # ==================== Prompt ====================
@@ -883,6 +886,122 @@ def aggregate_by_company_year(
     ).astype(int)
 
 
+# ==================== Grid Search ====================
+
+def run_grid_search(
+    data_folder: str,
+    output_folder: str = "./output",
+    category: str = "barriers",
+    config: Optional[TopicModelConfig] = None,
+    param_grid: Optional[Dict[str, List]] = None,
+) -> pd.DataFrame:
+    """
+    Sweep HDBSCAN/UMAP param combos using cached embeddings (~2s each).
+
+    Args:
+        data_folder: Path to folder with CSV data files
+        output_folder: Path where embedding caches live (same as pipeline output)
+        category: "barriers" or "motivators"
+        config: Base TopicModelConfig (uses defaults if None)
+        param_grid: Dict of param_name -> list of values to try.
+            Defaults to a sweep over hdbscan_min_cluster_size and hdbscan_min_samples.
+
+    Returns:
+        DataFrame with one row per combo: param columns + n_topics, n_outliers,
+        outlier_pct, topic_size_min/max/median/mean, largest_topic_pct
+    """
+    from itertools import product
+
+    config = config or TopicModelConfig()
+
+    if param_grid is None:
+        param_grid = {
+            "hdbscan_min_cluster_size": [8, 12, 16, 20, 25, 30, 40],
+            "hdbscan_min_samples": [2, 3, 5],
+        }
+
+    # Load data
+    df = load_csv_data(data_folder, category)
+    if df.empty:
+        raise ValueError(f"No {category} data found in {data_folder}")
+    texts = df[category].tolist()
+
+    # Load cached embeddings (keyed by model name to avoid stale cache)
+    model_slug = config.embedding_model.split("/")[-1]
+    embed_file = Path(output_folder) / f"embeddings_{category}_{model_slug}.npy"
+    if not embed_file.exists():
+        # Fall back to legacy filename (before model-keyed caching)
+        legacy = Path(output_folder) / f"embeddings_{category}.npy"
+        if legacy.exists():
+            embed_file = legacy
+        else:
+            raise FileNotFoundError(
+                f"No cached embeddings at {embed_file}. Run the pipeline once first "
+                f"with cache_embeddings=True to generate them."
+            )
+    embeddings = np.load(str(embed_file))
+    if len(embeddings) != len(df):
+        raise ValueError(f"Embedding cache size ({len(embeddings)}) != data size ({len(df)})")
+    print(f"✓ Loaded {len(texts)} docs + cached embeddings for '{category}' ({embed_file.name})")
+
+    # Build all combos
+    param_names = list(param_grid.keys())
+    param_values = list(param_grid.values())
+    combos = list(product(*param_values))
+    print(f"🔍 Grid search: {len(combos)} combos over {param_names}")
+
+    rows = []
+    for i, combo in enumerate(combos):
+        overrides = dict(zip(param_names, combo))
+        trial_config = replace(config, **overrides)
+        modeler = TopicModeler(trial_config)
+        modeler.config.verbose = False
+
+        try:
+            _, topics, _ = modeler.fit_transform(df, category, embeddings=embeddings)
+
+            topic_arr = np.array(topics)
+            n_outliers = int((topic_arr == -1).sum())
+            n_total = len(topic_arr)
+            non_outlier = topic_arr[topic_arr != -1]
+
+            # Topic size stats (excluding outliers)
+            topic_info = modeler.get_topic_info()
+            sizes = topic_info[topic_info["Topic"] != -1]["Count"].values
+            n_topics = len(sizes)
+
+            # DBCV — intrinsic cluster validity from HDBSCAN (higher = better-separated clusters)
+            hdbscan_model = modeler.topic_model.hdbscan_model
+            dbcv = round(float(hdbscan_model.relative_validity_), 4) if hasattr(hdbscan_model, "relative_validity_") else None
+
+            row = {**overrides}
+            row["n_topics"] = n_topics
+            row["n_outliers"] = n_outliers
+            row["outlier_pct"] = round(n_outliers / n_total * 100, 1)
+            row["dbcv"] = dbcv
+            row["topic_size_min"] = int(sizes.min()) if len(sizes) else 0
+            row["topic_size_max"] = int(sizes.max()) if len(sizes) else 0
+            row["topic_size_median"] = int(np.median(sizes)) if len(sizes) else 0
+            row["topic_size_mean"] = round(float(sizes.mean()), 1) if len(sizes) else 0
+            row["largest_topic_pct"] = round(int(sizes.max()) / n_total * 100, 1) if len(sizes) else 0
+
+            status = "✓"
+        except Exception as e:
+            row = {**overrides, "n_topics": 0, "n_outliers": 0, "outlier_pct": 0, "dbcv": None,
+                   "topic_size_min": 0, "topic_size_max": 0, "topic_size_median": 0,
+                   "topic_size_mean": 0, "largest_topic_pct": 0, "error": str(e)}
+            status = "✗"
+
+        rows.append(row)
+        print(f"  {status} [{i+1}/{len(combos)}] {overrides} → {row.get('n_topics', '?')} topics, {row.get('outlier_pct', '?')}% outliers")
+
+        modeler.cleanup()
+
+    result_df = pd.DataFrame(rows)
+    print(f"\n✅ Grid search complete: {len(result_df)} results")
+    return result_df
+
+
 # ==================== Main Pipeline ====================
 
 def _write_config_log(output_path: Path, config: TopicModelConfig, duration_s: float = 0.0, results: Optional[Dict[str, Any]] = None):
@@ -896,26 +1015,75 @@ def _write_config_log(output_path: Path, config: TopicModelConfig, duration_s: f
         f"Timestamp: {timestamp}",
         f"Duration: {duration_s:.1f}s",
         f"{'='*60}",
-        "",
-        "TopicModelConfig:",
-        "-" * 40,
     ]
 
-    for key, value in asdict(config).items():
-        lines.append(f"  {key}: {value}")
-
-    # Outlier stats from results
-    if results:
+    def section(title, params):
         lines.append("")
-        lines.append("Outlier Stats:")
-        lines.append("-" * 40)
+        lines.append(f"{title}:")
+        for k, v in params:
+            lines.append(f"  {k}: {v}")
+
+    section("Embedding", [
+        ("model", config.embedding_model),
+        ("batch_size", config.batch_size),
+    ])
+    section("UMAP (clustering)", [
+        ("n_neighbors", config.umap_n_neighbors),
+        ("n_components", config.umap_n_components),
+        ("min_dist", config.umap_min_dist),
+        ("metric", config.umap_metric),
+        ("random_state", config.umap_random_state),
+    ])
+    section("HDBSCAN", [
+        ("min_cluster_size", config.hdbscan_min_cluster_size),
+        ("min_samples", config.hdbscan_min_samples),
+        ("metric", config.hdbscan_metric),
+        ("cluster_selection_method", config.hdbscan_cluster_selection_method),
+    ])
+    section("Vectorizer", [
+        ("ngram_range", config.vectorizer_ngram_range),
+        ("min_df", config.vectorizer_min_df),
+        ("max_df", config.vectorizer_max_df),
+    ])
+    section("Representation", [
+        ("mmr_diversity", config.mmr_diversity),
+        ("top_n_words", config.top_n_words),
+    ])
+    section("BERTopic", [
+        ("nr_topics", config.nr_topics),
+        ("reduce_outliers", f"{config.reduce_outliers} ({config.reduce_outliers_strategy})"),
+        ("calculate_probabilities", config.calculate_probabilities),
+    ])
+    section("Visualization UMAP", [
+        ("n_neighbors", config.viz_umap_n_neighbors),
+        ("n_components", config.viz_umap_n_components),
+        ("min_dist", config.viz_umap_min_dist),
+    ])
+    section("LLM", [
+        ("provider", config.llm_provider),
+        ("model", config.model),
+        ("temperature", config.llm_temperature),
+    ])
+
+    if config.category_overrides:
+        lines.append("")
+        lines.append("Per-Category Overrides:")
+        for cat, overrides in config.category_overrides.items():
+            lines.append(f"  {cat}: {overrides}")
+
+    # Outlier + topic stats from results
+    if results:
         for category, res in results.items():
             doc_counts = res.get("doc_counts", {})
-            if -1 in doc_counts:
-                outlier_count = doc_counts[-1]
-                total = sum(doc_counts.values())
-                pct = outlier_count / total * 100 if total else 0
-                lines.append(f"  {category}: {outlier_count}/{total} ({pct:.1f}%)")
+            n_topics = len([t for t in doc_counts if t != -1])
+            total = sum(doc_counts.values())
+            outlier_count = doc_counts.get(-1, 0)
+            pct = outlier_count / total * 100 if total else 0
+            section(f"Results — {category}", [
+                ("topics", n_topics),
+                ("documents", total),
+                ("outliers", f"{outlier_count} ({pct:.1f}%)"),
+            ])
 
     lines.append("")
     lines.append("=" * 60 + "\n")
@@ -976,27 +1144,30 @@ def run_topic_modeling_pipeline(
         print(f"🎯 TOPIC MODELING: {category.upper()}")
         print("="*60)
 
-        modeler = TopicModeler(config)
+        cat_config = config
+        if config.category_overrides and category in config.category_overrides:
+            cat_config = replace(config, **config.category_overrides[category])
+            print(f"  📋 Overrides: {config.category_overrides[category]}")
+        modeler = TopicModeler(cat_config)
         model_path = str(output_path / category)
 
-        # Load cached embeddings if available
+        # Load cached embeddings if available (keyed by model name to avoid stale cache)
+        model_slug = cat_config.embedding_model.split("/")[-1]
+        embed_file = output_base / f"embeddings_{category}_{model_slug}.npy"
         embeddings = None
-        if config.cache_embeddings:
-            embed_file = output_base / f"embeddings_{category}.npy"
-            if embed_file.exists():
-                embeddings = np.load(str(embed_file))
-                if len(embeddings) != len(df):
-                    print(f"⚠️ Embedding cache size mismatch, recomputing...")
-                    embeddings = None
-                else:
-                    print(f"📂 Loaded cached embeddings from {embed_file}")
+        if config.cache_embeddings and embed_file.exists():
+            embeddings = np.load(str(embed_file))
+            if len(embeddings) != len(df):
+                print(f"⚠️ Embedding cache size mismatch, recomputing...")
+                embeddings = None
+            else:
+                print(f"📂 Loaded cached embeddings from {embed_file}")
 
         # Always refit BERTopic (fast ~2s, only embeddings are slow ~10s)
         df, topics, probs = modeler.fit_transform(df, category, embeddings=embeddings)
 
         # Save embeddings after fit
         if config.cache_embeddings and modeler._embeddings is not None:
-            embed_file = output_base / f"embeddings_{category}.npy"
             np.save(str(embed_file), modeler._embeddings)
             print(f"💾 Cached embeddings to {embed_file}")
 

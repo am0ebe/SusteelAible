@@ -580,6 +580,9 @@ class ExtractPipeline:
 
         Args:
             resume: If True, skip companies that already have output CSVs.
+
+        Returns:
+            Dict mapping company_id → (df_barriers, df_motivators).
         """
         # Chunk statistics
         chunk_sizes = [len(c.page_content) for c in self.chunks]
