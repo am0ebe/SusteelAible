@@ -169,13 +169,16 @@ class TopicGridSearch:
         df = df.copy()
         df["dbcv"] = pd.to_numeric(df["dbcv"], errors="coerce")
 
-        valid = df[df["n_topics"].between(*n_topics_range) & df["outlier_pct"].lt(outlier_max)]
+        valid = df[df["n_topics"].between(
+            *n_topics_range) & df["outlier_pct"].lt(outlier_max)]
         if valid.empty:
             valid = df[df["n_topics"] > 0]  # relax constraints
+        if valid.empty:
+            valid = df.copy()  # all runs produced 0 topics — return least-bad row
         valid = valid.dropna(subset=["dbcv"])
         if valid.empty:
             # All dbcv are null — fall back to lowest outlier_pct
-            valid = df[df["n_topics"] > 0].copy()
+            valid = df.copy()
             valid["score"] = -valid["outlier_pct"]
             return valid.sort_values("score", ascending=False).iloc[0]
 
@@ -193,7 +196,7 @@ class TopicGridSearch:
           - Runs a small representative HDBSCAN grid (3 combos) to get DBCV.
           - Reports max DBCV per model (more robust than a single run).
 
-        The best model (highest avg DBCV across categories) is locked in as
+        The best model (highest avg best_score across categories) is locked in as
         ``gs.locked["embedding_model"]``. Override before running Stage 2 if needed.
 
         Saves: ``gs_stage1.csv`` (rows: model × category).
@@ -202,9 +205,12 @@ class TopicGridSearch:
             models: List of model entries. Each entry is either:
                 - ``"org/model-name"`` — uses base_config.batch_size
                 - ``("org/model-name", 16)`` — uses the given batch_size
+                - ``("org/model-name", 16, "bfloat16")`` — also sets dtype
 
                 batch_size only affects encode speed, not embedding values,
                 so mixing sizes across models does not affect comparability.
+                dtype ("bfloat16"/"float16") halves VRAM for LLM-based embedders
+                (e.g. Qwen3) that SentenceTransformer otherwise loads in float32.
 
         Returns:
             DataFrame with columns: model, batch_size, category, max_dbcv,
@@ -222,10 +228,15 @@ class TopicGridSearch:
         failed: Dict[str, str] = {}  # model_name -> error message
 
         for entry in models:
-            if isinstance(entry, tuple):
+            if isinstance(entry, tuple) and len(entry) == 3:
+                model_name, batch_size, embedding_dtype = entry
+            elif isinstance(entry, tuple):
                 model_name, batch_size = entry
+                embedding_dtype = self.base_config.embedding_dtype  # inherit default (e.g. "bfloat16")
             else:
-                model_name, batch_size = entry, self.base_config.batch_size
+                model_name = entry
+                batch_size = self.base_config.batch_size
+                embedding_dtype = self.base_config.embedding_dtype  # inherit default
             model_slug = model_name.split("/")[-1]
             print(f"\n{'='*60}")
             print(f"📐 Stage 1 — Embedding: {model_name}")
@@ -234,9 +245,11 @@ class TopicGridSearch:
             # Encode and cache embeddings per category
             encode_failed = False
             for cat in CATEGORIES:
-                embed_file = Path(self.output_folder) / f"embeddings_{cat}_{model_slug}.npy"
+                embed_file = Path(self.output_folder) / \
+                    f"embeddings_{cat}_{model_slug}.npy"
                 if embed_file.exists():
-                    print(f"  ✓ {cat}: using cached embeddings ({embed_file.name})")
+                    print(
+                        f"  ✓ {cat}: using cached embeddings ({embed_file.name})")
                     continue
 
                 df = load_csv_data(self.data_folder, cat)
@@ -244,8 +257,19 @@ class TopicGridSearch:
                     print(f"  ⚠️ No {cat} data found, skipping")
                     continue
 
-                print(f"  🧮 {cat}: encoding {len(df)} docs (batch_size={batch_size})...")
-                model_config = replace(self.base_config, embedding_model=model_name, batch_size=batch_size, verbose=False)
+                print(
+                    f"  🧮 {cat}: encoding {len(df)} docs (batch_size={batch_size})...")
+
+                kwargs = dict(
+                    embedding_model=model_name,
+                    batch_size=batch_size,
+                    verbose=False
+                )
+                if embedding_dtype is not None:
+                    kwargs["embedding_dtype"] = embedding_dtype
+
+                model_config = replace(self.base_config, **kwargs)
+
                 modeler = TopicModeler(model_config)
                 try:
                     embeddings = modeler.encode_documents(df[cat].tolist())
@@ -273,11 +297,20 @@ class TopicGridSearch:
 
             # Quick HDBSCAN grid per category to measure cluster quality
             for cat in CATEGORIES:
-                embed_file = Path(self.output_folder) / f"embeddings_{cat}_{model_slug}.npy"
+                embed_file = Path(self.output_folder) / \
+                    f"embeddings_{cat}_{model_slug}.npy"
                 if not embed_file.exists():
                     continue
 
-                model_config = replace(self.base_config, embedding_model=model_name, verbose=False)
+                kwargs = dict(
+                    embedding_model=model_name,
+                    batch_size=batch_size,
+                    verbose=False
+                )
+                if embedding_dtype is not None:
+                    kwargs["embedding_dtype"] = embedding_dtype
+
+                model_config = replace(self.base_config, **kwargs)
                 try:
                     gs_df = run_grid_search(
                         self.data_folder,
@@ -306,12 +339,17 @@ class TopicGridSearch:
 
         result_df = pd.DataFrame(rows)
 
-        # Pick best model: highest avg DBCV across categories (exclude failed)
+        # Pick best model: highest avg best_score across categories (exclude failed).
+        # best_score = dbcv * (1 - outlier_pct/100) from the best *valid* combo per category,
+        # which respects the n_topics filter. max_dbcv is NOT used here because it can be
+        # inflated by combos that were filtered out (e.g. n_topics > 40).
         best_model = self.base_config.embedding_model
-        successful = result_df[result_df["error"].isna()] if "error" in result_df.columns else result_df
-        if not successful.empty and successful["max_dbcv"].notna().any():
-            avg_dbcv = successful.dropna(subset=["max_dbcv"]).groupby("model")["max_dbcv"].mean()
-            best_model = avg_dbcv.idxmax()
+        successful = result_df[result_df["error"].isna(
+        )] if "error" in result_df.columns else result_df
+        if not successful.empty and successful["best_score"].notna().any():
+            avg_score = successful.dropna(subset=["best_score"]).groupby("model")[
+                "best_score"].mean()
+            best_model = avg_score.idxmax()
             self.locked["embedding_model"] = best_model
 
         print(f"\n{'='*60}")
@@ -367,10 +405,13 @@ class TopicGridSearch:
             Dict mapping category name → result DataFrame.
         """
         if "embedding_model" not in self.locked:
-            print("⚠️  No embedding_model in gs.locked — using base_config.embedding_model")
-            print("    Run stage1_embeddings() first, or set gs.locked[\"embedding_model\"] manually.")
+            print(
+                "⚠️  No embedding_model in gs.locked — using base_config.embedding_model")
+            print(
+                "    Run stage1_embeddings() first, or set gs.locked[\"embedding_model\"] manually.")
 
-        embedding_model = self.locked.get("embedding_model", self.base_config.embedding_model)
+        embedding_model = self.locked.get(
+            "embedding_model", self.base_config.embedding_model)
 
         if param_grid is None:
             param_grid = {
@@ -385,7 +426,8 @@ class TopicGridSearch:
             print(f"🔍 Stage 2 — HDBSCAN — {cat}")
             print(f"{'='*60}")
 
-            cat_config = replace(self.base_config, embedding_model=embedding_model, verbose=False)
+            cat_config = replace(
+                self.base_config, embedding_model=embedding_model, verbose=False)
             gs_df = run_grid_search(
                 self.data_folder,
                 self.output_folder,
@@ -407,7 +449,8 @@ class TopicGridSearch:
             self.locked[cat] = hdbscan_params
 
             print(f"\n✅ {cat} suggestion: {hdbscan_params}")
-            print(f"   n_topics={best['n_topics']}, outlier_pct={best['outlier_pct']}%, dbcv={best.get('dbcv')}")
+            print(
+                f"   n_topics={best['n_topics']}, outlier_pct={best['outlier_pct']}%, dbcv={best.get('dbcv')}")
             print(f"   Override: gs.locked[\"{cat}\"] = {{...}}")
 
             results[cat] = gs_df
@@ -446,11 +489,13 @@ class TopicGridSearch:
             Dict mapping category name → result DataFrame.
         """
         if "embedding_model" not in self.locked:
-            print("⚠️  No embedding_model in gs.locked — using base_config.embedding_model")
+            print(
+                "⚠️  No embedding_model in gs.locked — using base_config.embedding_model")
         if not any(cat in self.locked for cat in CATEGORIES):
             print("⚠️  No HDBSCAN params in gs.locked — run stage2_hdbscan() first")
 
-        embedding_model = self.locked.get("embedding_model", self.base_config.embedding_model)
+        embedding_model = self.locked.get(
+            "embedding_model", self.base_config.embedding_model)
 
         if param_grid is None:
             param_grid = {
@@ -465,7 +510,8 @@ class TopicGridSearch:
             print(f"{'='*60}")
 
             # Apply locked embedding + per-cat HDBSCAN overrides from stage2
-            cat_config = replace(self.base_config, embedding_model=embedding_model, verbose=False)
+            cat_config = replace(
+                self.base_config, embedding_model=embedding_model, verbose=False)
             if cat in self.locked:
                 cat_config = replace(cat_config, **self.locked[cat])
 
@@ -493,7 +539,8 @@ class TopicGridSearch:
             self.locked[cat].update(umap_params)
 
             print(f"\n✅ {cat} suggestion: {umap_params}")
-            print(f"   n_topics={best['n_topics']}, outlier_pct={best['outlier_pct']}%, dbcv={best.get('dbcv')}")
+            print(
+                f"   n_topics={best['n_topics']}, outlier_pct={best['outlier_pct']}%, dbcv={best.get('dbcv')}")
             print(f"   Override: gs.locked[\"{cat}\"].update({{...}})")
 
             results[cat] = gs_df

@@ -63,6 +63,7 @@ class TopicModelConfig:
     # Embedding
     embedding_model: str = "Snowflake/snowflake-arctic-embed-s"
     batch_size: int = 64  # embed (increase if GPU memory allows)
+    embedding_dtype: str = "bfloat16"  # halves VRAM with negligible precision loss for inference; set to None for float32
 
     # UMAP parameters
     umap_n_neighbors: int = 15
@@ -275,10 +276,12 @@ class TopicModeler:
     def _load_embedding_model(self):
         """Load sentence transformer embedding model."""
 
-        self._log(
-            f"\n🤖 Loading embedding model: {self.config.embedding_model}")
+        dtype_str = self.config.embedding_dtype
+        self._log(f"\n🤖 Loading embedding model: {self.config.embedding_model}"
+                  + (f" ({dtype_str})" if dtype_str else ""))
+        model_kwargs = {"torch_dtype": dtype_str} if dtype_str else {}
         self._embedding_model = SentenceTransformer(
-            self.config.embedding_model)
+            self.config.embedding_model, model_kwargs=model_kwargs)
 
         # Move to GPU if available
         if self.gpu.is_cuda:
