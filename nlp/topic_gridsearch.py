@@ -146,45 +146,53 @@ class TopicGridSearch:
                 overrides[cat] = p
         return overrides
 
-    def _suggest_best(self, df: pd.DataFrame, n_topics_range=(8, 40), outlier_max=30) -> pd.Series:
+    def _print_candidates(self, df: pd.DataFrame, param_cols: List[str], category: str, n: int = 3):
         """
-        Pick the best row from a grid search result DataFrame.
+        Print top N candidates with per-row flags and a what-to-look-for guide.
 
-        Applies the scoring heuristic ``dbcv * (1 - outlier_pct / 100)`` after
-        filtering to rows with n_topics in [8, 40] and outlier_pct < 30%.
-        If no row passes the filter, constraints are relaxed to any row with
-        n_topics > 0.
-
-        See module docstring for a full discussion of the scoring rationale and
-        its limitations.
+        Ranks by ``dbcv * (1 - outlier_pct/100)`` after filtering to
+        n_topics in [8, 40] and outlier_pct < 30%. Does NOT auto-lock anything —
+        the user picks from the printed candidates or the saved CSV and sets
+        gs.locked manually.
 
         Args:
-            df: Grid search result DataFrame (from run_grid_search).
-            n_topics_range: (min, max) acceptable topic count.
-            outlier_max: Max acceptable outlier percentage.
-
-        Returns:
-            Best row as a pd.Series (includes a "score" column).
+            df: Grid search result DataFrame.
+            param_cols: Column names to display per row (the swept params).
+            category: "barriers" or "motivators" (for the header).
+            n: Number of candidates to print.
         """
         df = df.copy()
         df["dbcv"] = pd.to_numeric(df["dbcv"], errors="coerce")
-
-        valid = df[df["n_topics"].between(
-            *n_topics_range) & df["outlier_pct"].lt(outlier_max)]
+        valid = df[df["n_topics"].between(8, 40) & df["outlier_pct"].lt(30)].dropna(subset=["dbcv"])
         if valid.empty:
-            valid = df[df["n_topics"] > 0]  # relax constraints
+            valid = df.dropna(subset=["dbcv"])
         if valid.empty:
-            valid = df.copy()  # all runs produced 0 topics — return least-bad row
-        valid = valid.dropna(subset=["dbcv"])
-        if valid.empty:
-            # All dbcv are null — fall back to lowest outlier_pct
-            valid = df.copy()
-            valid["score"] = -valid["outlier_pct"]
-            return valid.sort_values("score", ascending=False).iloc[0]
-
+            print(f"  ⚠️  No valid rows found for {category}")
+            return
         valid = valid.copy()
         valid["score"] = valid["dbcv"] * (1 - valid["outlier_pct"] / 100)
-        return valid.sort_values("score", ascending=False).iloc[0]
+        top = valid.sort_values("score", ascending=False).head(n)
+
+        print(f"\n📋 Top {n} candidates — {category} (see CSV for full results):")
+        for i, (_, row) in enumerate(top.iterrows()):
+            params = ", ".join(f"{c.split('_', 1)[-1]}={row[c]}" for c in param_cols if c in row.index)
+            flags = []
+            if row["n_topics"] < 10:
+                flags.append("few topics")
+            if row["n_topics"] > 35:
+                flags.append("many topics")
+            if row.get("largest_topic_pct", 0) > 40:
+                flags.append("dominant topic")
+            flag_str = "  ⚠️  " + ", ".join(flags) if flags else ""
+            print(f"  #{i+1}  {params}  →  {int(row['n_topics'])} topics, "
+                  f"{row['outlier_pct']}% outliers, DBCV={row['dbcv']:.4f}{flag_str}")
+
+        print(f"\n  What to look for:")
+        print(f"  - n_topics <10: over-merged — try smaller min_cluster_size or n_components")
+        print(f"  - outlier_pct >25%: noisy — try larger n_neighbors or smaller min_cluster_size")
+        print(f"  - largest_topic_pct >40%: one cluster dominates — params too coarse")
+        print(f"  - DBCV close across candidates: prefer lower outliers and n_topics in 15–30")
+        print(f"  - Compare across categories: similar UMAP geometry aids interpretability")
 
     def stage1_embeddings(self, models: List[Union[str, Tuple[str, int]]]) -> pd.DataFrame:
         """
@@ -319,7 +327,15 @@ class TopicGridSearch:
                         config=model_config,
                         param_grid=quick_grid,
                     )
-                    best = self._suggest_best(gs_df)
+                    # Score each combo: dbcv * (1 - outlier_pct/100), filtered to sane range
+                    _s = gs_df.copy()
+                    _s["dbcv"] = pd.to_numeric(_s["dbcv"], errors="coerce")
+                    _valid = _s[_s["n_topics"].between(8, 40) & _s["outlier_pct"].lt(30)].dropna(subset=["dbcv"])
+                    if _valid.empty:
+                        _valid = _s.dropna(subset=["dbcv"])
+                    _valid = _valid.copy()
+                    _valid["score"] = _valid["dbcv"] * (1 - _valid["outlier_pct"] / 100)
+                    best = _valid.sort_values("score", ascending=False).iloc[0] if not _valid.empty else _s.iloc[0]
                     rows.append({
                         "model": model_name,
                         "batch_size": batch_size,
@@ -440,25 +456,18 @@ class TopicGridSearch:
             gs_df.to_csv(out_path, index=False)
             print(f"💾 Saved {out_path}")
 
-            best = self._suggest_best(gs_df)
-            hdbscan_params = {
-                "hdbscan_min_cluster_size": int(best["hdbscan_min_cluster_size"]),
-                "hdbscan_cluster_selection_method": str(best["hdbscan_cluster_selection_method"]),
-                "hdbscan_min_samples": int(best["hdbscan_min_samples"]),
-            }
-            self.locked[cat] = hdbscan_params
-
-            print(f"\n✅ {cat} suggestion: {hdbscan_params}")
-            print(
-                f"   n_topics={best['n_topics']}, outlier_pct={best['outlier_pct']}%, dbcv={best.get('dbcv')}")
-            print(f"   Override: gs.locked[\"{cat}\"] = {{...}}")
+            self._print_candidates(
+                gs_df,
+                ["hdbscan_min_cluster_size", "hdbscan_cluster_selection_method", "hdbscan_min_samples"],
+                cat,
+            )
+            print(f"\n  Set params: gs.locked[\"{cat}\"] = {{\"hdbscan_min_cluster_size\": ..., ...}}")
 
             results[cat] = gs_df
 
-        print(f"\n📋 Summary — gs.locked after Stage 2:")
-        for cat in CATEGORIES:
-            if cat in self.locked:
-                print(f"  {cat}: {self.locked[cat]}")
+        print(f"\n📋 Set gs.locked per category before running Stage 3, e.g.:")
+        print(f"   gs.locked[\"barriers\"] = {{\"hdbscan_min_cluster_size\": 25, \"hdbscan_cluster_selection_method\": \"eom\", \"hdbscan_min_samples\": 5}}")
+        print(f"   gs.locked[\"motivators\"] = {{...}}")
 
         return results
 
@@ -527,25 +536,14 @@ class TopicGridSearch:
             gs_df.to_csv(out_path, index=False)
             print(f"💾 Saved {out_path}")
 
-            best = self._suggest_best(gs_df)
-            umap_params = {
-                "umap_n_components": int(best["umap_n_components"]),
-                "umap_n_neighbors": int(best["umap_n_neighbors"]),
-            }
-
-            # Merge into existing locked params (preserves HDBSCAN from stage2)
-            if cat not in self.locked:
-                self.locked[cat] = {}
-            self.locked[cat].update(umap_params)
-
-            print(f"\n✅ {cat} suggestion: {umap_params}")
-            print(
-                f"   n_topics={best['n_topics']}, outlier_pct={best['outlier_pct']}%, dbcv={best.get('dbcv')}")
-            print(f"   Override: gs.locked[\"{cat}\"].update({{...}})")
+            self._print_candidates(gs_df, ["umap_n_components", "umap_n_neighbors"], cat)
+            print(f"\n  Set params: gs.locked[\"{cat}\"].update({{\"umap_n_components\": ..., \"umap_n_neighbors\": ...}})")
 
             results[cat] = gs_df
 
-        print(f"\n📋 Summary — gs.category_overrides after Stage 3:")
-        print(self.category_overrides)
+        print(f"\n📋 After setting gs.locked, paste into TopicModelConfig:")
+        print(f"   print(gs.category_overrides)")
+        if self.category_overrides:
+            print(self.category_overrides)
 
         return results

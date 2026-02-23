@@ -63,7 +63,14 @@ class TopicModelConfig:
     # Embedding
     embedding_model: str = "Snowflake/snowflake-arctic-embed-s"
     batch_size: int = 64  # embed (increase if GPU memory allows)
-    embedding_dtype: str = "bfloat16"  # halves VRAM with negligible precision loss for inference; set to None for float32
+    # halves VRAM with negligible precision loss for inference; set to None for float32
+    embedding_dtype: str = "bfloat16"
+    cache_embeddings: bool = True  # skip re-encoding when only tuning BERTopic params
+
+    # misc
+    verbose: bool = True
+    # base prefix for auto-increment (run_01, run_02,...)
+    run_name: str = "run"
 
     # UMAP parameters
     umap_n_neighbors: int = 15
@@ -84,43 +91,35 @@ class TopicModelConfig:
     vectorizer_min_df: int = 2
     vectorizer_max_df: float = 0.92  # rm common >92%
 
-    mmr_diversity: float = 0.3
+    mmr_diversity: float = 0.4  # 0=pure relevance, 1=max diversity # !!
 
     # BERTopic parameters
     top_n_words: int = 10
-    # Set to reduce topics post-hoc # can use auto?
+    # let HDBSCAN find natural clusters with larger min_cluster_size
     nr_topics: Optional[int] = None
-    # Set True for soft clustering (slower)
+    # Set True for soft clustering (slower, not used yet)
     calculate_probabilities: bool = False
     # Reduce outliers by assigning to nearest topic (post-hoc)
     reduce_outliers: bool = True
     # 'embeddings', 'c-tf-idf', or 'distributions'
     reduce_outliers_strategy: str = "embeddings"
 
-    # Processing
-    verbose: bool = True
-
     # Visualization
     # 2D UMAP for visualization (separate from clustering)
-    viz_umap_n_neighbors: int = 10  # +
+    viz_umap_n_neighbors: int = 5
     viz_umap_n_components: int = 2
     viz_umap_min_dist: float = 0.0
 
     # LLM settings for topic labeling
-    llm_provider: str = "groq"
+    llm_provider: str = "groq"  # "ollama"
     model: str = "llama-3.1-8b-instant"
 
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
 
-    # Embedding cache (skip re-encoding when only tuning BERTopic params)
-    cache_embeddings: bool = True
-
-    # Run naming — base prefix for auto-increment (run_01, run_02, ..., test_leaf_01, ...)
-    run_name: str = "run"
-
     # Per-category config overrides (e.g. {"barriers": {"hdbscan_min_cluster_size": 10}})
-    category_overrides: Optional[Dict[str, Dict[str, Any]]] = field(default_factory=dict)
+    category_overrides: Optional[Dict[str, Dict[str, Any]]] = field(
+        default_factory=dict)
 
 
 # ==================== Prompt ====================
@@ -175,6 +174,8 @@ KEYWORD_STOPWORDS = {
     "support", "ways", "sources", "methods", "approach", "changes", "required",
     "available", "information", "certain", "brand", "applications",
     "requirements", "structure", "operations", "statement",
+    "sludge", "wastewater", "sludge waste", "plastics",
+    "esrs", "sfdr", "pillar", "anti-corruption", "gri"
 }
 
 
@@ -503,7 +504,8 @@ class TopicModeler:
             doc_counts[topic_id] = row['Count']
 
             top_words = self.topic_model.get_topic(topic_id)
-            keywords_raw = ", ".join([w for w, _ in top_words[:10]]) if top_words else ""
+            keywords_raw = ", ".join(
+                [w for w, _ in top_words[:10]]) if top_words else ""
             keywords_map[topic_id] = keywords_raw
 
             if topic_id == -1:
@@ -527,12 +529,14 @@ class TopicModeler:
             f"{ln}: {_filter_keywords(keywords_map[tid])}" for ln, tid in batch_lines
         )
 
-        self._log(f"\n🏷️  Generating {len(batch_lines)} topic labels with LLM (single batch)...")
+        self._log(
+            f"\n🏷️  Generating {len(batch_lines)} topic labels with LLM (single batch)...")
         chain = TOPIC_LABEL_PROMPT | self.llm
 
         try:
             response = chain.invoke({"keywords": keyword_block})
-            text = response.content if hasattr(response, "content") else str(response)
+            text = response.content if hasattr(
+                response, "content") else str(response)
 
             # Parse "1: Label" lines
             parsed = {}
@@ -550,7 +554,8 @@ class TopicModeler:
                     labels[topic_id] = parsed[line_num]
                     self._log(f"  Topic {topic_id}: {labels[topic_id]}")
                 else:
-                    self._log(f"  ⚠️ Topic {topic_id}: no label parsed, using fallback")
+                    self._log(
+                        f"  ⚠️ Topic {topic_id}: no label parsed, using fallback")
 
         except Exception as e:
             self._log(f"  ⚠️ Batch labeling failed: {e}")
@@ -931,7 +936,8 @@ def run_grid_search(
 
     # Load cached embeddings (keyed by model name to avoid stale cache)
     model_slug = config.embedding_model.split("/")[-1]
-    embed_file = Path(output_folder) / f"embeddings_{category}_{model_slug}.npy"
+    embed_file = Path(output_folder) / \
+        f"embeddings_{category}_{model_slug}.npy"
     if not embed_file.exists():
         # Fall back to legacy filename (before model-keyed caching)
         legacy = Path(output_folder) / f"embeddings_{category}.npy"
@@ -944,8 +950,10 @@ def run_grid_search(
             )
     embeddings = np.load(str(embed_file))
     if len(embeddings) != len(df):
-        raise ValueError(f"Embedding cache size ({len(embeddings)}) != data size ({len(df)})")
-    print(f"✓ Loaded {len(texts)} docs + cached embeddings for '{category}' ({embed_file.name})")
+        raise ValueError(
+            f"Embedding cache size ({len(embeddings)}) != data size ({len(df)})")
+    print(
+        f"✓ Loaded {len(texts)} docs + cached embeddings for '{category}' ({embed_file.name})")
 
     # Build all combos
     param_names = list(param_grid.keys())
@@ -961,7 +969,8 @@ def run_grid_search(
         modeler.config.verbose = False
 
         try:
-            _, topics, _ = modeler.fit_transform(df, category, embeddings=embeddings)
+            _, topics, _ = modeler.fit_transform(
+                df, category, embeddings=embeddings)
 
             topic_arr = np.array(topics)
             n_outliers = int((topic_arr == -1).sum())
@@ -975,7 +984,8 @@ def run_grid_search(
 
             # DBCV — intrinsic cluster validity from HDBSCAN (higher = better-separated clusters)
             hdbscan_model = modeler.topic_model.hdbscan_model
-            dbcv = round(float(hdbscan_model.relative_validity_), 4) if hasattr(hdbscan_model, "relative_validity_") else None
+            dbcv = round(float(hdbscan_model.relative_validity_), 4) if hasattr(
+                hdbscan_model, "relative_validity_") else None
 
             row = {**overrides}
             row["n_topics"] = n_topics
@@ -984,9 +994,12 @@ def run_grid_search(
             row["dbcv"] = dbcv
             row["topic_size_min"] = int(sizes.min()) if len(sizes) else 0
             row["topic_size_max"] = int(sizes.max()) if len(sizes) else 0
-            row["topic_size_median"] = int(np.median(sizes)) if len(sizes) else 0
-            row["topic_size_mean"] = round(float(sizes.mean()), 1) if len(sizes) else 0
-            row["largest_topic_pct"] = round(int(sizes.max()) / n_total * 100, 1) if len(sizes) else 0
+            row["topic_size_median"] = int(
+                np.median(sizes)) if len(sizes) else 0
+            row["topic_size_mean"] = round(
+                float(sizes.mean()), 1) if len(sizes) else 0
+            row["largest_topic_pct"] = round(
+                int(sizes.max()) / n_total * 100, 1) if len(sizes) else 0
 
             status = "✓"
         except Exception as e:
@@ -996,7 +1009,8 @@ def run_grid_search(
             status = "✗"
 
         rows.append(row)
-        print(f"  {status} [{i+1}/{len(combos)}] {overrides} → {row.get('n_topics', '?')} topics, {row.get('outlier_pct', '?')}% outliers")
+        print(
+            f"  {status} [{i+1}/{len(combos)}] {overrides} → {row.get('n_topics', '?')} topics, {row.get('outlier_pct', '?')}% outliers")
 
         modeler.cleanup()
 
@@ -1054,7 +1068,8 @@ def _write_config_log(output_path: Path, config: TopicModelConfig, duration_s: f
     ])
     section("BERTopic", [
         ("nr_topics", config.nr_topics),
-        ("reduce_outliers", f"{config.reduce_outliers} ({config.reduce_outliers_strategy})"),
+        ("reduce_outliers",
+         f"{config.reduce_outliers} ({config.reduce_outliers_strategy})"),
         ("calculate_probabilities", config.calculate_probabilities),
     ])
     section("Visualization UMAP", [
@@ -1119,7 +1134,8 @@ def run_topic_modeling_pipeline(
     output_base.mkdir(parents=True, exist_ok=True)
 
     base = config.run_name
-    existing = [int(d.name.split(f"{base}_")[1]) for d in output_base.glob(f"{base}_*") if d.is_dir() and d.name.split(f"{base}_")[1].isdigit()]
+    existing = [int(d.name.split(f"{base}_")[1]) for d in output_base.glob(
+        f"{base}_*") if d.is_dir() and d.name.split(f"{base}_")[1].isdigit()]
     run_dir = f"{base}_{max(existing, default=0) + 1:02d}"
     output_path = output_base / run_dir
     output_path.mkdir(parents=True, exist_ok=True)
@@ -1167,7 +1183,8 @@ def run_topic_modeling_pipeline(
                 print(f"📂 Loaded cached embeddings from {embed_file}")
 
         # Always refit BERTopic (fast ~2s, only embeddings are slow ~10s)
-        df, topics, probs = modeler.fit_transform(df, category, embeddings=embeddings)
+        df, topics, probs = modeler.fit_transform(
+            df, category, embeddings=embeddings)
 
         # Save embeddings after fit
         if config.cache_embeddings and modeler._embeddings is not None:
@@ -1250,7 +1267,8 @@ def run_topic_modeling_pipeline(
             outlier_count = doc_counts[-1]
             total = sum(doc_counts.values())
             pct = outlier_count / total * 100 if total else 0
-            outlier_parts.append(f"{category} {outlier_count}/{total} ({pct:.1f}%)")
+            outlier_parts.append(
+                f"{category} {outlier_count}/{total} ({pct:.1f}%)")
 
     print("\n" + "="*60)
     print("✅ PIPELINE COMPLETE")
@@ -1261,6 +1279,7 @@ def run_topic_modeling_pipeline(
         print(f"📊 Outliers: {', '.join(outlier_parts)}")
 
     # Log config + results for reproducibility
-    _write_config_log(output_path, config, duration_s=duration_s, results=results)
+    _write_config_log(output_path, config,
+                      duration_s=duration_s, results=results)
 
     return results
