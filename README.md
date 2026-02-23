@@ -22,9 +22,6 @@ This project combines **quantitative emissions analysis** with **qualitative tex
 git clone git@github.com:am0ebe/SusteelAible.git
 cd SusteelAible
 
-# Verify Python version is 3.11.x
-python --version
-
 # Create virtual environment
 python3.11 -m venv .venv
 source .venv/bin/activate  # Linux/Mac
@@ -38,6 +35,9 @@ python -m pip install -v  https://github.com/explosion/spacy-models/releases/dow
 
 # Extract data
 unzip data.zip
+
+# (Optional) Add Groq API key — required for RAG extraction and topic labeling (sections 3 & 4)
+echo 'GROQ_API_KEY=your-key-here' > .env
 ```
 
 ✅ **Done!** You can now run all analysis notebooks.
@@ -56,57 +56,27 @@ Want to see the original sustainability reports we analyzed?
 unzip reports.zip
 ```
 
-<!-- <details>
-<summary><strong>Full Pipeline Setup (optional) — Click to expand</strong></summary> -->
 <details>
-<summary><h2 style="display: inline; cursor: pointer;"> Full Pipeline Setup (optional) — Click to expand</h2></summary>
+<summary><h2 style="display: inline; cursor: pointer;"> EDA</h2></summary>
 
-### 1. GPU Setup (recommended)
+*(section in progress — Irene)*
 
-GPU acceleration speeds up `bert_1.ipynb` dramatically:
+<!-- TODO: overview of 01_eda/ notebooks, key findings, how to run -->
 
-- **With GPU:** ~2 hours
-- **Without GPU:** ~8+ hours (CPU fallback works, just slower)
+</details>
 
-**Installation:**
+<details>
+<summary><h2 style="display: inline; cursor: pointer;"> NLP</h2></summary>
 
-**Linux/Windows (NVIDIA GPU):**
+### GPU (recommended)
 
-```bash
-# Check CUDA version
-nvidia-smi
+ClimateBERT runs on PyTorch — GPU makes it significantly faster, CPU works but is much slower. GPU is the single biggest setup decision for this pipeline.
 
-# Install matching PyTorch (example for CUDA 12.1)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-```
+Install PyTorch with CUDA **before** `pip install -e .` (pip won't upgrade an existing torch installation). Use the interactive installer at **[pytorch.org/get-started/locally](https://pytorch.org/get-started/locally/)** to get the right command for your OS and CUDA version. Section 1 of `run_all.ipynb` will confirm which device was detected when you run it.
 
-**macOS (Apple Silicon):**
+### Run the pipeline
 
-```bash
-# MPS (Metal) support is built-in, just install PyTorch
-pip install torch torchvision
-```
-
-**Verify GPU detection:**
-
-Open `bert_1.ipynb` and run the first cell:
-
-```python
-import torch
-print(f"CUDA available: {torch.cuda.is_available()}")
-print(f"MPS available: {torch.backends.mps.is_available()}")
-```
-
-Expected output:
-
-- NVIDIA GPU: `✅ CUDA GPU detected!`
-- Apple Silicon: `✅ Apple Silicon (MPS) detected!`
-- CPU only: `⚠️ No GPU detected - will use CPU (slower)`
-
-### 2. Run Pipeline
-
-Open `bert_1.ipynb` and run the second cell.
-Once it finishes, run `bert_2.ipynb` to produce plots.
+Open `03_nlp/run_all.ipynb` — the notebook intro explains the full pipeline and guides you through each step.
 
 </details>
 
@@ -121,22 +91,22 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 │   ├── basic_EDA.ipynb
 │   └── baseline_model.ipynb
 │
-├── 02_models/                 # (currently empty / reserved)
+├── 02_models/                 # Baseline emissions models
 │
 ├── 03_nlp/                    # NLP, BERT, and RAG pipelines
 │   │
-│   ├── run_all.ipynb
-│   ├── preprocessing.py       # pdf processing
+│   ├── run_all.ipynb          # Main pipeline notebook (run this)
+│   ├── preprocessing.py       # PDF → text chunks
+│   ├── bert_1.py              # ClimateBERT classification (5 models)
+│   ├── bert_2.py              # Visualization & CSV export
+│   ├── llm_extract.py         # Exhaustive LLM extraction pipeline
+│   ├── rag.py                 # FAISS-based RAG extraction
+│   ├── topic_modelling.py     # BERTopic clustering & LLM labeling
+│   ├── topic_gridsearch.py    # Staged HDBSCAN/UMAP hyperparameter search
+│   ├── data_loader.py         # Cache loading utilities
+│   ├── gpu_utils.py           # GPU device management
 │   │
-│   ├── bert_1.py           # bert pipeline
-│   ├── bert_2.py           # visualization of results
-│   │
-│   ├── rag.py
-│   ├── topic_modelling.py
-│   │
-│   ├── cache/                 # Cached / preprocessed model outputs
-│   │
-│   └── tools.py         # tools (GPU monitoring, path, ...)
+│   └── cache/                 # Cached / preprocessed model outputs
 │
 ├── out/                       # Generated plots and visualizations
 └── data/
@@ -144,14 +114,19 @@ Once it finishes, run `bert_2.ipynb` to produce plots.
 ```
 ## Requirements
 
-- Python 3.11+ (tested with 3.11.3)
-    - Install from [python.org](https://www.python.org/downloads/) if needed
-- See `requirements.txt` for full dependencies
+- Python 3.11+ (declared in `pyproject.toml`, enforced by pip)
+- See `pyproject.toml` for full dependencies
 - Optional: NVIDIA GPU (CUDA) or Apple Silicon for faster processing
+
+## Misc
+
+Optional install extras (defined in `pyproject.toml`):
+- `pip install -e ".[dev]"` — JupyterLab + ipywidgets (suppresses tqdm warnings in notebooks)
+- `pip install -e ".[gpu]"` — GPU-accelerated FAISS (faster RAG retrieval, NVIDIA only)
 
 ## Team
 
-**SuSteelAible** — January 2026
+**SuSteelAible** — March 2026
 
 [@am0ebe](https://github.com/am0ebe) · [@calluna-borealis](https://github.com/calluna-borealis) · [@dzyen](https://github.com/dzyen) · [@aposkoub92](https://github.com/aposkoub92) · [@MJR-data
 ](https://github.com/MJR-data

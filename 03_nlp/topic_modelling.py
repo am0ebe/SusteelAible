@@ -1,22 +1,24 @@
 """
-RAG Topic Modeling Pipeline
-============================
+BERTopic Modeling Pipeline
+===========================
 
-Topic modeling, categorization and visualization using BERTopic.
+Clusters RAG-extracted barriers/motivators into coherent themes using BERTopic.
 
-Key components:
-- Embedding: thenlper/gte-small (or sentence-transformers/all-mpnet-base-v2)
-- Dimensionality Reduction: UMAP
-- Clustering: HDBSCAN (dynamic cluster sizes + outlier detection)
-- Topic Representation: KeyBERTInspired for better topic words
-- Visualization: DataMapPlot for publication-ready figures
+Pipeline:
+  sentence embeddings → UMAP (compress) → HDBSCAN (cluster) → c-TF-IDF (keywords) → LLM labels
+
+Key design choices:
+- HDBSCAN over KMeans: no fixed topic count, identifies outliers, handles variable cluster sizes
+- Embeddings cached separately from BERTopic fit: encoding is slow (~10s), re-fitting is fast (~2s),
+  so cache_embeddings=True lets you tune HDBSCAN/UMAP without re-encoding
+- Category-specific overrides: barriers and motivators have different cluster characteristics,
+  so HDBSCAN/UMAP params are tuned per category via grid search (see topic_gridsearch.py)
+- LLM topic labeling: batched into a single call (keywords → "N: Label" lines) to minimize API calls
 
 Usage:
-    python topic_modelling.py --data-folder ./data --output-folder ./output
-
-Requirements:
-    pip install bertopic sentence-transformers umap-learn hdbscan
-    pip install datamapplot  # Optional: for DataMapPlot visualization
+    from nlp import TopicModelConfig, run_topic_modeling_pipeline
+    config = TopicModelConfig(embedding_model="ibm-granite/granite-embedding-english-r2")
+    results = run_topic_modeling_pipeline(data_folder="../out", output_folder="../out/topics", config=config)
 """
 
 from nlp import load_csv_data
@@ -65,7 +67,8 @@ class TopicModelConfig:
     batch_size: int = 64  # embed (increase if GPU memory allows)
     # halves VRAM with negligible precision loss for inference; set to None for float32
     embedding_dtype: str = "bfloat16"
-    cache_embeddings: bool = True  # skip re-encoding when only tuning BERTopic params
+    # Encoding is slow (~10s); BERTopic refit is fast (~2s). True = skip re-encoding on rerun.
+    cache_embeddings: bool = True
 
     # misc
     verbose: bool = True
@@ -101,7 +104,8 @@ class TopicModelConfig:
     calculate_probabilities: bool = False
     # Reduce outliers by assigning to nearest topic (post-hoc)
     reduce_outliers: bool = True
-    # 'embeddings', 'c-tf-idf', or 'distributions'
+    # 'embeddings' (nearest neighbor in embed space) or 'c-tf-idf' (keyword overlap) or 'distributions'
+    # 'embeddings' is the most semantically faithful strategy
     reduce_outliers_strategy: str = "embeddings"
 
     # Visualization
@@ -117,7 +121,9 @@ class TopicModelConfig:
     ollama_base_url: str = "http://localhost:11434"
     llm_temperature: float = 0.0
 
-    # Per-category config overrides (e.g. {"barriers": {"hdbscan_min_cluster_size": 10}})
+    # Per-category HDBSCAN/UMAP overrides from grid search — barriers and motivators
+    # cluster differently so use separate params. Set via TopicGridSearch or manually.
+    # E.g. {"barriers": {"hdbscan_min_cluster_size": 25, "umap_n_components": 5}}
     category_overrides: Optional[Dict[str, Dict[str, Any]]] = field(
         default_factory=dict)
 

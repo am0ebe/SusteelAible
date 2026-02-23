@@ -36,6 +36,10 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # RETRIEVAL QUERIES
 # =============================================================================
 
+# 3 queries per category: each angles at a different facet of the concept.
+# FAISS retrieves top_k chunks per query; the union is deduplicated before the LLM call.
+# Diversity of query angles improves recall — a single query misses chunks that
+# use different vocabulary for the same underlying concept.
 BARRIER_QUERIES = [
     "barriers challenges constraints to decarbonisation reducing GHG emissions",
     "costs risks difficulties limiting net-zero carbon reduction targets",

@@ -63,8 +63,10 @@ class Config:
     # Capped at 32k for batch_size calculation — larger windows don't improve extraction quality.
     ctx: int = 8096
 
-    # Stop sequences to halt generation early
-    # Extensions: "Note:", "Explanation:", "Here are", "I found"
+    # Stop sequences: generation halts as soon as one is produced.
+    # "NONE_FOUND\n" → model signals empty result; stop immediately rather than generating filler.
+    # "\n\n\n" → triple blank line signals the model is done with bullets and starting prose.
+    # Additional candidates if models add preamble: "Note:", "Explanation:", "Here are", "I found"
     stop_tokens: tuple = ("NONE_FOUND\n", "\n\n\n")
 
     # Pipeline
@@ -79,7 +81,7 @@ class Config:
     top_k: int = 20
     retrieval_strategy: Literal["similarity", "mmr"] = "mmr"
     mmr_fetch_k: int = 50
-    mmr_lambda: float = 0.2
+    mmr_lambda: float = 0.2  # 0=max diversity, 1=pure similarity; 0.2 = diversity-heavy (intentional: avoids redundant chunks)
     embedding_model: str = "Snowflake/snowflake-arctic-embed-s"
     faiss_cache_path: str = "../cache/faiss_index"
     reuse_faiss_cache: bool = True
@@ -117,6 +119,9 @@ class Config:
 # =============================================================================
 
 
+# "NONE_FOUND" in RULES doubles as the stop sequence: when the model outputs this token,
+# generation halts immediately (via stop_tokens in Config). This prevents the model from
+# adding explanatory prose after signaling an empty result.
 BARRIER_MAP_PROMPT = ChatPromptTemplate.from_template("""Extract BARRIERS to decarbonisation from {company} ({year}) report.
 
 BARRIER = challenge, constraint, risk, or factor that makes reducing GHG emissions harder.
