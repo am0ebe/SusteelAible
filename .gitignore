@@ -7,8 +7,6 @@ out
 output
 cache
 nlp/cache
-nlp/output
-nlp/out
 
 # data
 *.zip
@@ -22,6 +20,7 @@ susteelaible.egg-info
 
 # misc
 .env
+.venv
 vector_db
 .DS_Store
 
