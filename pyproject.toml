@@ -1,12 +1,13 @@
 [project]
 name = "susteelaible"
 version = "0.5"
-description = "Climate report analysis for steel industry"
+description = "EDA of EU steel emission data and NLP pipeline analyzing sustainability reports to extract decarbonization barriers and motivators"
 readme = "README.md"
 requires-python = ">=3.11"
 
 dependencies = [
     # Core data science
+    "scikit-learn==1.2.2",
     "numpy==1.26.4",
     "pandas==2.3.2",
     "matplotlib==3.10.8",
@@ -63,7 +64,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["nlp"]
+packages = ["nlp", "eda"]
 
 [tool.setuptools.package-dir]
 nlp = "03_nlp"
+eda = "01_eda"
