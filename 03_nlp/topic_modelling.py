@@ -154,6 +154,8 @@ class PipelineState:
     state_file: str
 
     # Static config — set in notebook, persisted for convenience
+    data_folder: str = "../out"
+    output_folder: str = "../out/topics"
     embedding_model: str = "ibm-granite/granite-embedding-english-r2"
     batch_size: int = 64
     llm_provider: str = "groq"
@@ -172,12 +174,14 @@ class PipelineState:
                 saved = json.load(f)
             print(f"📂 Loaded state from {state_file}")
         merged = {**saved, **kwargs}
-        valid = {k: v for k, v in merged.items() if k in cls.__dataclass_fields__}
+        valid = {k: v for k, v in merged.items(
+        ) if k in cls.__dataclass_fields__}
         return cls(state_file=state_file, **valid)
 
     def save(self):
         """Persist current state to JSON."""
-        os.makedirs(os.path.dirname(os.path.abspath(self.state_file)), exist_ok=True)
+        os.makedirs(os.path.dirname(
+            os.path.abspath(self.state_file)), exist_ok=True)
         data = {k: v for k, v in asdict(self).items() if k != "state_file"}
         with open(self.state_file, "w") as f:
             json.dump(data, f, indent=2)
@@ -196,14 +200,18 @@ class PipelineState:
 
     def __repr__(self) -> str:
         lines = [f"PipelineState  ({self.state_file})"]
+        lines.append(f"  data_folder  : {self.data_folder}")
+        lines.append(f"  output_folder: {self.output_folder}")
         lines.append(f"  embedding    : {self.embedding_model}")
-        lines.append(f"  llm          : {self.llm_provider} / {self.llm_model}")
+        lines.append(
+            f"  llm          : {self.llm_provider} / {self.llm_model}")
         lines.append(f"  run_dir      : {self.run_dir or '(not set)'}")
         if self.category_overrides:
             for cat, params in self.category_overrides.items():
                 lines.append(f"  overrides.{cat:<12}: {params}")
         else:
-            lines.append("  overrides    : (not set — run grid search or set manually)")
+            lines.append(
+                "  overrides    : (not set — run grid search or set manually)")
         return "\n".join(lines)
 
 
@@ -1005,7 +1013,7 @@ def run_grid_search(
     param_grid: Optional[Dict[str, List]] = None,
 ) -> pd.DataFrame:
     """
-    Sweep HDBSCAN/UMAP param combos using cached embeddings (~2s each).
+    Sweep HDBSCAN/UMAP param combos using cached embeddings.
 
     Args:
         data_folder: Path to folder with CSV data files
@@ -1257,21 +1265,27 @@ def _drop_empty_topics(
 
 
 def run_topic_modeling_pipeline(
-    data_folder: str,
-    output_folder: str = "./output",
+    state: Optional["PipelineState"] = None,
+    data_folder: Optional[str] = None,
+    output_folder: Optional[str] = None,
     config: Optional[TopicModelConfig] = None,
 ) -> Dict[str, Any]:
     """
     Run complete topic modeling pipeline.
 
     Args:
-        data_folder: Path to folder with CSV data files
-        output_folder: Path to save outputs
-        config: TopicModelConfig (uses defaults if None)
+        state: PipelineState to extract data_folder, output_folder, config from (preferred)
+        data_folder: Override data_folder (or pass via state)
+        output_folder: Override output_folder (or pass via state)
+        config: Override config (or pass via state)
 
     Returns:
         Dictionary with results
     """
+    if state is not None:
+        data_folder = data_folder or state.data_folder
+        output_folder = output_folder or state.output_folder
+        config = config or state.config
     start_time = time.time()
     config = config or TopicModelConfig()
     output_base = Path(output_folder)
@@ -1350,7 +1364,8 @@ def run_topic_modeling_pipeline(
 
         # Generate LLM labels for topics
         labels, keywords_map, doc_counts = modeler.generate_topic_labels()
-        df, labels, keywords_map, doc_counts = _drop_empty_topics(df, labels, keywords_map, doc_counts, modeler)
+        df, labels, keywords_map, doc_counts = _drop_empty_topics(
+            df, labels, keywords_map, doc_counts, modeler)
         modeler.set_topic_labels(labels)
 
         # Save labels to CSV (with keywords and doc counts for interpretability)
@@ -1443,8 +1458,9 @@ def latest_run_dir(output_folder: str = "./output", run_name: str = "run") -> st
 
 
 def generate_deliverable_viz(
-    run_dir: str,
     top_n: int = 6,
+    state: Optional["PipelineState"] = None,
+    run_dir: Optional[str] = None,
     config: Optional[TopicModelConfig] = None,
 ) -> None:
     """
@@ -1460,14 +1476,21 @@ def generate_deliverable_viz(
     Args:
         run_dir: Path to run directory, e.g. "../out/topics/run_05"
         top_n: Number of top topics to include (by doc count)
-        config: TopicModelConfig — only embedding_model matters here for loading
+        state: PipelineState to extract run_dir and config from (preferred)
+        run_dir: Override run_dir (or pass via state)
+        config: Override config (or pass via state)
+        top_n: Number of top topics to include (by doc count)
     """
+    if state is not None:
+        run_dir = run_dir or state.run_dir
+        config = config or state.config
     run_path = Path(run_dir)
     config = config or TopicModelConfig()
     deliverable_path = run_path / "deliverable"
     deliverable_path.mkdir(exist_ok=True)
 
-    categories = [p.stem.replace("_labels", "") for p in sorted(run_path.glob("*_labels.csv"))]
+    categories = [p.stem.replace("_labels", "")
+                  for p in sorted(run_path.glob("*_labels.csv"))]
     if not categories:
         print("⚠️  No labels CSV found — run merge_topics_pipeline first")
         return
@@ -1518,9 +1541,10 @@ def generate_deliverable_viz(
 
 
 def merge_topics_pipeline(
-    run_dir: str,
     category: str,
     topics_to_merge: List[List[int]],
+    state: Optional["PipelineState"] = None,
+    run_dir: Optional[str] = None,
     config: Optional[TopicModelConfig] = None,
 ) -> pd.DataFrame:
     """
@@ -1533,14 +1557,18 @@ def merge_topics_pipeline(
     Topic IDs that no longer exist are silently skipped, preventing IndexError on re-run.
 
     Args:
-        run_dir: Path to run directory, e.g. "../out/topics/run_05"
         category: "barriers" or "motivators"
         topics_to_merge: List of topic ID groups to merge, e.g. [[7, 9, 12, 13], [2, 14]]
-        config: TopicModelConfig for LLM label settings (uses defaults if None)
+        state: PipelineState to extract run_dir and config from (preferred)
+        run_dir: Override run_dir (or pass via state)
+        config: Override config (or pass via state)
 
     Returns:
         Updated DataFrame with merged topic assignments
     """
+    if state is not None:
+        run_dir = run_dir or state.run_dir
+        config = config or state.config
     run_path = Path(run_dir)
     config = config or TopicModelConfig()
     model_path = str(run_path / category)
@@ -1577,26 +1605,35 @@ def merge_topics_pipeline(
     modeler.topic_model.merge_topics(docs, filtered_merges)
 
     df["topic"] = modeler.topic_model.topics_
-    n_after = len(modeler.get_topic_info()[modeler.get_topic_info()["Topic"] != -1])
+    n_after = len(modeler.get_topic_info()[
+                  modeler.get_topic_info()["Topic"] != -1])
     print(f"✅ Topics after merge: {n_after}")
 
     labels, keywords_map, doc_counts = modeler.generate_topic_labels()
-    df, labels, keywords_map, doc_counts = _drop_empty_topics(df, labels, keywords_map, doc_counts, modeler)
+    df, labels, keywords_map, doc_counts = _drop_empty_topics(
+        df, labels, keywords_map, doc_counts, modeler)
     modeler.set_topic_labels(labels)
 
     labels_df = pd.DataFrame([
-        {"topic_id": tid, "label": labels[tid], "doc_count": doc_counts[tid], "keywords": keywords_map[tid]}
+        {"topic_id": tid,
+            "label": labels[tid], "doc_count": doc_counts[tid], "keywords": keywords_map[tid]}
         for tid in labels.keys()
     ])
     labels_df.to_csv(run_path / f"{category}_labels.csv", index=False)
     df.to_csv(run_path / f"{category}_topics.csv", index=False)
+    if "year" in df.columns:
+        aggregate_by_year(df).to_csv(run_path / f"{category}_merged_yearly.csv")
+    if "company" in df.columns and "year" in df.columns:
+        aggregate_by_company_year(df).to_csv(run_path / f"{category}_merged_company_year.csv")
 
     # Save merged model separately so generate_deliverable_viz can reload it
     modeler.save(str(run_path / f"{category}_merged"), save_embeddings=False)
 
     # Regenerate visualizations (embeddings loaded by load(), just need 2D reduction)
     modeler.reduce_embeddings_for_viz()
-    modeler.viz(df=df, text_column=category, output_path=str(run_path), category=category)
+    modeler.viz(df=df, text_column=category,
+                output_path=str(run_path), category=category)
 
-    print(f"✓ Saved updated labels, topics CSV, and visualizations to {run_dir}")
+    print(
+        f"✓ Saved updated labels, topics CSV, and visualizations to {run_dir}")
     return df

@@ -100,15 +100,19 @@ class TopicGridSearch:
         print(gs.category_overrides)
     """
 
-    def __init__(self, data_folder: str, output_folder: str, base_config: Optional[TopicModelConfig] = None):
+    def __init__(self, state=None, data_folder: Optional[str] = None, output_folder: Optional[str] = None, base_config: Optional[TopicModelConfig] = None):
         """
         Args:
-            data_folder: Path to folder with CSV data files (barriers_*.csv, motivators_*.csv).
-            output_folder: Path to save results and embedding caches.
-            base_config: Base TopicModelConfig used as defaults for all stages.
-                UMAP, HDBSCAN, and vectorizer params from here are used unless
-                overridden by locked params or the param_grid being swept.
+            state: PipelineState to extract data_folder, output_folder, base_config from (preferred)
+            data_folder: Override data_folder (or pass via state)
+            output_folder: Override output_folder (or pass via state)
+            base_config: Base TopicModelConfig — UMAP, HDBSCAN, vectorizer params used as
+                defaults unless overridden by locked params or param_grid being swept.
         """
+        if state is not None:
+            data_folder = data_folder or state.data_folder
+            output_folder = output_folder or state.output_folder
+            base_config = base_config or state.config
         self.data_folder = data_folder
         self.output_folder = output_folder
         self.base_config = base_config or TopicModelConfig()
