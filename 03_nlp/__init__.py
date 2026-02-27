@@ -28,8 +28,11 @@ from .topic_modelling import (
     TopicModeler,
     TopicModelConfig,
     run_topic_modeling_pipeline,
+    merge_topics_pipeline,
+    latest_run_dir,
     run_grid_search,
     aggregate_by_year,
     aggregate_by_category,
+    aggregate_by_company_year,
 )
 from .topic_gridsearch import TopicGridSearch

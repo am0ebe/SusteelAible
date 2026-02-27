@@ -659,7 +659,7 @@ class TopicModeler:
         text_column: str,
         output_path: str,
         category: str,
-        top_n_topics: int = 10
+        top_n_topics: int = 3
     ) -> Dict[str, Any]:
         """
         Generate and save all visualizations for a category.
@@ -1118,6 +1118,49 @@ def _write_config_log(output_path: Path, config: TopicModelConfig, duration_s: f
     print(f"📝 Config logged to {log_file}")
 
 
+def _drop_empty_topics(
+    df: pd.DataFrame,
+    labels: Dict[int, str],
+    keywords_map: Dict[int, str],
+    doc_counts: Dict[int, int],
+    modeler: Optional["TopicModeler"] = None,
+) -> Tuple[pd.DataFrame, Dict, Dict, Dict]:
+    """Reassign docs in keyword-empty topics to outliers (-1) and remove those topics.
+
+    Also patches the BERTopic model's internal state so visualizations don't show them.
+    """
+    empty_ids = {
+        tid for tid, kws in keywords_map.items()
+        if tid != -1 and not any(k.strip() for k in kws.split(","))
+    }
+    if not empty_ids:
+        return df, labels, keywords_map, doc_counts
+
+    df = df.copy()
+    df.loc[df["topic"].isin(empty_ids), "topic"] = -1
+    for tid in empty_ids:
+        labels.pop(tid, None)
+        keywords_map.pop(tid, None)
+        doc_counts.pop(tid, None)
+
+    if modeler is not None:
+        m = modeler.topic_model
+        # Reassign docs in model's topic list
+        m.topics_ = [-1 if t in empty_ids else t for t in m.topics_]
+        # Update topic_sizes_
+        for tid in empty_ids:
+            n = m.topic_sizes_.pop(tid, 0)
+            m.topic_sizes_[-1] = m.topic_sizes_.get(-1, 0) + n
+        # Remove from representations — viz functions iterate over this dict
+        for tid in empty_ids:
+            m.topic_representations_.pop(tid, None)
+            if m.topic_labels_ and tid in m.topic_labels_:
+                del m.topic_labels_[tid]
+
+    print(f"⚠️  Dropped {len(empty_ids)} empty topic(s): {sorted(empty_ids)}")
+    return df, labels, keywords_map, doc_counts
+
+
 def run_topic_modeling_pipeline(
     data_folder: str,
     output_folder: str = "./output",
@@ -1212,6 +1255,7 @@ def run_topic_modeling_pipeline(
 
         # Generate LLM labels for topics
         labels, keywords_map, doc_counts = modeler.generate_topic_labels()
+        df, labels, keywords_map, doc_counts = _drop_empty_topics(df, labels, keywords_map, doc_counts, modeler)
         modeler.set_topic_labels(labels)
 
         # Save labels to CSV (with keywords and doc counts for interpretability)
@@ -1232,7 +1276,7 @@ def run_topic_modeling_pipeline(
 
         results[category] = {
             'df': df,
-            'topics': topics,
+            'topics': df['topic'].tolist(),
             'topic_info': modeler.get_topic_info(),
             'labels': labels,
             'keywords': keywords_map,
@@ -1288,4 +1332,98 @@ def run_topic_modeling_pipeline(
     _write_config_log(output_path, config,
                       duration_s=duration_s, results=results)
 
+    results["output_path"] = str(output_path)
     return results
+
+
+def latest_run_dir(output_folder: str = "./output", run_name: str = "run") -> str:
+    """Return path to the most recently created run directory."""
+    runs = sorted(
+        d for d in Path(output_folder).glob(f"{run_name}_*")
+        if d.is_dir() and d.name.split(f"{run_name}_")[1].isdigit()
+    )
+    if not runs:
+        raise ValueError(f"No run directories found in {output_folder}")
+    return str(runs[-1])
+
+
+def merge_topics_pipeline(
+    run_dir: str,
+    category: str,
+    topics_to_merge: List[List[int]],
+    config: Optional[TopicModelConfig] = None,
+) -> pd.DataFrame:
+    """
+    Load a saved topic model, merge specified topic groups, re-label, and save in-place.
+
+    Always loads from the original {category}_model saved by run_topic_modeling_pipeline,
+    so re-running with different groups is safe — the original model is never overwritten.
+
+    After merging, BERTopic keeps the lowest ID in each group (e.g. [7, 9, 12] → topic 7).
+    Topic IDs that no longer exist are silently skipped, preventing IndexError on re-run.
+
+    Args:
+        run_dir: Path to run directory, e.g. "../out/topics/run_05"
+        category: "barriers" or "motivators"
+        topics_to_merge: List of topic ID groups to merge, e.g. [[7, 9, 12, 13], [2, 14]]
+        config: TopicModelConfig for LLM label settings (uses defaults if None)
+
+    Returns:
+        Updated DataFrame with merged topic assignments
+    """
+    run_path = Path(run_dir)
+    config = config or TopicModelConfig()
+    model_path = str(run_path / category)
+
+    modeler = TopicModeler(config)
+    modeler.load(model_path)
+
+    df = pd.read_csv(run_path / f"{category}_topics.csv")
+    docs = df[category].tolist()
+
+    # Validate topic IDs against the loaded model — skip IDs that no longer exist
+    valid_ids = set(modeler.get_topic_info()["Topic"].tolist()) - {-1}
+    filtered_merges = []
+    for group in topics_to_merge:
+        kept = [t for t in group if t in valid_ids]
+        if len(kept) >= 2:
+            filtered_merges.append(kept)
+        elif kept:
+            print(f"⚠️  Skipping {group}: only 1 ID still exists {kept}")
+        else:
+            print(f"⚠️  Skipping {group}: no IDs exist in current model")
+
+    n_before = len(valid_ids)
+    print(f"\n📊 Topics before merge: {n_before}")
+
+    if not filtered_merges:
+        print("⚠️  No valid merge groups — nothing to do")
+        return df
+
+    print(f"🔀 Merging {len(filtered_merges)} group(s):")
+    for group in filtered_merges:
+        print(f"  {group}")
+
+    modeler.topic_model.merge_topics(docs, filtered_merges)
+
+    df["topic"] = modeler.topic_model.topics_
+    n_after = len(modeler.get_topic_info()[modeler.get_topic_info()["Topic"] != -1])
+    print(f"✅ Topics after merge: {n_after}")
+
+    labels, keywords_map, doc_counts = modeler.generate_topic_labels()
+    df, labels, keywords_map, doc_counts = _drop_empty_topics(df, labels, keywords_map, doc_counts, modeler)
+    modeler.set_topic_labels(labels)
+
+    labels_df = pd.DataFrame([
+        {"topic_id": tid, "label": labels[tid], "doc_count": doc_counts[tid], "keywords": keywords_map[tid]}
+        for tid in labels.keys()
+    ])
+    labels_df.to_csv(run_path / f"{category}_labels.csv", index=False)
+    df.to_csv(run_path / f"{category}_topics.csv", index=False)
+
+    # Regenerate visualizations (embeddings loaded by load(), just need 2D reduction)
+    modeler.reduce_embeddings_for_viz()
+    modeler.viz(df=df, text_column=category, output_path=str(run_path), category=category)
+
+    print(f"✓ Saved updated labels, topics CSV, and visualizations to {run_dir}")
+    return df
