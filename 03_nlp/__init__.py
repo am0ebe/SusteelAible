@@ -29,6 +29,7 @@ from .topic_modelling import (
     TopicModelConfig,
     run_topic_modeling_pipeline,
     merge_topics_pipeline,
+    generate_deliverable_viz,
     latest_run_dir,
     run_grid_search,
     aggregate_by_year,

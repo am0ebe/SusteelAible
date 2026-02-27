@@ -659,7 +659,8 @@ class TopicModeler:
         text_column: str,
         output_path: str,
         category: str,
-        top_n_topics: int = 3
+        top_n_topics: int = 3,
+        topics: Optional[List[int]] = None,
     ) -> Dict[str, Any]:
         """
         Generate and save all visualizations for a category.
@@ -669,7 +670,9 @@ class TopicModeler:
             text_column: Name of column containing document text
             output_path: Directory to save visualizations
             category: Category name ("barriers" or "motivators")
-            top_n_topics: Number of topics for barchart
+            top_n_topics: Number of topics for barchart (ignored when topics is set)
+            topics: Explicit list of topic IDs to show — filters all viz to these topics.
+                    When None, all topics are shown.
 
         Returns:
             Dict with paths to saved files and any errors
@@ -677,8 +680,9 @@ class TopicModeler:
         output = Path(output_path)
         output.mkdir(parents=True, exist_ok=True)
 
-        docs = df[text_column].tolist()
         self._log(f"\n📊 Generating visualizations for {category}...")
+        if topics:
+            self._log(f"   🔍 Filtering to {len(topics)} topics: {topics}")
 
         results = {"saved": [], "errors": []}
 
@@ -686,22 +690,36 @@ class TopicModeler:
         if self._reduced_embeddings is None and self._embeddings is not None:
             self.reduce_embeddings_for_viz()
 
+        # When filtering to specific topics, restrict docs and embeddings too
+        if topics is not None:
+            mask = df["topic"].isin(topics).values
+            docs = df[mask][text_column].tolist()
+            emb = self._embeddings[mask] if self._embeddings is not None else None
+            red_emb = self._reduced_embeddings[mask] if self._reduced_embeddings is not None else None
+        else:
+            docs = df[text_column].tolist()
+            emb = self._embeddings
+            red_emb = self._reduced_embeddings
+
         viz_configs = [
             ("barchart", lambda: self.topic_model.visualize_barchart(
-                top_n_topics=top_n_topics)),
-            ("topics_2d", lambda: self.topic_model.visualize_topics()),
-            ("hierarchy", lambda: self.topic_model.visualize_hierarchy()),
-            ("heatmap", lambda: self.topic_model.visualize_heatmap()),
+                topics=topics, top_n_topics=top_n_topics)),
+            ("topics_2d", lambda: self.topic_model.visualize_topics(
+                topics=topics)),
+            ("hierarchy", lambda: self.topic_model.visualize_hierarchy(
+                topics=topics)),
+            ("heatmap", lambda: self.topic_model.visualize_heatmap(
+                topics=topics)),
             ("documents", lambda: self.topic_model.visualize_documents(
                 docs,
-                embeddings=self._embeddings,
-                reduced_embeddings=self._reduced_embeddings
+                topics=topics,
+                embeddings=emb,
+                reduced_embeddings=red_emb,
             )),
         ]
 
         for name, viz_func in viz_configs:
             try:
-
                 fig = viz_func()
                 path = output / f"{category}_{name}.html"
                 fig.write_html(str(path))
@@ -714,7 +732,7 @@ class TopicModeler:
         # Topics over time (using year column)
         if 'year' in df.columns:
             try:
-                years = df['year'].tolist()
+                years = df[df["topic"].isin(topics)]["year"].tolist() if topics is not None else df['year'].tolist()
                 topics_over_time = self.topic_model.topics_over_time(
                     docs, years,
                     global_tuning=True,
@@ -722,7 +740,8 @@ class TopicModeler:
                 )
                 fig = self.topic_model.visualize_topics_over_time(
                     topics_over_time,
-                    top_n_topics=top_n_topics
+                    topics=topics,
+                    top_n_topics=top_n_topics,
                 )
                 path = output / f"{category}_over_time.html"
                 fig.write_html(str(path))
@@ -735,12 +754,14 @@ class TopicModeler:
         # Topics per company
         if 'company' in df.columns:
             try:
-                companies = df['company'].tolist()
+                df_viz = df[df["topic"].isin(topics)] if topics is not None else df
+                companies = df_viz['company'].tolist()
                 topics_per_company = self.topic_model.topics_per_class(
                     docs, companies)
                 fig = self.topic_model.visualize_topics_per_class(
                     topics_per_company,
-                    top_n_topics=top_n_topics
+                    topics=topics,
+                    top_n_topics=top_n_topics,
                 )
                 path = output / f"{category}_per_company.html"
                 fig.write_html(str(path))
@@ -754,8 +775,8 @@ class TopicModeler:
         try:
             fig = self.topic_model.visualize_document_datamap(
                 docs,
-                embeddings=self._embeddings,
-                reduced_embeddings=self._reduced_embeddings,
+                embeddings=emb,
+                reduced_embeddings=red_emb,
                 title=f"{category.title()} Topics"
             )
             path = output / f"{category}_datamap.png"
@@ -1347,6 +1368,74 @@ def latest_run_dir(output_folder: str = "./output", run_name: str = "run") -> st
     return str(runs[-1])
 
 
+def generate_deliverable_viz(
+    run_dir: str,
+    top_n: int = 6,
+    config: Optional[TopicModelConfig] = None,
+) -> None:
+    """
+    Generate filtered visualizations showing only the top N topics by doc count.
+
+    Loads the merged model (saved by merge_topics_pipeline) for each category,
+    picks the top N topics from labels.csv, and writes filtered HTML/PNG/CSV
+    to {run_dir}/deliverable/.
+
+    Falls back to the original model if no merged model exists (i.e. merge step
+    was skipped).
+
+    Args:
+        run_dir: Path to run directory, e.g. "../out/topics/run_05"
+        top_n: Number of top topics to include (by doc count)
+        config: TopicModelConfig — only embedding_model matters here for loading
+    """
+    run_path = Path(run_dir)
+    config = config or TopicModelConfig()
+    deliverable_path = run_path / "deliverable"
+    deliverable_path.mkdir(exist_ok=True)
+
+    categories = [p.stem.replace("_labels", "") for p in sorted(run_path.glob("*_labels.csv"))]
+    if not categories:
+        print("⚠️  No labels CSV found — run merge_topics_pipeline first")
+        return
+
+    for category in categories:
+        labels_df = pd.read_csv(run_path / f"{category}_labels.csv")
+        top_ids = (
+            labels_df[labels_df["topic_id"] != -1]
+            .sort_values("doc_count", ascending=False)
+            .head(top_n)["topic_id"]
+            .tolist()
+        )
+        print(f"\n📊 {category}: top {top_n} topics → {top_ids}")
+
+        # Save filtered labels and topics CSVs
+        labels_df[labels_df["topic_id"].isin(top_ids)].to_csv(
+            deliverable_path / f"{category}_labels.csv", index=False)
+        df = pd.read_csv(run_path / f"{category}_topics.csv")
+        df[df["topic"].isin(top_ids)].to_csv(
+            deliverable_path / f"{category}_topics.csv", index=False)
+
+        # Load merged model if available, otherwise original
+        merged = str(run_path / f"{category}_merged")
+        original = str(run_path / category)
+        model_path = merged if os.path.exists(f"{merged}_model") else original
+
+        modeler = TopicModeler(config)
+        modeler.load(model_path)
+        modeler.reduce_embeddings_for_viz()
+
+        modeler.viz(
+            df=df,
+            text_column=category,
+            output_path=str(deliverable_path),
+            category=category,
+            topics=top_ids,
+        )
+        modeler.cleanup()
+
+    print(f"\n✓ Deliverable saved to {deliverable_path}")
+
+
 def merge_topics_pipeline(
     run_dir: str,
     category: str,
@@ -1420,6 +1509,9 @@ def merge_topics_pipeline(
     ])
     labels_df.to_csv(run_path / f"{category}_labels.csv", index=False)
     df.to_csv(run_path / f"{category}_topics.csv", index=False)
+
+    # Save merged model separately so generate_deliverable_viz can reload it
+    modeler.save(str(run_path / f"{category}_merged"), save_embeddings=False)
 
     # Regenerate visualizations (embeddings loaded by load(), just need 2D reduction)
     modeler.reduce_embeddings_for_viz()
