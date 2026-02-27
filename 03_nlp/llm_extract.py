@@ -6,9 +6,9 @@ Exhaustive extraction: loads all BERT-filtered chunks, batches them, sends to LL
 For retrieval-based extraction (FAISS), see rag.py which extends this.
 
 Usage:
-    from nlp import Config, load_pipeline
+    from nlp import RagConfig, load_pipeline
 
-    config = Config(llm_provider="groq", model="llama-3.1-8b-instant", ctx=128000)
+    config = RagConfig(llm_provider="groq", model="llama-3.1-8b-instant", ctx=128000)
     pipeline = load_pipeline(config)  # picks ExtractPipeline or RAGPipeline
     pipeline.extract_all_companies()
 """
@@ -45,7 +45,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # =============================================================================
 
 @dataclass
-class Config:
+class RagConfig:
     """Unified config for LLM extraction. Set approach='rag' for retrieval."""
 
     # LLM (REQUIRED)
@@ -162,7 +162,7 @@ TEXT:
 class ExtractPipeline:
     """Exhaustive LLM extraction pipeline for barriers and motivators."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: RagConfig):
         """Initialize the pipeline."""
         self.config = config
         self.gpu = GPUManager()
@@ -821,7 +821,7 @@ class ExtractPipeline:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-def load_pipeline(config: Config):
+def load_pipeline(config: RagConfig):
     """Create pipeline based on config.approach and load from cache."""
     if config.approach == "rag":
         from nlp.rag import RAGPipeline

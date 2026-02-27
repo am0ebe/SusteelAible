@@ -18,7 +18,7 @@ from .data_loader import (
     load_json_data,
 )
 from .llm_extract import (
-    Config,
+    RagConfig,
     ExtractPipeline,
     load_pipeline
 )

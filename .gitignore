@@ -1,6 +1,7 @@
 # notes
 *.md
 !README.md
+!CLAUDE.md
 
 # dirs
 out
@@ -24,4 +25,3 @@ susteelaible.egg-info
 vector_db
 .DS_Store
 
-.CLAUDE.md

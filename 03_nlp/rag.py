@@ -6,9 +6,9 @@ Real RAG: embeds all chunks → FAISS index → retrieves top_k per query → LL
 Extends ExtractPipeline (llm_extract.py) with targeted retrieval.
 
 Usage:
-    from nlp import Config, load_pipeline
+    from nlp import RagConfig, load_pipeline
 
-    config = Config(
+    config = RagConfig(
         approach="rag", llm_provider="groq", model="llama-3.1-8b-instant",
         ctx=128000, batch_size=3, top_k=20,
     )
@@ -26,7 +26,7 @@ from tqdm import tqdm
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from nlp.llm_extract import Config, ExtractPipeline
+from nlp.llm_extract import RagConfig, ExtractPipeline
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -60,7 +60,7 @@ MOTIVATOR_QUERIES = [
 class RAGPipeline(ExtractPipeline):
     """RAG pipeline with FAISS embedding retrieval."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: RagConfig):
         super().__init__(config)
         self.vectorstore: Optional[FAISS] = None
         self._embeddings = None
