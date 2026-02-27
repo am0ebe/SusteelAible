@@ -769,16 +769,11 @@ class TopicModeler:
         if self._reduced_embeddings is None and self._embeddings is not None:
             self.reduce_embeddings_for_viz()
 
-        # When filtering to specific topics, restrict docs and embeddings too
-        if topics is not None:
-            mask = df["topic"].isin(topics).values
-            docs = df[mask][text_column].tolist()
-            emb = self._embeddings[mask] if self._embeddings is not None else None
-            red_emb = self._reduced_embeddings[mask] if self._reduced_embeddings is not None else None
-        else:
-            docs = df[text_column].tolist()
-            emb = self._embeddings
-            red_emb = self._reduced_embeddings
+        # Always pass the full arrays — BERTopic aligns docs/embeddings with
+        # self.topics_ by index position. The `topics` param controls display only.
+        docs = df[text_column].tolist()
+        emb = self._embeddings
+        red_emb = self._reduced_embeddings
 
         viz_configs = [
             ("barchart", lambda: self.topic_model.visualize_barchart(
@@ -811,7 +806,7 @@ class TopicModeler:
         # Topics over time (using year column)
         if 'year' in df.columns:
             try:
-                years = df[df["topic"].isin(topics)]["year"].tolist() if topics is not None else df['year'].tolist()
+                years = df['year'].tolist()
                 topics_over_time = self.topic_model.topics_over_time(
                     docs, years,
                     global_tuning=True,
@@ -833,8 +828,7 @@ class TopicModeler:
         # Topics per company
         if 'company' in df.columns:
             try:
-                df_viz = df[df["topic"].isin(topics)] if topics is not None else df
-                companies = df_viz['company'].tolist()
+                companies = df['company'].tolist()
                 topics_per_company = self.topic_model.topics_per_class(
                     docs, companies)
                 fig = self.topic_model.visualize_topics_per_class(
@@ -854,6 +848,7 @@ class TopicModeler:
         try:
             fig = self.topic_model.visualize_document_datamap(
                 docs,
+                topics=topics,
                 embeddings=emb,
                 reduced_embeddings=red_emb,
                 title=f"{category.title()} Topics"
@@ -1501,6 +1496,13 @@ def generate_deliverable_viz(
 
         modeler = TopicModeler(config)
         modeler.load(model_path)
+        # Merged model is saved without embeddings to avoid duplicating large files;
+        # fall back to the original model's embeddings (they don't change on merge).
+        if modeler._embeddings is None:
+            orig_emb = f"{str(run_path / category)}_embeddings.npy"
+            if os.path.exists(orig_emb):
+                modeler._embeddings = np.load(orig_emb)
+                print(f"✓ Loaded embeddings from original: {orig_emb}")
         modeler.reduce_embeddings_for_viz()
 
         modeler.viz(
