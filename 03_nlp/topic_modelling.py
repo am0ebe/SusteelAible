@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Optional, List, Tuple, Dict, Any
 from dataclasses import dataclass, asdict, field, replace
 
+import json
 import numpy as np
 import pandas as pd
 # import datamapplot
@@ -126,6 +127,84 @@ class TopicModelConfig:
     # E.g. {"barriers": {"hdbscan_min_cluster_size": 25, "umap_n_components": 5}}
     category_overrides: Optional[Dict[str, Dict[str, Any]]] = field(
         default_factory=dict)
+
+
+# ==================== Pipeline State ====================
+
+@dataclass
+class PipelineState:
+    """Cross-session state for the notebook pipeline, persisted to JSON.
+
+    Wraps the static config (model names, batch size) and dynamic derived
+    values (run_dir, category_overrides from grid search). On kernel restart,
+    call load_or_create() once and all subsequent cells reuse config + RUN_DIR
+    without re-initializing or copy-pasting.
+
+    kwargs to load_or_create() always win over saved values, so the notebook
+    cell is the source of truth for config while the JSON file persists
+    derived state (run_dir, category_overrides) across sessions.
+
+    Usage:
+        state = PipelineState.load_or_create("../out/topics/state.json",
+                    embedding_model="ibm-granite/granite-embedding-english-r2",
+                    llm_provider="groq", llm_model="llama-3.1-8b-instant")
+        config = state.config   # TopicModelConfig built from current state
+        RUN_DIR = state.run_dir # None if never run, otherwise last run path
+    """
+    state_file: str
+
+    # Static config — set in notebook, persisted for convenience
+    embedding_model: str = "ibm-granite/granite-embedding-english-r2"
+    batch_size: int = 64
+    llm_provider: str = "groq"
+    llm_model: str = "llama-3.1-8b-instant"
+
+    # Dynamic state — derived by pipeline steps, persisted across sessions
+    run_dir: Optional[str] = None
+    category_overrides: Optional[Dict[str, Dict[str, Any]]] = None
+
+    @classmethod
+    def load_or_create(cls, state_file: str, **kwargs) -> "PipelineState":
+        """Load from JSON if it exists; kwargs override any saved values."""
+        saved = {}
+        if os.path.exists(state_file):
+            with open(state_file) as f:
+                saved = json.load(f)
+            print(f"📂 Loaded state from {state_file}")
+        merged = {**saved, **kwargs}
+        valid = {k: v for k, v in merged.items() if k in cls.__dataclass_fields__}
+        return cls(state_file=state_file, **valid)
+
+    def save(self):
+        """Persist current state to JSON."""
+        os.makedirs(os.path.dirname(os.path.abspath(self.state_file)), exist_ok=True)
+        data = {k: v for k, v in asdict(self).items() if k != "state_file"}
+        with open(self.state_file, "w") as f:
+            json.dump(data, f, indent=2)
+        print(f"💾 State saved → {self.state_file}")
+
+    @property
+    def config(self) -> "TopicModelConfig":
+        """Build TopicModelConfig from current state."""
+        return TopicModelConfig(
+            embedding_model=self.embedding_model,
+            batch_size=self.batch_size,
+            llm_provider=self.llm_provider,
+            model=self.llm_model,
+            category_overrides=self.category_overrides or {},
+        )
+
+    def __repr__(self) -> str:
+        lines = [f"PipelineState  ({self.state_file})"]
+        lines.append(f"  embedding    : {self.embedding_model}")
+        lines.append(f"  llm          : {self.llm_provider} / {self.llm_model}")
+        lines.append(f"  run_dir      : {self.run_dir or '(not set)'}")
+        if self.category_overrides:
+            for cat, params in self.category_overrides.items():
+                lines.append(f"  overrides.{cat:<12}: {params}")
+        else:
+            lines.append("  overrides    : (not set — run grid search or set manually)")
+        return "\n".join(lines)
 
 
 # ==================== Prompt ====================

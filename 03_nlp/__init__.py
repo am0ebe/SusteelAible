@@ -27,6 +27,7 @@ from .rag import RAGPipeline
 from .topic_modelling import (
     TopicModeler,
     TopicModelConfig,
+    PipelineState,
     run_topic_modeling_pipeline,
     merge_topics_pipeline,
     generate_deliverable_viz,
