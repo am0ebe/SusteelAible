@@ -14,7 +14,7 @@
 
 - **Style**: PEP 8, 4 spaces, long lines OK, double quotes
 - **Naming**: `snake_case` functions, `PascalCase` classes, `SCREAMING_SNAKE` constants
-- **Config**: Use dataclasses (`Config`, `TopicModelConfig`, etc.)
+- **Config**: Use dataclasses (`RagConfig`, `TopicModelConfig`, etc.)
 - **GPU**: Always use `GPUManager` for device handling
 - **Logging**: `print(f"✓ ...")` success, `print(f"⚠️ ...")` warnings
 - **Git**: Don't include yourself in commit messages
@@ -27,8 +27,8 @@
 | `preprocessing.py` | PDF → chunks (600-1600 chars) | `PreprocessingConfig` |
 | `bert_1.py` | ClimateBERT classification (5 models) | `BERTConfig` |
 | `bert_2.py` | Visualization & CSV export | - |
-| `llm_extract.py` | Exhaustive LLM extraction (`ExtractPipeline`) | `Config` |
-| `rag.py` | FAISS retrieval extraction (`RAGPipeline`, extends `ExtractPipeline`) | `Config` |
+| `llm_extract.py` | Exhaustive LLM extraction (`ExtractPipeline`) | `RagConfig` |
+| `rag.py` | FAISS retrieval extraction (`RAGPipeline`, extends `ExtractPipeline`) | `RagConfig` |
 | `topic_modelling.py` | BERTopic clustering & labeling | `TopicModelConfig` |
 | `topic_gridsearch.py` | Staged embedding/HDBSCAN/UMAP grid search (`TopicGridSearch`) | `TopicModelConfig` (base) |
 
@@ -38,10 +38,10 @@
 
 **Key classes/functions**:
 ```python
-from nlp import Config, load_pipeline
+from nlp import RagConfig, load_pipeline
 
 # Exhaustive (all chunks batched)
-config = Config(
+config = RagConfig(
     llm_provider="groq", model="llama-3.1-8b-instant",
     ctx=128000,
     batch_size=15,                # Auto-calculated from ctx if not set
@@ -49,7 +49,7 @@ config = Config(
 )
 
 # RAG (FAISS retrieval)
-config = Config(
+config = RagConfig(
     approach="rag", llm_provider="groq", model="llama-3.1-8b-instant",
     ctx=128000, top_k=20,
 )

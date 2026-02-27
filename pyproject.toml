@@ -67,5 +67,6 @@ build-backend = "setuptools.build_meta"
 packages = ["nlp", "eda"]
 
 [tool.setuptools.package-dir]
-nlp = "03_nlp"
 eda = "01_eda"
+models = "02_models"
+nlp = "03_nlp"
