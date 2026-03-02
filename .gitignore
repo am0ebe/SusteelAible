@@ -10,7 +10,7 @@ cache
 nlp/cache
 
 # data
-*.zip
+reports.zip
 data
 
 # python stuff
