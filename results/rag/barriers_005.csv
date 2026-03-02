@@ -1,0 +1,145 @@
+company_id,company,year,barriers
+005,SSAB,2018,Financial implications due to climate change
+005,SSAB,2018,Other risks due to climate change
+005,SSAB,2018,High energy intensity
+005,SSAB,2018,Difficulty in reducing energy consumption
+005,SSAB,2018,Limited availability of recycled input materials
+005,SSAB,2018,Limited availability of information on disposal methods for waste
+005,SSAB,2019,Financial implications due to climate change
+005,SSAB,2019,Other risks due to climate change
+005,SSAB,2019,Opportunities due to climate change
+005,SSAB,2019,Anti-corruption policies and procedures communication and training
+005,SSAB,2019,Anti-corruption policies and procedures effectiveness
+005,SSAB,2019,Limited availability of recycled input materials data
+005,SSAB,2019,Limited availability of information on disposal methods at a group level
+005,SSAB,2019,Limited availability of information on disposal methods due to reporting development
+005,SSAB,2019,Limited availability of information on energy consumption intensity
+005,SSAB,2019,Limited availability of information on energy reduction
+005,SSAB,2019,Limited availability of information on water withdrawal by source
+005,SSAB,2019,Limited availability of information on direct GHG emissions
+005,SSAB,2019,Limited availability of information on indirect (Scope 2) GHG emissions
+005,SSAB,2019,Limited availability of information on indirect (Scope 3) GHG emissions
+005,SSAB,2019,Limited availability of information on GHG emissions intensity
+005,SSAB,2019,Limited availability of information on GHG emissions reduction
+005,SSAB,2019,Limited availability of information on nitrogen oxides (NO X ) and sulfur oxides (SO X ) emissions
+005,SSAB,2019,Limited availability of information on other significant air emissions
+005,SSAB,2020,High production costs of fossil-free steel
+005,SSAB,2020,Limited availability of low-carbon steel production technologies
+005,SSAB,2020,High upfront investment costs for new production technologies
+005,SSAB,2020,Limited scalability of current low-carbon steel production methods
+005,SSAB,2020,High costs of raw materials for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon energy sources
+005,SSAB,2020,High costs of carbon capture and storage technologies
+005,SSAB,2020,Limited public acceptance of new low-carbon steel production technologies
+005,SSAB,2020,High costs of recycling and reusing steel
+005,SSAB,2020,Limited availability of low-carbon steel recycling technologies
+005,SSAB,2020,High costs of implementing new production processes
+005,SSAB,2020,Limited availability of skilled labor for low-carbon steel production
+005,SSAB,2020,High costs of research and development for new low-carbon steel technologies
+005,SSAB,2020,Limited availability of funding for low-carbon steel production projects
+005,SSAB,2020,High costs of implementing new regulations and standards for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production data and metrics
+005,SSAB,2020,High costs of monitoring and reporting on low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production standards and certifications
+005,SSAB,2020,High costs of ensuring supply chain transparency and accountability for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production certifications and labels
+005,SSAB,2020,High costs of implementing new supply chain management systems for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production data and analytics tools
+005,SSAB,2020,High costs of ensuring compliance with low-carbon steel production regulations and standards
+005,SSAB,2020,Limited availability of low-carbon steel production training and education programs
+005,SSAB,2020,High costs of implementing new low-carbon steel production technologies in existing production facilities
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that are compatible with existing production equipment
+005,SSAB,2020,High costs of ensuring the quality and consistency of low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can produce high-quality steel
+005,SSAB,2020,High costs of implementing new quality control measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can produce steel with consistent properties
+005,SSAB,2020,High costs of ensuring the safety and health of workers in low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce worker exposure to hazardous materials
+005,SSAB,2020,High costs of implementing new safety and health measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce energy consumption
+005,SSAB,2020,High costs of implementing new energy efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water consumption
+005,SSAB,2020,High costs of implementing new water efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce waste generation
+005,SSAB,2020,High costs of implementing new waste reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce greenhouse gas emissions
+005,SSAB,2020,High costs of implementing new greenhouse gas reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce air pollution
+005,SSAB,2020,High costs of implementing new air pollution reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce noise pollution
+005,SSAB,2020,High costs of implementing new noise pollution reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce soil pollution
+005,SSAB,2020,High costs of implementing new soil pollution reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water pollution
+005,SSAB,2020,High costs of implementing new water pollution reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce land pollution
+005,SSAB,2020,High costs of implementing new land pollution reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce waste disposal costs
+005,SSAB,2020,High costs of implementing new waste disposal measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce energy costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce raw material costs
+005,SSAB,2020,High costs of implementing new raw material efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce labor costs
+005,SSAB,2020,High costs of implementing new labor efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce maintenance costs
+005,SSAB,2020,High costs of implementing new maintenance efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce downtime costs
+005,SSAB,2020,High costs of implementing new downtime reduction measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce production costs
+005,SSAB,2020,High costs of implementing new production efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce transportation costs
+005,SSAB,2020,High costs of implementing new transportation efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce storage costs
+005,SSAB,2020,High costs of implementing new storage efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce handling costs
+005,SSAB,2020,High costs of implementing new handling efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce packaging costs
+005,SSAB,2020,High costs of implementing new packaging efficiency measures for low-carbon steel production
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce waste generation costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce energy consumption costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water consumption costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce greenhouse gas emissions costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce air pollution costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce noise pollution costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce soil pollution costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water pollution costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce land pollution costs
+005,SSAB,2020,Limited availability of low-carbon steel production technologies that
+005,SSAB,2021,Involvement in many research projects on technological developments
+005,SSAB,2021,"Climate change, reducing CO 2 emissions and other environmental impacts"
+005,SSAB,2021,"Reducing emissions, noise and other inconveniences"
+005,SSAB,2021,"Engagement and meetings with representatives (politicians, regulators, general public, media) and people living close to the production sites"
+005,SSAB,2021,Open communication and interaction
+005,SSAB,2021,Open communication and active engagement
+005,SSAB,2021,Collaboration with industry associations
+005,SSAB,2021,Strengthening governance around corporate climate lobbying
+005,SSAB,2021,Developing assessment of member associations
+005,SSAB,2021,Developing procedure on action where industry associations and/or other member organizations are not aligned with the Paris Agreement's goals or own objectives
+005,SSAB,2024,ESRS E1-5 37
+005,SSAB,2024,ESRS E1-5 38
+005,SSAB,2024,ESRS E1-5 40-43
+005,SSAB,2024,ESRS E1-6 44
+005,SSAB,2024,ESRS E1-6 53-55
+005,SSAB,2024,ESRS E1-9 66
+005,SSAB,2024,ESRS E1-9 66a
+005,SSAB,2024,ESRS E1-9 66c
+005,SSAB,2024,ESRS E1-9 67c
+005,SSAB,2024,ESRS E1-9 69
+005,SSAB,2024,ESRS E2-4 28
+005,SSAB,2024,ESRS E3-1 9
+005,SSAB,2024,ESRS E3-1 13
+005,SSAB,2024,ESRS E3-1 14
+005,SSAB,2024,ESRS E3-4 28c
+005,SSAB,2024,ESRS E3-4 29
+005,SSAB,2024,ESRS 2 GOV-1 21d
+005,SSAB,2024,ESRS 2 GOV-1 21e
+005,SSAB,2024,ESRS 2 SBM-1 40 d ii and iii
+005,SSAB,2024,ESRS 2 SBM-1 40 d iv
+005,SSAB,2024,ESRS E1-1 14
+005,SSAB,2024,ESRS E1-1 16 g
+005,SSAB,2024,ESRS E1 SBM-3
+005,SSAB,2024,ESRS E1-4 34
+005,SSAB,2024,ESRS S3-1 16
+005,SSAB,2024,ESRS S3-1 17
+005,SSAB,2024,ESRS S4-1 16
+005,SSAB,2024,ESRS S4-1 17

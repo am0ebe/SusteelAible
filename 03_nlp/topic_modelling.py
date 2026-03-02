@@ -154,7 +154,7 @@ class PipelineState:
     state_file: str
 
     # Static config — set in notebook, persisted for convenience
-    data_folder: str = "../out"
+    data_folder: str = "../out/rag"
     output_folder: str = "../out/topics"
     embedding_model: str = "ibm-granite/granite-embedding-english-r2"
     batch_size: int = 64

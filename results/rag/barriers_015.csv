@@ -1,0 +1,349 @@
+company_id,company,year,barriers
+015,NipponSteel,2018,Global economic uncertainty and protectionism
+015,NipponSteel,2018,Shift towards self-sufficient steel markets in emerging countries
+015,NipponSteel,2018,"Rapid innovation in IT (notably, AI) affecting the steel industry"
+015,NipponSteel,2018,Growing need for lighter and stronger vehicles in the automotive sector
+015,NipponSteel,2018,Shift to electric and other new energy vehicles
+015,NipponSteel,2018,Development of self-driving vehicles
+015,NipponSteel,2018,Wider acceptance of a sharing economy
+015,NipponSteel,2018,"Increasing needs for lightweight, high-strength automobiles"
+015,NipponSteel,2018,Development of electric vehicles
+015,NipponSteel,2018,Diffusion of renewable energy
+015,NipponSteel,2018,"Establishment of safe, resilient urban infrastructure"
+015,NipponSteel,2018,"IT innovations, including AI, IoT, and big data"
+015,NipponSteel,2018,Maintenance and improvement of good living environments
+015,NipponSteel,2018,Development of hydrogen-oriented society
+015,NipponSteel,2018,Establishment of hydrogen stations and fuel cell vehicles
+015,NipponSteel,2018,Increasing demand for high-pressure hydrogen
+015,NipponSteel,2018,Development of ultra-high-tensile steel sheets for automobiles
+015,NipponSteel,2018,Growing demand for high-strength cables
+015,NipponSteel,2018,Construction of long bridges
+015,NipponSteel,2018,"Development of safe, resilient urban infrastructure"
+015,NipponSteel,2019,Changes in global population and economy.
+015,NipponSteel,2019,Expected growth in global population and economy.
+015,NipponSteel,2019,Long-term changes in needs and how we respond to them.
+015,NipponSteel,2019,Risks of demand shifts to other products and services.
+015,NipponSteel,2019,"Second, on possible changes in steel demand/supply structure."
+015,NipponSteel,2019,Decline in steel demand in Japan over the long term.
+015,NipponSteel,2019,Changes in the demand for steel due to the emergence of electric vehicles and other vehicles with a new energy source.
+015,NipponSteel,2019,"Changes in the demand for steel due to the rapid advance in IT, automakers’ growing needs for lighter vehicles, and autonomous driving."
+015,NipponSteel,2019,Changes in the demand for steel due to the pursuit of sustainable development goals.
+015,NipponSteel,2019,"Changes in the demand for steel due to the need to ""make cities and human settlements inclusive, safe, resilient and sustainable."""
+015,NipponSteel,2019,"Changes in the demand for steel due to the need to ""prevent or mitigate escalated severe natural disasters."""
+015,NipponSteel,2019,Changes in the demand for steel due to the emergence of new energy and human settlements.
+015,NipponSteel,2020,High cost of hydrogen reduction technologies
+015,NipponSteel,2020,Stringent requirements for individual companies' scenarios for Zero Carbon formulation
+015,NipponSteel,2020,Limited availability of low-cost CO2 separation and collection technologies
+015,NipponSteel,2020,Need for drastic measures to achieve zero-carbon steel production
+015,NipponSteel,2020,Complexity of establishing hydrogen infrastructure
+015,NipponSteel,2020,Difficulty in recycling waste plastics efficiently
+015,NipponSteel,2020,High cost of establishing manufacturing method of dimethyl carbonate (DMC) from CO2
+015,NipponSteel,2020,Technical challenges in zero-emission hydrogen manufacturing via artificial photosynthesis
+015,NipponSteel,2020,Limited scalability of Blue Carbon technology for CO2 fixation
+015,NipponSteel,2020,Need for innovative energy-saving technologies to contribute to significant GHG reduction
+015,NipponSteel,2020,Technical challenges in developing technologies for adaptation to climate change
+015,NipponSteel,2020,"Complexity of providing ""National Resilience"" solutions toward adapting to climate change"
+015,NipponSteel,2020,High cost of developing and diffusing Eco Products that help reduce CO2 emission when final products are used
+015,NipponSteel,2020,Difficulty in establishing a manufacturing method of dimethyl carbonate (DMC) from CO2
+015,NipponSteel,2020,Technical challenges in developing chemical absorption method technology that enables separation and collection of CO2 at low cost
+015,NipponSteel,2020,Complexity of establishing a manufacturing method of dimethyl carbonate (DMC) from CO2
+015,NipponSteel,2020,Technical challenges in developing zero-emission hydrogen manufacturing technology via artificial photosynthesis
+015,NipponSteel,2020,High cost of establishing manufacturing method of dimethyl carbonate
+015,NipponSteel,2021,High-grade electrical steel sheets for drive motors are greatly increasing in demand due to batteries.
+015,NipponSteel,2021,Development of a new production process that will promote CO2 emission reduction in manufacturing processes.
+015,NipponSteel,2021,"Breakthrough technology development, including development in unexplored areas, is needed for the establishment of zero-carbon steel technology."
+015,NipponSteel,2021,"Installation of a new next-generation hot strip mill for stable, economical mass production of high-grade steel."
+015,NipponSteel,2021,Development of materials that contribute to weight reduction due to batteries.
+015,NipponSteel,2021,High-pressure hydrogen environments pose a challenge for steel production.
+015,NipponSteel,2021,"Hydrogen brittleness, which occurs in high-pressure hydrogen gas environments, is a challenge for steel production."
+015,NipponSteel,2021,Development of a new production process that will promote CO2 emission reduction in manufacturing processes is needed.
+015,NipponSteel,2021,High-grade electrical steel sheets for electrical power saving are essential.
+015,NipponSteel,2021,"Development of zero-carbon steel technology, ahead of other countries, will be a key to determine competitiveness, profitability, and brand strength in the future steel industry."
+015,NipponSteel,2021,The need for high-grade electrical steel sheets for drive motors is greatly increasing.
+015,NipponSteel,2021,The realization of carbon neutrality will be expressed in an all-out battle involving public and private sectors of various nations.
+015,NipponSteel,2022,High cost of hydrogen
+015,NipponSteel,2022,Enormous costs associated with carbon neutrality
+015,NipponSteel,2022,Need to realize a lower hydrogen price than other industries
+015,NipponSteel,2022,Potential for hydrogen to be more expensive than other power sources
+015,NipponSteel,2022,Limited infrastructure for hydrogen supply
+015,NipponSteel,2022,"High cost of CCUS (Carbon Capture, Utilization and Storage)"
+015,NipponSteel,2022,Complexity of CCUS technology
+015,NipponSteel,2022,Limited availability of non-fossil fuels for external auxiliary fuels
+015,NipponSteel,2022,High cost of green power
+015,NipponSteel,2022,Limited availability of green power
+015,NipponSteel,2022,High cost of advanced ICT and AI technologies
+015,NipponSteel,2022,Complexity of advanced ICT and AI technologies
+015,NipponSteel,2022,Limited availability of high-function products and related design and processing technology
+015,NipponSteel,2022,Complexity of innovative process development
+015,NipponSteel,2022,Limited availability of high-alloy seamless steel pipes with high corrosion resistance
+015,NipponSteel,2022,Complexity of CCS (Carbon Capture and Storage) project in the European North Sea
+015,NipponSteel,2022,Complexity of CO2-based technologies for crude oil recovery
+015,NipponSteel,2022,"Limited availability of zero-emission fuels such as biomass, ammonia, and hydrogen"
+015,NipponSteel,2022,"Complexity of transition to a low-cost, abundant carbon-free power source"
+015,NipponSteel,2022,"Limited availability of infrastructure for a low-cost, abundant carbon-free power source"
+015,NipponSteel,2022,"Complexity of establishing a system for a low-cost, abundant carbon-free power source"
+015,NipponSteel,2022,Limited availability of diverse values and human rights issues
+015,NipponSteel,2022,Complexity of respect for human rights
+015,NipponSteel,2022,Limited availability of infrastructure for hydrogen infrastructure
+015,NipponSteel,2022,Complexity of establishing a system for hydrogen infrastructure
+015,NipponSteel,2022,Limited availability of steel for hydrogen infrastructure
+015,NipponSteel,2022,Complexity of transition to a hydrogen-oriented society
+015,NipponSteel,2022,Limited availability of high-performance steel products and solutions that contribute to reducing CO2 emissions
+015,NipponSteel,2022,Complexity of designing the future of automobiles
+015,NipponSteel,2022,Limited availability of products and solutions that contribute to reducing CO2 emissions in society as a whole
+015,NipponSteel,2022,Complexity of achieving carbon neutrality by 2050
+015,NipponSteel,2022,Limited availability of breakthrough technologies aimed at carbon neutral
+015,NipponSteel,2022,Complexity of tackling development of breakthrough technologies aimed at carbon neutral
+015,NipponSteel,2023,Improving the predictability of investment decisions for CO2 reduction.
+015,NipponSteel,2023,"Robust and comprehensive government support measures comparable to those in Europe, the U.S. and China."
+015,NipponSteel,2023,Need to develop a roadmap to realize CCUS implementation.
+015,NipponSteel,2023,"Measures to ensure equal footing to deal with increases in the operating costs of hydrogen, electricity, and raw materials."
+015,NipponSteel,2023,Transition from research and development to equipment implementation for decarbonization.
+015,NipponSteel,2023,Development of a direct hydrogen reduction reactor using low-grade iron ore from Australia and other countries as feedstock.
+015,NipponSteel,2023,Utilization of low-grade iron ore.
+015,NipponSteel,2023,Conversion of reduction material from natural gas to hydrogen.
+015,NipponSteel,2023,"High cost of hydrogen, electricity, and raw materials."
+015,NipponSteel,2023,Limited availability of low-grade iron ore.
+015,NipponSteel,2023,Complexity of CCUS implementation.
+015,NipponSteel,2023,Need for robust and continuous measures to promote public and private investment across all stages of the decarbonization transition.
+015,NipponSteel,2023,Limited predictability of investment decisions for CO2 reduction.
+015,NipponSteel,2023,"Limited availability of government support measures comparable to those in Europe, the U.S. and China."
+015,NipponSteel,2024,Potential decline in domestic demand
+015,NipponSteel,2024,"Expansion of local production by customers, qualitative improvement, and quantitative expansion of China and other competitors"
+015,NipponSteel,2024,Fluctuations in resource and energy prices and exchange rates affected by economic policies in various countries to address geopolitical and inflationary risks
+015,NipponSteel,2024,"Burden on our costs due to the CP system design cost and the movement of passing the burden of CP on to electricity charges, etc."
+015,NipponSteel,2024,Rise in energy costs
+015,NipponSteel,2024,Limited options for decarbonization in heavy emission-producing industries
+015,NipponSteel,2024,Product price increases due to the rise in energy costs
+015,NipponSteel,2024,"Excessively abnormal weather may result in suspension of operation, etc."
+015,NipponSteel,2024,Limited assumed risk in securing stable procurement of raw materials by taking the following measures: Diversity & Inclusion Material sourcing from multiple regions in the world Keeping raw material inventories in steelworks and ships
+015,NipponSteel,2025,Predictability of investment returns for carbon neutrality investments
+015,NipponSteel,2025,Societal consensus on cost-sharing for carbon neutrality investments
+015,NipponSteel,2025,Government support for carbon neutrality investments
+015,NipponSteel,2025,Development of a GX Steel market
+015,NipponSteel,2025,Institutional designs and regulations that hinder carbon neutrality initiatives
+015,NipponSteel,2025,Complexity of decarbonizing steel production processes
+015,NipponSteel,2025,High costs associated with decarbonizing steel production processes
+015,NipponSteel,2025,Limited availability of low-carbon fuels such as hydrogen and biomass
+015,NipponSteel,2025,Technical challenges in implementing hydrogen injection into blast furnaces
+015,NipponSteel,2025,Need for significant investments in research and development to achieve carbon neutrality
+015,NipponSteel,2025,Difficulty in scaling up decarbonization technologies to meet global demand
+015,NipponSteel,2025,Limited predictability of future carbon pricing and regulations
+015,NipponSteel,2025,Uncertainty around the development of a global carbon market
+015,NipponSteel,2025,"Complexity of integrating carbon capture, utilization, and storage (CCUS) technologies into steel production processes"
+015,NipponSteel,2025,Limited availability of CCUS technologies and expertise
+015,NipponSteel,2025,High costs associated with CCUS technologies and implementation
+015,NipponSteel,2025,Difficulty in achieving economies of scale with CCUS technologies
+015,NipponSteel,2025,Limited availability of low-carbon electricity for power generation
+015,NipponSteel,2025,High costs associated with purchasing decarbonized electric power from external sources
+015,NipponSteel,2025,Difficulty in achieving stable and reliable supply of low-carbon fuels
+015,NipponSteel,2025,Limited availability of digital transformation technologies and expertise
+015,NipponSteel,2025,High costs associated with implementing digital transformation strategies
+015,NipponSteel,2025,Difficulty in achieving efficiency enhancements through digital transformation
+015,NipponSteel,2025,Limited availability of data and analytics to support digital transformation
+015,NipponSteel,2025,Difficulty in achieving cultural and organizational changes to support digital transformation
+015,NipponSteel,2025,Limited availability of talent and skills to support digital transformation
+015,NipponSteel,2025,High costs associated with training and developing talent and skills
+015,NipponSteel,2025,Difficulty in achieving business model changes to support digital transformation
+015,NipponSteel,2025,Limited availability of low-carbon materials and technologies
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon materials and technologies
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon materials and technologies
+015,NipponSteel,2025,Limited availability of low-carbon supply chain options
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon supply chain options
+015,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon supply chains
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon products
+015,NipponSteel,2025,Limited availability of low-carbon product design and development expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon product design and development
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon product design and development
+015,NipponSteel,2025,Limited availability of low-carbon manufacturing and production expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon manufacturing and production
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon manufacturing and production
+015,NipponSteel,2025,Limited availability of low-carbon logistics and transportation options
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon logistics and transportation
+015,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon logistics and transportation
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for logistics and transportation
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for logistics and transportation
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon logistics and transportation services
+015,NipponSteel,2025,Limited availability of low-carbon product take-back and recycling options
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon product take-back and recycling
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon product take-back and recycling
+015,NipponSteel,2025,Limited availability of low-carbon waste management and disposal options
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon waste management and disposal
+015,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon waste management and disposal
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for waste management and disposal
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for waste management and disposal
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon waste management and disposal services
+015,NipponSteel,2025,Limited availability of low-carbon research and development funding
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon research and development projects
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon research and development
+015,NipponSteel,2025,Limited availability of low-carbon talent and skills
+015,NipponSteel,2025,High costs associated with training and developing low-carbon talent and skills
+015,NipponSteel,2025,Difficulty in achieving business model changes to support low-carbon research and development
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for research and development
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for research and development
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon research and development services
+015,NipponSteel,2025,Limited availability of low-carbon policy and regulatory frameworks
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon policy and regulatory frameworks
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon policy and regulatory frameworks
+015,NipponSteel,2025,Limited availability of low-carbon international cooperation and collaboration
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon international cooperation and collaboration
+015,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon international cooperation and collaboration
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for international cooperation and collaboration
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for international cooperation and collaboration
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon international cooperation and collaboration services
+015,NipponSteel,2025,Limited availability of low-carbon education and training programs
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon education and training programs
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon education and training programs
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for education and training
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for education and training
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon education and training services
+015,NipponSteel,2025,Limited availability of low-carbon public awareness and engagement programs
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon public awareness and engagement programs
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon public awareness and engagement programs
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for public awareness and engagement
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for public awareness and engagement
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon public awareness and engagement services
+015,NipponSteel,2025,Limited availability of low-carbon media and communication channels
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon media and communication channels
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon media and communication channels
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for media and communication
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for media and communication
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon media and communication services
+015,NipponSteel,2025,Limited availability of low-carbon data and analytics tools
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon data and analytics tools
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon data and analytics tools
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for data and analytics
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for data and analytics
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon data and analytics services
+015,NipponSteel,2025,Limited availability of low-carbon artificial intelligence and machine learning expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon artificial intelligence and machine learning
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon artificial intelligence and machine learning
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for artificial intelligence and machine learning
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for artificial intelligence and machine learning
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon artificial intelligence and machine learning services
+015,NipponSteel,2025,Limited availability of low-carbon blockchain and distributed ledger technology expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon blockchain and distributed ledger technology
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon blockchain and distributed ledger technology
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for blockchain and distributed ledger technology
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for blockchain and distributed ledger technology
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon blockchain and distributed ledger technology services
+015,NipponSteel,2025,Limited availability of low-carbon cybersecurity expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon cybersecurity
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cybersecurity
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cybersecurity
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cybersecurity
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cybersecurity services
+015,NipponSteel,2025,Limited availability of low-carbon digital identity and authentication expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon digital identity and authentication
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon digital identity and authentication
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for digital identity and authentication
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for digital identity and authentication
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon digital identity and authentication services
+015,NipponSteel,2025,Limited availability of low-carbon IoT and sensor expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon IoT and sensor technology
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon IoT and sensor technology
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for IoT and sensor technology
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for IoT and sensor technology
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon IoT and sensor services
+015,NipponSteel,2025,Limited availability of low-carbon robotics and automation expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon robotics and automation
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon robotics and automation
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for robotics and automation
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for robotics and automation
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon robotics and automation services
+015,NipponSteel,2025,Limited availability of low-carbon 5G and telecommunications expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon 5G and telecommunications
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon 5G and telecommunications
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for 5G and telecommunications
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for 5G and telecommunications
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon 5G and telecommunications services
+015,NipponSteel,2025,Limited availability of low-carbon cloud computing expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon cloud computing
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cloud computing
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cloud computing
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cloud computing
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cloud computing services
+015,NipponSteel,2025,Limited availability of low-carbon data centers and infrastructure expertise
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon cybersecurity for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon cybersecurity for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cybersecurity for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cybersecurity for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon digital identity and authentication for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon digital identity and authentication for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon digital identity and authentication for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon digital identity and authentication for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon IoT and sensor technology for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon IoT and sensor technology for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon IoT and sensor technology for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon IoT and sensor technology for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon robotics and automation for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon robotics and automation for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon robotics and automation for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon robotics and automation for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon 5G and telecommunications for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon 5G and telecommunications for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon 5G and telecommunications for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon 5G and telecommunications for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon cloud computing for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon cloud computing for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cloud computing for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cloud computing for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cloud computing for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cloud computing for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon data centers and infrastructure for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure services
+015,NipponSteel,2025,Limited availability of low-carbon cloud computing for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,High costs associated with developing and implementing low-carbon cloud computing for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cloud computing for data centers and infrastructure for data centers and infrastructure
+015,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for

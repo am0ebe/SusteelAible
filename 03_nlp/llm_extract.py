@@ -72,7 +72,7 @@ class RagConfig:
     # Pipeline
     use_bert_cache: bool = True
     cache_dir: str = "../cache"
-    output_folder: str = "../out"
+    output_folder: str = "../out/rag"
     # Auto-calculated from ctx (chunks per LLM call)
     batch_size: Optional[int] = None
     min_detector_score: float = 0.0

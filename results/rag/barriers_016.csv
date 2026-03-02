@@ -1,0 +1,391 @@
+company_id,company,year,barriers
+016,Baosteel,2018,Strict coal consumption constraint
+016,Baosteel,2021,risk of implementing carbon peaking and carbon neutrality
+016,Baosteel,2021,technology risks
+016,Baosteel,2021,carbon trading cost risks
+016,Baosteel,2021,adjustment of energy utilization structure risks
+016,Baosteel,2021,product substitution risks
+016,Baosteel,2021,risk of effectively dealing with risks
+016,Baosteel,2021,risk of preventing major risks
+016,Baosteel,2021,risks in implementing low-carbon process throughout the whole process
+016,Baosteel,2021,"risks in key and core technologies in high-efficiency converter smelting, direct rolling of plate blanks, fully continuous endless rolling of hot rolling, etc."
+016,Baosteel,2022,High cost of hydrogen production and storage
+016,Baosteel,2022,Technical challenges in scaling up hydrogen-assisted shaft furnace system
+016,Baosteel,2022,Limited availability and high cost of hydrogen resources
+016,Baosteel,2022,Complexity of integrating hydrogen technology into existing production processes
+016,Baosteel,2022,Risk of hydrogen supply chain disruptions
+016,Baosteel,2022,Difficulty in achieving economies of scale for hydrogen production
+016,Baosteel,2022,High upfront investment costs for hydrogen-assisted shaft furnace system
+016,Baosteel,2022,Limited experience and expertise in hydrogen metallurgy technology
+016,Baosteel,2022,Complexity of recycling and utilizing hydrogen byproducts
+016,Baosteel,2022,Potential for hydrogen to be used as a transitional fuel rather than a long-term solution
+016,Baosteel,2022,Dependence on government policies and incentives for hydrogen adoption
+016,Baosteel,2022,Limited public awareness and acceptance of hydrogen technology
+016,Baosteel,2022,Complexity of hydrogen storage and transportation infrastructure
+016,Baosteel,2022,High energy requirements for hydrogen production and processing
+016,Baosteel,2022,"Potential for hydrogen to be used in non-industrial applications, reducing its availability for industrial use"
+016,Baosteel,2022,Complexity of integrating hydrogen with existing energy systems
+016,Baosteel,2022,Limited research and development in hydrogen metallurgy technology
+016,Baosteel,2022,High costs associated with hydrogen production and transportation
+016,Baosteel,2022,Complexity of hydrogen safety and handling procedures
+016,Baosteel,2022,Limited availability of skilled labor for hydrogen technology implementation
+016,Baosteel,2022,Complexity of hydrogen compatibility with existing equipment and infrastructure
+016,Baosteel,2022,High costs associated with hydrogen storage and transportation infrastructure
+016,Baosteel,2022,Limited public understanding of hydrogen benefits and risks
+016,Baosteel,2022,Complexity of hydrogen regulation and standardization
+016,Baosteel,2022,Limited availability of hydrogen production and processing technologies
+016,Baosteel,2022,Complexity of hydrogen supply chain management
+016,Baosteel,2022,High costs associated with hydrogen production and processing equipment
+016,Baosteel,2022,Limited experience with hydrogen-assisted shaft furnace system operation and maintenance
+016,Baosteel,2022,Complexity of hydrogen integration with existing production processes and systems
+016,Baosteel,2022,Limited availability of hydrogen resources in certain regions
+016,Baosteel,2022,Complexity of hydrogen production and processing from non-traditional sources
+016,Baosteel,2022,High costs associated with hydrogen production and processing from non-traditional sources
+016,Baosteel,2022,Limited research and development in hydrogen production and processing from non-traditional sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from renewable energy sources
+016,Baosteel,2022,Limited availability of renewable energy sources for hydrogen production
+016,Baosteel,2022,Complexity of integrating renewable energy sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from renewable energy sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from waste biomass
+016,Baosteel,2022,Limited availability of waste biomass resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating waste biomass with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from waste biomass
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste
+016,Baosteel,2022,Limited availability of municipal solid waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal solid waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste
+016,Baosteel,2022,Limited availability of industrial waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste
+016,Baosteel,2022,Limited availability of agricultural waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from algae
+016,Baosteel,2022,Limited availability of algae resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating algae with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from algae
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater
+016,Baosteel,2022,Limited availability of wastewater resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial wastewater
+016,Baosteel,2022,Limited availability of industrial wastewater resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial wastewater with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial wastewater
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal wastewater
+016,Baosteel,2022,Limited availability of municipal wastewater resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal wastewater with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal wastewater
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural wastewater
+016,Baosteel,2022,Limited availability of agricultural wastewater resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural wastewater with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural wastewater
+016,Baosteel,2022,Complexity of hydrogen production and processing from food waste
+016,Baosteel,2022,Limited availability of food waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating food waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from food waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from textile waste
+016,Baosteel,2022,Limited availability of textile waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating textile waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from textile waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from plastic waste
+016,Baosteel,2022,Limited availability of plastic waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating plastic waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from plastic waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from construction waste
+016,Baosteel,2022,Limited availability of construction waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating construction waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from construction waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from electronic waste
+016,Baosteel,2022,Limited availability of electronic waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating electronic waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from electronic waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from hazardous waste
+016,Baosteel,2022,Limited availability of hazardous waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating hazardous waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from hazardous waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from medical waste
+016,Baosteel,2022,Limited availability of medical waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating medical waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from medical waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from nuclear waste
+016,Baosteel,2022,Limited availability of nuclear waste resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating nuclear waste with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from nuclear waste
+016,Baosteel,2022,Complexity of hydrogen production and processing from coal ash
+016,Baosteel,2022,Limited availability of coal ash resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating coal ash with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from coal ash
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste ash
+016,Baosteel,2022,Limited availability of municipal solid waste ash resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal solid waste ash with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste ash
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste ash
+016,Baosteel,2022,Limited availability of industrial waste ash resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial waste ash with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste ash
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste ash
+016,Baosteel,2022,Limited availability of agricultural waste ash resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural waste ash with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste ash
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater sludge
+016,Baosteel,2022,Limited availability of wastewater sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial wastewater sludge
+016,Baosteel,2022,Limited availability of industrial wastewater sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial wastewater sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial wastewater sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal wastewater sludge
+016,Baosteel,2022,Limited availability of municipal wastewater sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal wastewater sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal wastewater sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural wastewater sludge
+016,Baosteel,2022,Limited availability of agricultural wastewater sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural wastewater sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural wastewater sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from food waste sludge
+016,Baosteel,2022,Limited availability of food waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating food waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from food waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from textile waste sludge
+016,Baosteel,2022,Limited availability of textile waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating textile waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from textile waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from plastic waste sludge
+016,Baosteel,2022,Limited availability of plastic waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating plastic waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from plastic waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from construction waste sludge
+016,Baosteel,2022,Limited availability of construction waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating construction waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from construction waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from electronic waste sludge
+016,Baosteel,2022,Limited availability of electronic waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating electronic waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from electronic waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from hazardous waste sludge
+016,Baosteel,2022,Limited availability of hazardous waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating hazardous waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from hazardous waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from medical waste sludge
+016,Baosteel,2022,Limited availability of medical waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating medical waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from medical waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from nuclear waste sludge
+016,Baosteel,2022,Limited availability of nuclear waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating nuclear waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from nuclear waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from coal ash sludge
+016,Baosteel,2022,Limited availability of coal ash sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating coal ash sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from coal ash sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste sludge
+016,Baosteel,2022,Limited availability of municipal solid waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal solid waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste sludge
+016,Baosteel,2022,Limited availability of industrial waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste sludge
+016,Baosteel,2022,Limited availability of agricultural waste sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural waste sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial wastewater treatment plant sludge
+016,Baosteel,2022,Limited availability of industrial wastewater treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial wastewater treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial wastewater treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal wastewater treatment plant sludge
+016,Baosteel,2022,Limited availability of municipal wastewater treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal wastewater treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal wastewater treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural wastewater treatment plant sludge
+016,Baosteel,2022,Limited availability of agricultural wastewater treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural wastewater treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural wastewater treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from food waste treatment plant sludge
+016,Baosteel,2022,Limited availability of food waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating food waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from food waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from textile waste treatment plant sludge
+016,Baosteel,2022,Limited availability of textile waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating textile waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from textile waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from plastic waste treatment plant sludge
+016,Baosteel,2022,Limited availability of plastic waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating plastic waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from plastic waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from construction waste treatment plant sludge
+016,Baosteel,2022,Limited availability of construction waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating construction waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from construction waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from electronic waste treatment plant sludge
+016,Baosteel,2022,Limited availability of electronic waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating electronic waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from electronic waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from hazardous waste treatment plant sludge
+016,Baosteel,2022,Limited availability of hazardous waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating hazardous waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from hazardous waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from medical waste treatment plant sludge
+016,Baosteel,2022,Limited availability of medical waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating medical waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from medical waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from nuclear waste treatment plant sludge
+016,Baosteel,2022,Limited availability of nuclear waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating nuclear waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from nuclear waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from coal ash treatment plant sludge
+016,Baosteel,2022,Limited availability of coal ash treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating coal ash treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from coal ash treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste treatment plant sludge
+016,Baosteel,2022,Limited availability of municipal solid waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating municipal solid waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste treatment plant sludge
+016,Baosteel,2022,Limited availability of industrial waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating industrial waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste treatment plant sludge
+016,Baosteel,2022,Limited availability of agricultural waste treatment plant sludge resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating agricultural waste treatment plant sludge with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste treatment plant sludge
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from industrial sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from industrial sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from industrial sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from industrial sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from municipal sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from municipal sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from municipal sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from municipal sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from agricultural sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from agricultural sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from agricultural sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from agricultural sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from food waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from food waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from food waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from food waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from textile waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from textile waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from textile waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from textile waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from plastic waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from plastic waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from plastic waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from plastic waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from construction waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from construction waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from construction waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from construction waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from electronic waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from electronic waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from electronic waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from electronic waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from hazardous waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from hazardous waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from hazardous waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from hazardous waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from medical waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from medical waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from medical waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from medical waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from nuclear waste sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from nuclear waste sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from nuclear waste sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from nuclear waste sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from coal ash sources
+016,Baosteel,2022,Limited availability of wastewater treatment plant sludge from coal ash sources resources for hydrogen production
+016,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from coal ash sources with existing energy systems
+016,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from coal ash sources
+016,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from municipal solid waste sources
+016,Baosteel,2022,Limited availability of wastewater
+016,Baosteel,2023,High costs associated with decarbonisation technologies and infrastructure.
+016,Baosteel,2023,Complexity and uncertainty of transitioning to low-carbon production processes.
+016,Baosteel,2023,Limited availability and high costs of low-carbon raw materials.
+016,Baosteel,2023,Dependence on fossil fuels for certain production processes.
+016,Baosteel,2023,Technical challenges in implementing carbon capture and storage (CCS) technologies.
+016,Baosteel,2023,Regulatory and policy uncertainty affecting the transition to a low-carbon economy.
+016,Baosteel,2023,Limited public acceptance of new low-carbon technologies and infrastructure.
+016,Baosteel,2023,High upfront costs of investing in renewable energy and low-carbon technologies.
+016,Baosteel,2023,Complexity of integrating low-carbon technologies into existing production processes.
+016,Baosteel,2023,Limited availability of skilled workers with expertise in low-carbon technologies.
+016,Baosteel,2023,High costs of decommissioning and repurposing existing fossil fuel-based infrastructure.
+016,Baosteel,2023,Limited availability of low-carbon transportation options for raw materials and products.
+016,Baosteel,2023,Complexity of managing supply chain emissions and transitioning suppliers to low-carbon practices.
+016,Baosteel,2023,Limited availability of low-carbon energy sources in certain regions.
+016,Baosteel,2023,High costs of implementing and maintaining a low-carbon supply chain.
+016,Baosteel,2023,Complexity of measuring and reporting on Scope 3 emissions.
+016,Baosteel,2023,Limited availability of low-carbon technologies for certain industrial processes.
+016,Baosteel,2023,High costs of implementing and maintaining carbon offsetting programs.
+016,Baosteel,2023,Complexity of managing carbon credits and offsetting schemes.
+016,Baosteel,2023,Limited availability of low-carbon financing options for industrial projects.
+016,Baosteel,2023,Complexity of integrating low-carbon technologies into existing business models.
+016,Baosteel,2023,Limited availability of low-carbon data and analytics tools for decision-making.
+016,Baosteel,2023,High costs of implementing and maintaining a low-carbon data management system.
+016,Baosteel,2023,Complexity of managing low-carbon data and analytics across the supply chain.
+016,Baosteel,2023,Limited availability of low-carbon standards and certifications for products and services.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon standards and certifications.
+016,Baosteel,2023,Limited availability of low-carbon training and education programs for workers.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon training and education programs.
+016,Baosteel,2023,Limited availability of low-carbon research and development funding for industrial projects.
+016,Baosteel,2023,Complexity of managing low-carbon research and development partnerships with academia and industry.
+016,Baosteel,2023,Limited availability of low-carbon policy and regulatory frameworks for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon policy and regulatory frameworks.
+016,Baosteel,2023,Limited availability of low-carbon public awareness and education campaigns.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon public awareness and education campaigns.
+016,Baosteel,2023,Limited availability of low-carbon community engagement and outreach programs.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon community engagement and outreach programs.
+016,Baosteel,2023,Limited availability of low-carbon stakeholder engagement and consultation processes.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon stakeholder engagement and consultation processes.
+016,Baosteel,2023,Limited availability of low-carbon reporting and disclosure frameworks for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon reporting and disclosure frameworks.
+016,Baosteel,2023,Limited availability of low-carbon certification and labeling schemes for products and services.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon certification and labeling schemes.
+016,Baosteel,2023,Limited availability of low-carbon industry standards and best practices for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon industry standards and best practices.
+016,Baosteel,2023,Limited availability of low-carbon technology transfer and collaboration mechanisms for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon technology transfer and collaboration mechanisms.
+016,Baosteel,2023,Limited availability of low-carbon intellectual property protection mechanisms for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon intellectual property protection mechanisms.
+016,Baosteel,2023,Limited availability of low-carbon trade policies and agreements for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon trade policies and agreements.
+016,Baosteel,2023,Limited availability of low-carbon international cooperation and collaboration mechanisms for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon international cooperation and collaboration mechanisms.
+016,Baosteel,2023,Limited availability of low-carbon climate change adaptation and resilience financing options for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change adaptation and resilience financing options.
+016,Baosteel,2023,Limited availability of low-carbon climate change mitigation financing options for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change mitigation financing options.
+016,Baosteel,2023,Limited availability of low-carbon climate change research and development funding for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change research and development funding.
+016,Baosteel,2023,Limited availability of low-carbon climate change policy and regulatory frameworks for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change policy and regulatory frameworks.
+016,Baosteel,2023,Limited availability of low-carbon climate change public awareness and education campaigns for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change public awareness and education campaigns.
+016,Baosteel,2023,Limited availability of low-carbon climate change community engagement and outreach programs for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change community engagement and outreach programs.
+016,Baosteel,2023,Limited availability of low-carbon climate change stakeholder engagement and consultation processes for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change stakeholder engagement and consultation processes.
+016,Baosteel,2023,Limited availability of low-carbon climate change reporting and disclosure frameworks for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change reporting and disclosure frameworks.
+016,Baosteel,2023,Limited availability of low-carbon climate change certification and labeling schemes for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change certification and labeling schemes.
+016,Baosteel,2023,Limited availability of low-carbon climate change industry standards and best practices for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change industry standards and best practices.
+016,Baosteel,2023,Limited availability of low-carbon climate change technology transfer and collaboration mechanisms for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change technology transfer and collaboration mechanisms.
+016,Baosteel,2023,Limited availability of low-carbon climate change intellectual property protection mechanisms for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change intellectual property protection mechanisms.
+016,Baosteel,2023,Limited availability of low-carbon climate change trade policies and agreements for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change trade policies and agreements.
+016,Baosteel,2023,Limited availability of low-carbon climate change international cooperation and collaboration mechanisms for industrial projects.
+016,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change international cooperation and collaboration mechanisms.
+016,Baosteel,2023,Complexity of implementing and maintaining
