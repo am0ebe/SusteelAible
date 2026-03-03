@@ -14,10 +14,6 @@ __pycache__
 .python-version
 susteelaible.egg-info
 
-# topic model artifacts (large — regenerate via run_all.ipynb)
-*_model
-*_embeddings.npy
-
 # misc
 .env
 vector_db
