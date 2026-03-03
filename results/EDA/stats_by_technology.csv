@@ -1,0 +1,4 @@
+technology,count,mean,median,std,min,max
+BF-BOF,63,1.737,1.765,0.258,1.383,2.541
+EAF,22,0.1,0.091,0.02,0.08,0.131
+EAF Stainless,18,0.439,0.43,0.053,0.352,0.531
