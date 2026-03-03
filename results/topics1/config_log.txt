@@ -1,0 +1,58 @@
+============================================================
+Topic Modeling Pipeline Run
+Timestamp: 2026-03-02 15:12:56
+Duration: 197.3s
+============================================================
+
+Embedding:
+  model: ibm-granite/granite-embedding-english-r2
+  batch_size: 64
+
+UMAP (clustering):
+  n_neighbors: 15
+  n_components: 30
+  min_dist: 0.05
+  metric: cosine
+  random_state: 42
+
+HDBSCAN:
+  min_cluster_size: 20
+  min_samples: 3
+  metric: euclidean
+  cluster_selection_method: eom
+
+Vectorizer:
+  ngram_range: (1, 2)
+  min_df: 2
+  max_df: 0.92
+
+Representation:
+  mmr_diversity: 0.4
+  top_n_words: 10
+
+BERTopic:
+  nr_topics: None
+  reduce_outliers: True (embeddings)
+  calculate_probabilities: False
+
+Visualization UMAP:
+  n_neighbors: 5
+  n_components: 2
+  min_dist: 0.0
+
+LLM:
+  provider: groq
+  model: llama-3.1-8b-instant
+  temperature: 0.0
+
+Results — barriers:
+  topics: 26
+  documents: 1636
+  outliers: 167 (10.2%)
+
+Results — motivators:
+  topics: 19
+  documents: 1227
+  outliers: 250 (20.4%)
+
+============================================================

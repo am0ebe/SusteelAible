@@ -1,8 +1,3 @@
-# notes
-*.md
-!README.md
-!CLAUDE.md
-
 # dirs
 out
 output
@@ -19,9 +14,12 @@ __pycache__
 .python-version
 susteelaible.egg-info
 
+# topic model artifacts (large — regenerate via run_all.ipynb)
+*_model
+*_embeddings.npy
+
 # misc
 .env
-.venv
 vector_db
 .DS_Store
 

@@ -1,0 +1,1699 @@
+company_id,company,year,barriers,topic
+5,SSAB,2018,Financial implications due to climate change,1
+5,SSAB,2018,Other risks due to climate change,1
+5,SSAB,2018,High energy intensity,6
+5,SSAB,2018,Difficulty in reducing energy consumption,6
+5,SSAB,2018,Limited availability of recycled input materials,2
+5,SSAB,2018,Limited availability of information on disposal methods for waste,-1
+5,SSAB,2019,Financial implications due to climate change,1
+5,SSAB,2019,Other risks due to climate change,1
+5,SSAB,2019,Opportunities due to climate change,1
+5,SSAB,2019,Anti-corruption policies and procedures communication and training,0
+5,SSAB,2019,Anti-corruption policies and procedures effectiveness,0
+5,SSAB,2019,Limited availability of recycled input materials data,2
+5,SSAB,2019,Limited availability of information on disposal methods at a group level,-1
+5,SSAB,2019,Limited availability of information on disposal methods due to reporting development,-1
+5,SSAB,2019,Limited availability of information on energy consumption intensity,6
+5,SSAB,2019,Limited availability of information on energy reduction,6
+5,SSAB,2019,Limited availability of information on water withdrawal by source,0
+5,SSAB,2019,Limited availability of information on direct GHG emissions,16
+5,SSAB,2019,Limited availability of information on indirect (Scope 2) GHG emissions,16
+5,SSAB,2019,Limited availability of information on indirect (Scope 3) GHG emissions,16
+5,SSAB,2019,Limited availability of information on GHG emissions intensity,16
+5,SSAB,2019,Limited availability of information on GHG emissions reduction,16
+5,SSAB,2019,Limited availability of information on nitrogen oxides (NO X ) and sulfur oxides (SO X ) emissions,16
+5,SSAB,2019,Limited availability of information on other significant air emissions,16
+5,SSAB,2020,High production costs of fossil-free steel,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies,0
+5,SSAB,2020,High upfront investment costs for new production technologies,0
+5,SSAB,2020,Limited scalability of current low-carbon steel production methods,0
+5,SSAB,2020,High costs of raw materials for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon energy sources,4
+5,SSAB,2020,High costs of carbon capture and storage technologies,8
+5,SSAB,2020,Limited public acceptance of new low-carbon steel production technologies,15
+5,SSAB,2020,High costs of recycling and reusing steel,0
+5,SSAB,2020,Limited availability of low-carbon steel recycling technologies,0
+5,SSAB,2020,High costs of implementing new production processes,0
+5,SSAB,2020,Limited availability of skilled labor for low-carbon steel production,0
+5,SSAB,2020,High costs of research and development for new low-carbon steel technologies,0
+5,SSAB,2020,Limited availability of funding for low-carbon steel production projects,0
+5,SSAB,2020,High costs of implementing new regulations and standards for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production data and metrics,0
+5,SSAB,2020,High costs of monitoring and reporting on low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production standards and certifications,0
+5,SSAB,2020,High costs of ensuring supply chain transparency and accountability for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production certifications and labels,0
+5,SSAB,2020,High costs of implementing new supply chain management systems for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production data and analytics tools,0
+5,SSAB,2020,High costs of ensuring compliance with low-carbon steel production regulations and standards,0
+5,SSAB,2020,Limited availability of low-carbon steel production training and education programs,0
+5,SSAB,2020,High costs of implementing new low-carbon steel production technologies in existing production facilities,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that are compatible with existing production equipment,0
+5,SSAB,2020,High costs of ensuring the quality and consistency of low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can produce high-quality steel,0
+5,SSAB,2020,High costs of implementing new quality control measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can produce steel with consistent properties,0
+5,SSAB,2020,High costs of ensuring the safety and health of workers in low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce worker exposure to hazardous materials,0
+5,SSAB,2020,High costs of implementing new safety and health measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce energy consumption,0
+5,SSAB,2020,High costs of implementing new energy efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water consumption,0
+5,SSAB,2020,High costs of implementing new water efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce waste generation,0
+5,SSAB,2020,High costs of implementing new waste reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce greenhouse gas emissions,0
+5,SSAB,2020,High costs of implementing new greenhouse gas reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce air pollution,0
+5,SSAB,2020,High costs of implementing new air pollution reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce noise pollution,0
+5,SSAB,2020,High costs of implementing new noise pollution reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce soil pollution,0
+5,SSAB,2020,High costs of implementing new soil pollution reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water pollution,0
+5,SSAB,2020,High costs of implementing new water pollution reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce land pollution,0
+5,SSAB,2020,High costs of implementing new land pollution reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce waste disposal costs,0
+5,SSAB,2020,High costs of implementing new waste disposal measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce energy costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce raw material costs,0
+5,SSAB,2020,High costs of implementing new raw material efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce labor costs,0
+5,SSAB,2020,High costs of implementing new labor efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce maintenance costs,0
+5,SSAB,2020,High costs of implementing new maintenance efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce downtime costs,0
+5,SSAB,2020,High costs of implementing new downtime reduction measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce production costs,0
+5,SSAB,2020,High costs of implementing new production efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce transportation costs,0
+5,SSAB,2020,High costs of implementing new transportation efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce storage costs,0
+5,SSAB,2020,High costs of implementing new storage efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce handling costs,0
+5,SSAB,2020,High costs of implementing new handling efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce packaging costs,0
+5,SSAB,2020,High costs of implementing new packaging efficiency measures for low-carbon steel production,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce waste generation costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce energy consumption costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water consumption costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce greenhouse gas emissions costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce air pollution costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce noise pollution costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce soil pollution costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce water pollution costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that can reduce land pollution costs,0
+5,SSAB,2020,Limited availability of low-carbon steel production technologies that,0
+5,SSAB,2021,Involvement in many research projects on technological developments,0
+5,SSAB,2021,"Climate change, reducing CO 2 emissions and other environmental impacts",-1
+5,SSAB,2021,"Reducing emissions, noise and other inconveniences",1
+5,SSAB,2021,"Engagement and meetings with representatives (politicians, regulators, general public, media) and people living close to the production sites",11
+5,SSAB,2021,Open communication and interaction,11
+5,SSAB,2021,Open communication and active engagement,11
+5,SSAB,2021,Collaboration with industry associations,-1
+5,SSAB,2021,Strengthening governance around corporate climate lobbying,0
+5,SSAB,2021,Developing assessment of member associations,-1
+5,SSAB,2021,Developing procedure on action where industry associations and/or other member organizations are not aligned with the Paris Agreement's goals or own objectives,-1
+5,SSAB,2024,ESRS E1-5 37,-1
+5,SSAB,2024,ESRS E1-5 38,-1
+5,SSAB,2024,ESRS E1-5 40-43,-1
+5,SSAB,2024,ESRS E1-6 44,-1
+5,SSAB,2024,ESRS E1-6 53-55,-1
+5,SSAB,2024,ESRS E1-9 66,-1
+5,SSAB,2024,ESRS E1-9 66a,-1
+5,SSAB,2024,ESRS E1-9 66c,-1
+5,SSAB,2024,ESRS E1-9 67c,-1
+5,SSAB,2024,ESRS E1-9 69,-1
+5,SSAB,2024,ESRS E2-4 28,-1
+5,SSAB,2024,ESRS E3-1 9,-1
+5,SSAB,2024,ESRS E3-1 13,-1
+5,SSAB,2024,ESRS E3-1 14,-1
+5,SSAB,2024,ESRS E3-4 28c,-1
+5,SSAB,2024,ESRS E3-4 29,-1
+5,SSAB,2024,ESRS 2 GOV-1 21d,-1
+5,SSAB,2024,ESRS 2 GOV-1 21e,-1
+5,SSAB,2024,ESRS 2 SBM-1 40 d ii and iii,-1
+5,SSAB,2024,ESRS 2 SBM-1 40 d iv,-1
+5,SSAB,2024,ESRS E1-1 14,-1
+5,SSAB,2024,ESRS E1-1 16 g,-1
+5,SSAB,2024,ESRS E1 SBM-3,-1
+5,SSAB,2024,ESRS E1-4 34,-1
+5,SSAB,2024,ESRS S3-1 16,-1
+5,SSAB,2024,ESRS S3-1 17,-1
+5,SSAB,2024,ESRS S4-1 16,-1
+5,SSAB,2024,ESRS S4-1 17,-1
+1,ArcelorMittal,2014,"Geo-political realities driving energy policy and supplies, including regulations relating to carbon emissions.",4
+1,ArcelorMittal,2014,Pipeline of talented scientists and engineers for tomorrow.,10
+1,ArcelorMittal,2014,Transparency in governance.,0
+1,ArcelorMittal,2014,"Human rights policy and commitments to workforce, local communities, and business partners.",0
+1,ArcelorMittal,2014,Energy usage and costs.,6
+1,ArcelorMittal,2014,Supply chains that our customers trust.,0
+1,ArcelorMittal,2014,Stakeholder expectations and long-term global sustainability trends.,-1
+1,ArcelorMittal,2014,"Infrastructure, such as deep-water port facilities, railway sidings, and engineering workshops.",0
+1,ArcelorMittal,2014,Cyclicality of the steel industry and raw materials prices.,0
+1,ArcelorMittal,2014,Market needs and customer requirements.,1
+1,ArcelorMittal,2014,Higher value-added products in our product mix.,1
+1,ArcelorMittal,2014,Downstream integration and operational efficiencies.,-1
+1,ArcelorMittal,2015,Breakthrough technologies may take more than a decade to develop and implement.,0
+1,ArcelorMittal,2015,The economics of breakthrough technologies need to be right for their adoption to become a reality.,0
+1,ArcelorMittal,2015,Policy frameworks need to be in place to ensure the commercial viability of breakthrough technologies.,0
+1,ArcelorMittal,2015,Emerging policies in Europe will not facilitate industry's contribution to climate change and economic growth.,0
+1,ArcelorMittal,2015,A regional carbon pricing system will not reduce global carbon emissions due to 'carbon leakage'.,14
+1,ArcelorMittal,2015,A globally consistent carbon pricing system is needed to drive a reduction in CO2 from steel production.,0
+1,ArcelorMittal,2019,No mechanism to address high risk of steel production being structurally uncompetitive in affected countries/regions,0
+1,ArcelorMittal,2019,Marginal steel CO 2 reductions globally as production shifts to less carbon-regulated jurisdictions,0
+1,ArcelorMittal,2019,Limited progress towards goals of Paris Agreement,-1
+1,ArcelorMittal,2019,"Countries and regions that introduce a cost of CO 2 emissions, but with neither supportive energy policies nor effective mechanisms to maintain the competitiveness of low-emissions versus higher-emissions steel, will fail to decarbonise their steel",0
+1,ArcelorMittal,2019,"Without effective mechanisms to offset the structurally higher operating costs of deploying low-emissions technologies, and affordable access to the clean energy they need, the steel industry will be unable to make the necessary shift needed to meet the goals of the Paris Agreement",0
+1,ArcelorMittal,2019,"Scrap, unfortunately, is not a sufficient answer as there is not enough scrap available in the world to simply make all steel through the electric arc furnace process",0
+1,ArcelorMittal,2020,High carbon footprint associated with steelmaking,0
+1,ArcelorMittal,2020,Comparative disadvantage of steel in terms of carbon footprint compared to other materials,0
+1,ArcelorMittal,2020,Challenge of the transition to a low-carbon economy,-1
+1,ArcelorMittal,2020,"Difficulty in reducing GHG emissions in ""hard to abate sectors""",16
+1,ArcelorMittal,2021,Economic developments,1
+1,ArcelorMittal,2021,Uncertainties over the pace of transition to low-emission technologies,0
+1,ArcelorMittal,2021,Political and environmental actions that will be taken to meet the carbon reduction goals,-1
+1,ArcelorMittal,2021,Regulatory changes,1
+1,ArcelorMittal,2021,Emissions activity arising from climate-related matters,-1
+1,ArcelorMittal,2021,Ineffectiveness of the CBAM proposal against carbon leakage,14
+1,ArcelorMittal,2021,Insufficiency of provisions to address circumvention risks,0
+1,ArcelorMittal,2021,Uncertainty in the timing or adoption of the CBAM proposal,14
+1,ArcelorMittal,2021,Uncertainty in the implementation of the CBAM proposal,14
+1,ArcelorMittal,2021,High cost of carbon,8
+1,ArcelorMittal,2021,High cost of decarbonization technologies,0
+1,ArcelorMittal,2021,High cost of emissions allowances,13
+1,ArcelorMittal,2021,Shortage in free allocation of CO2 emissions allowances,13
+1,ArcelorMittal,2021,"Fluctuations in energy, natural gas, and industrial gas costs",6
+1,ArcelorMittal,2021,Disruption in the transmission of energy,4
+1,ArcelorMittal,2021,Inadequate energy transmission infrastructure,4
+1,ArcelorMittal,2021,Termination of energy supply contracts,4
+1,ArcelorMittal,2021,Lack of governmental and societal support for decarbonization,15
+1,ArcelorMittal,2021,Changes in government and policy,1
+1,ArcelorMittal,2021,Uncertainty in the cost of decarbonization,0
+1,ArcelorMittal,2021,Uncertainty in the timing of the implementation of changes,0
+1,ArcelorMittal,2021,Uncertainty in the effectiveness of decarbonization technologies,0
+1,ArcelorMittal,2021,Uncertainty in the maturity and efficiency of decarbonization technologies,0
+1,ArcelorMittal,2021,Uncertainty in the level of public funding for decarbonization,0
+1,ArcelorMittal,2021,Uncertainty in the level of support from host countries,0
+1,ArcelorMittal,2021,Uncertainty in the level of compensation for higher costs,0
+1,ArcelorMittal,2021,Uncertainty in maintaining a fair and competitive landscape,0
+1,ArcelorMittal,2022,"The risk of future developments affecting assumptions on costs, government and societal support for carbon emissions reduction, and technology advancement.",0
+1,ArcelorMittal,2022,"A lack of governmental and societal support could make ArcelorMittal's targets more costly, more difficult or even impossible to achieve.",-1
+1,ArcelorMittal,2022,"The predictability of the regulatory environment and business environment needs to evolve, especially for hard-to-abate sectors.",0
+1,ArcelorMittal,2022,The Company's expectation that public funding covers 50% of the total cost of decarbonization may not be achieved.,0
+1,ArcelorMittal,2022,The financial impact of incurring significant additional costs to acquire emissions allowances due to a shortage in free allocation.,13
+1,ArcelorMittal,2022,The risk of frameworks and regulations being adopted that are ill-adapted to ArcelorMittal's operations.,-1
+1,ArcelorMittal,2022,The risk of the European Union's ETS and CBAM not being effective in avoiding competitive distortions.,14
+1,ArcelorMittal,2022,The risk of the market outsourcing steel production to regions with less stringent carbon policies.,0
+1,ArcelorMittal,2022,The risk of the Inflation Reduction Act in the United States not being effective in accelerating investment in low-carbon steel-making.,0
+1,ArcelorMittal,2022,The risk of the EU net Zero Industry Act not being effective in aligning with a net-zero economy.,0
+1,ArcelorMittal,2022,The risk of the regulatory environment not evolving to support the transition to net-zero.,0
+1,ArcelorMittal,2023,"Decrease of steel demand compared to business as usual, due to increased material efficiency and product lifetimes, and increased circularity.",0
+1,ArcelorMittal,2023,"Restrictions on clean energy scalability, which can have significant impacts on our decarbonisation costs in some regions.",0
+1,ArcelorMittal,2023,Climate and industrial policies between regions not being aligned may lead to carbon leakage.,-1
+1,ArcelorMittal,2023,If the Company is unable to make the necessary investments to decarbonize and reach its 2030 decarbonization targets due to the design of governmental policy in Europe or other jurisdictions where it operates.,0
+1,ArcelorMittal,2023,"Failure to achieve the level of innovation that is necessary to keep us at the forefront of our industry, due to ongoing rapid changes in technologies and legislations.",0
+1,ArcelorMittal,2023,Competition from other materials and alternative steel-based technologies could reduce market prices and demand for steel products and thereby reduce ArcelorMittal’s cash flows and profitability.,0
+1,ArcelorMittal,2023,"Strikes affecting operations at various plants, particularly in Mexico, South Africa, France, Spain and Canada, relating to various causes, often in connection with labor contract renewal negotiations or claims for salary increases because of rising inflation.",0
+1,ArcelorMittal,2023,"Decommissioning costs: Over the next ten years, the retirement of certain above-mentioned assets in the context of the transition to low-carbon steelmaking infrastructures may lead to certain decommissioning costs.",0
+1,ArcelorMittal,2023,"A lack of governmental and societal support could make the Company’s targets more costly, more difficult or even impossible to achieve.",-1
+1,ArcelorMittal,2023,"A fair competitive landscape that accounts for the global nature of the steel market, ensuring domestic production and imports are subject to equivalent GHG reduction regulations and incentives, such as a fairly and internationally applied Emissions Trading Scheme (ETS) is not guaranteed.",0
+1,ArcelorMittal,2023,Financial support to innovate and make long-term investments and neutralize the higher operating costs of low and zero carbon-emissions steelmaking is not guaranteed.,0
+1,ArcelorMittal,2023,Access to sufficient clean energies at affordable price levels is not guaranteed.,4
+1,ArcelorMittal,2023,Incentives to encourage the consumption of low- and zero-carbon emissions steel over higher carbon emissions steel are not guaranteed.,0
+1,ArcelorMittal,2023,"High gas prices have previously limited the adoption of DRI-EAF operations, and this could be a barrier to transitioning to natural-gas based DRI-EAF and eventually green hydrogen technology solutions.",1
+1,ArcelorMittal,2023,"The effectiveness of the CBAM proposal against carbon leakage is untested, the provisions to address circumvention risks, including resource shuffling and cost absorption, seem insufficient, and no solution for exports has been yet considered.",14
+1,ArcelorMittal,2024,Uncertainties over the pace of transition to low-emission technologies.,0
+1,ArcelorMittal,2024,Political and environmental actions that will be taken to meet the carbon reduction goals.,-1
+1,ArcelorMittal,2024,Regulatory changes and emissions activity arising from climate-related matters.,-1
+1,ArcelorMittal,2024,Lack of governmental and societal support for decarbonization.,15
+1,ArcelorMittal,2024,Design of governmental policy in Europe or other jurisdictions that may hinder decarbonization efforts.,0
+1,ArcelorMittal,2024,Insufficient amount of CO2 emission allowances to satisfy technically achievable operating conditions.,13
+1,ArcelorMittal,2024,Significant increases in prices for emissions allowances.,13
+1,ArcelorMittal,2024,Ineffectiveness of the Carbon Border Adjustment Mechanism (CBAM) in addressing circumvention risks.,14
+1,ArcelorMittal,2024,"Insufficient provisions to address circumvention risks, including resource shuffling and cost absorption.",-1
+1,ArcelorMittal,2024,No solution for exports under the CBAM.,14
+1,ArcelorMittal,2024,Uncertainty over the effectiveness of environmental regulations in various jurisdictions.,0
+1,ArcelorMittal,2024,"Negative effect of environmental regulations on ArcelorMittal's production levels, income, and cash flows.",-1
+1,ArcelorMittal,2024,Higher costs and lower sales due to environmental regulations affecting suppliers and customers.,-1
+1,ArcelorMittal,2024,"Fluctuations in electricity, natural gas, and industrial gas prices.",6
+1,ArcelorMittal,2024,Supply disruptions and curtailments of energy supplies.,4
+1,ArcelorMittal,2024,Geopolitical conflicts and destructions of gas pipelines affecting energy supplies.,4
+1,ArcelorMittal,2024,Collapse in demand due to supply issues or otherwise.,1
+1,ArcelorMittal,2024,Uncertainty over the costs of green hydrogen and its evolution over time.,1
+1,ArcelorMittal,2024,Uncertainty over the construction of DRI and EAF facilities.,-1
+1,ArcelorMittal,2024,Uncertainty over the development of CCUS infrastructure.,8
+1,ArcelorMittal,2024,Uncertainty over the timing of the introduction of GHG reduction requirements and supportive policies in applicable jurisdictions.,0
+1,ArcelorMittal,2024,"Need for further support from host countries, particularly the European Union and its Member States, to maintain a fair and competitive landscape.",0
+1,ArcelorMittal,2024,"Concerns over ""carbon leakage"" and the need for compensation for higher costs.",14
+1,ArcelorMittal,2025,Strategic tension between capital return policy and long-term allocation of capital for decarbonisation.,0
+1,ArcelorMittal,2025,Inability to report Scope 3 emissions associated with raw material extraction and joint ventures.,16
+1,ArcelorMittal,2025,Delay in releasing the Climate Action Report 3.,13
+1,ArcelorMittal,2025,Uncertainty regarding competitors' ability to achieve 1.5°C pathway targets.,13
+1,ArcelorMittal,2025,High prices of green hydrogen.,1
+1,ArcelorMittal,2025,Difficulty in achieving originally stated goal of the Sestao plant.,5
+1,ArcelorMittal,2025,Limited enabling conditions for producing low-carbon emissions steel.,0
+16,Baosteel,2018,Strict coal consumption constraint,13
+16,Baosteel,2021,risk of implementing carbon peaking and carbon neutrality,0
+16,Baosteel,2021,technology risks,1
+16,Baosteel,2021,carbon trading cost risks,14
+16,Baosteel,2021,adjustment of energy utilization structure risks,6
+16,Baosteel,2021,product substitution risks,1
+16,Baosteel,2021,risk of effectively dealing with risks,1
+16,Baosteel,2021,risk of preventing major risks,1
+16,Baosteel,2021,risks in implementing low-carbon process throughout the whole process,0
+16,Baosteel,2021,"risks in key and core technologies in high-efficiency converter smelting, direct rolling of plate blanks, fully continuous endless rolling of hot rolling, etc.",0
+16,Baosteel,2022,High cost of hydrogen production and storage,1
+16,Baosteel,2022,Technical challenges in scaling up hydrogen-assisted shaft furnace system,1
+16,Baosteel,2022,Limited availability and high cost of hydrogen resources,1
+16,Baosteel,2022,Complexity of integrating hydrogen technology into existing production processes,1
+16,Baosteel,2022,Risk of hydrogen supply chain disruptions,1
+16,Baosteel,2022,Difficulty in achieving economies of scale for hydrogen production,1
+16,Baosteel,2022,High upfront investment costs for hydrogen-assisted shaft furnace system,1
+16,Baosteel,2022,Limited experience and expertise in hydrogen metallurgy technology,1
+16,Baosteel,2022,Complexity of recycling and utilizing hydrogen byproducts,2
+16,Baosteel,2022,Potential for hydrogen to be used as a transitional fuel rather than a long-term solution,1
+16,Baosteel,2022,Dependence on government policies and incentives for hydrogen adoption,1
+16,Baosteel,2022,Limited public awareness and acceptance of hydrogen technology,15
+16,Baosteel,2022,Complexity of hydrogen storage and transportation infrastructure,1
+16,Baosteel,2022,High energy requirements for hydrogen production and processing,1
+16,Baosteel,2022,"Potential for hydrogen to be used in non-industrial applications, reducing its availability for industrial use",1
+16,Baosteel,2022,Complexity of integrating hydrogen with existing energy systems,1
+16,Baosteel,2022,Limited research and development in hydrogen metallurgy technology,1
+16,Baosteel,2022,High costs associated with hydrogen production and transportation,1
+16,Baosteel,2022,Complexity of hydrogen safety and handling procedures,1
+16,Baosteel,2022,Limited availability of skilled labor for hydrogen technology implementation,10
+16,Baosteel,2022,Complexity of hydrogen compatibility with existing equipment and infrastructure,1
+16,Baosteel,2022,High costs associated with hydrogen storage and transportation infrastructure,1
+16,Baosteel,2022,Limited public understanding of hydrogen benefits and risks,15
+16,Baosteel,2022,Complexity of hydrogen regulation and standardization,1
+16,Baosteel,2022,Limited availability of hydrogen production and processing technologies,1
+16,Baosteel,2022,Complexity of hydrogen supply chain management,1
+16,Baosteel,2022,High costs associated with hydrogen production and processing equipment,1
+16,Baosteel,2022,Limited experience with hydrogen-assisted shaft furnace system operation and maintenance,1
+16,Baosteel,2022,Complexity of hydrogen integration with existing production processes and systems,1
+16,Baosteel,2022,Limited availability of hydrogen resources in certain regions,1
+16,Baosteel,2022,Complexity of hydrogen production and processing from non-traditional sources,1
+16,Baosteel,2022,High costs associated with hydrogen production and processing from non-traditional sources,1
+16,Baosteel,2022,Limited research and development in hydrogen production and processing from non-traditional sources,1
+16,Baosteel,2022,Complexity of hydrogen production and processing from renewable energy sources,1
+16,Baosteel,2022,Limited availability of renewable energy sources for hydrogen production,1
+16,Baosteel,2022,Complexity of integrating renewable energy sources with existing energy systems,6
+16,Baosteel,2022,Limited experience with hydrogen production and processing from renewable energy sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from waste biomass,2
+16,Baosteel,2022,Limited availability of waste biomass resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating waste biomass with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from waste biomass,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste,2
+16,Baosteel,2022,Limited availability of municipal solid waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal solid waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste,2
+16,Baosteel,2022,Limited availability of industrial waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste,2
+16,Baosteel,2022,Limited availability of agricultural waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from algae,-1
+16,Baosteel,2022,Limited availability of algae resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating algae with existing energy systems,6
+16,Baosteel,2022,Limited experience with hydrogen production and processing from algae,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater,2
+16,Baosteel,2022,Limited availability of wastewater resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial wastewater,2
+16,Baosteel,2022,Limited availability of industrial wastewater resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial wastewater with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial wastewater,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal wastewater,2
+16,Baosteel,2022,Limited availability of municipal wastewater resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal wastewater with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal wastewater,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural wastewater,2
+16,Baosteel,2022,Limited availability of agricultural wastewater resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural wastewater with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural wastewater,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from food waste,2
+16,Baosteel,2022,Limited availability of food waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating food waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from food waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from textile waste,-1
+16,Baosteel,2022,Limited availability of textile waste resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating textile waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from textile waste,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from plastic waste,-1
+16,Baosteel,2022,Limited availability of plastic waste resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating plastic waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from plastic waste,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from construction waste,2
+16,Baosteel,2022,Limited availability of construction waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating construction waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from construction waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from electronic waste,-1
+16,Baosteel,2022,Limited availability of electronic waste resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating electronic waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from electronic waste,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from hazardous waste,2
+16,Baosteel,2022,Limited availability of hazardous waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating hazardous waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from hazardous waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from medical waste,2
+16,Baosteel,2022,Limited availability of medical waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating medical waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from medical waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from nuclear waste,2
+16,Baosteel,2022,Limited availability of nuclear waste resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating nuclear waste with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from nuclear waste,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from coal ash,3
+16,Baosteel,2022,Limited availability of coal ash resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating coal ash with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from coal ash,3
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste ash,3
+16,Baosteel,2022,Limited availability of municipal solid waste ash resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal solid waste ash with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste ash,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste ash,3
+16,Baosteel,2022,Limited availability of industrial waste ash resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial waste ash with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste ash,3
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste ash,3
+16,Baosteel,2022,Limited availability of agricultural waste ash resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural waste ash with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste ash,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater sludge,2
+16,Baosteel,2022,Limited availability of wastewater sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial wastewater sludge,2
+16,Baosteel,2022,Limited availability of industrial wastewater sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial wastewater sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial wastewater sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal wastewater sludge,2
+16,Baosteel,2022,Limited availability of municipal wastewater sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal wastewater sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal wastewater sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural wastewater sludge,2
+16,Baosteel,2022,Limited availability of agricultural wastewater sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural wastewater sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural wastewater sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from food waste sludge,2
+16,Baosteel,2022,Limited availability of food waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating food waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from food waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from textile waste sludge,-1
+16,Baosteel,2022,Limited availability of textile waste sludge resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating textile waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from textile waste sludge,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from plastic waste sludge,-1
+16,Baosteel,2022,Limited availability of plastic waste sludge resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating plastic waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from plastic waste sludge,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from construction waste sludge,2
+16,Baosteel,2022,Limited availability of construction waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating construction waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from construction waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from electronic waste sludge,-1
+16,Baosteel,2022,Limited availability of electronic waste sludge resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating electronic waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from electronic waste sludge,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from hazardous waste sludge,2
+16,Baosteel,2022,Limited availability of hazardous waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating hazardous waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from hazardous waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from medical waste sludge,2
+16,Baosteel,2022,Limited availability of medical waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating medical waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from medical waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from nuclear waste sludge,2
+16,Baosteel,2022,Limited availability of nuclear waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating nuclear waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from nuclear waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from coal ash sludge,3
+16,Baosteel,2022,Limited availability of coal ash sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating coal ash sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from coal ash sludge,3
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste sludge,2
+16,Baosteel,2022,Limited availability of municipal solid waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal solid waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste sludge,2
+16,Baosteel,2022,Limited availability of industrial waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste sludge,2
+16,Baosteel,2022,Limited availability of agricultural waste sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural waste sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial wastewater treatment plant sludge,2
+16,Baosteel,2022,Limited availability of industrial wastewater treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial wastewater treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial wastewater treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal wastewater treatment plant sludge,2
+16,Baosteel,2022,Limited availability of municipal wastewater treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal wastewater treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal wastewater treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural wastewater treatment plant sludge,2
+16,Baosteel,2022,Limited availability of agricultural wastewater treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural wastewater treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural wastewater treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from food waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of food waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating food waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from food waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from textile waste treatment plant sludge,-1
+16,Baosteel,2022,Limited availability of textile waste treatment plant sludge resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating textile waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from textile waste treatment plant sludge,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from plastic waste treatment plant sludge,-1
+16,Baosteel,2022,Limited availability of plastic waste treatment plant sludge resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating plastic waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from plastic waste treatment plant sludge,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from construction waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of construction waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating construction waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from construction waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from electronic waste treatment plant sludge,-1
+16,Baosteel,2022,Limited availability of electronic waste treatment plant sludge resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating electronic waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from electronic waste treatment plant sludge,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from hazardous waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of hazardous waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating hazardous waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from hazardous waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from medical waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of medical waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating medical waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from medical waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from nuclear waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of nuclear waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating nuclear waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from nuclear waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from coal ash treatment plant sludge,3
+16,Baosteel,2022,Limited availability of coal ash treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating coal ash treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from coal ash treatment plant sludge,3
+16,Baosteel,2022,Complexity of hydrogen production and processing from municipal solid waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of municipal solid waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating municipal solid waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from municipal solid waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from industrial waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of industrial waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating industrial waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from industrial waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from agricultural waste treatment plant sludge,2
+16,Baosteel,2022,Limited availability of agricultural waste treatment plant sludge resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating agricultural waste treatment plant sludge with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from agricultural waste treatment plant sludge,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from industrial sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from industrial sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from industrial sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from industrial sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from municipal sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from municipal sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from municipal sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from municipal sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from agricultural sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from agricultural sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from agricultural sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from agricultural sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from food waste sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from food waste sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from food waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from food waste sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from textile waste sources,-1
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from textile waste sources resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from textile waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from textile waste sources,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from plastic waste sources,-1
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from plastic waste sources resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from plastic waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from plastic waste sources,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from construction waste sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from construction waste sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from construction waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from construction waste sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from electronic waste sources,-1
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from electronic waste sources resources for hydrogen production,-1
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from electronic waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from electronic waste sources,-1
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from hazardous waste sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from hazardous waste sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from hazardous waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from hazardous waste sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from medical waste sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from medical waste sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from medical waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from medical waste sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from nuclear waste sources,2
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from nuclear waste sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from nuclear waste sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from nuclear waste sources,2
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from coal ash sources,3
+16,Baosteel,2022,Limited availability of wastewater treatment plant sludge from coal ash sources resources for hydrogen production,3
+16,Baosteel,2022,Complexity of integrating wastewater treatment plant sludge from coal ash sources with existing energy systems,2
+16,Baosteel,2022,Limited experience with hydrogen production and processing from wastewater treatment plant sludge from coal ash sources,3
+16,Baosteel,2022,Complexity of hydrogen production and processing from wastewater treatment plant sludge from municipal solid waste sources,2
+16,Baosteel,2022,Limited availability of wastewater,3
+16,Baosteel,2023,High costs associated with decarbonisation technologies and infrastructure.,0
+16,Baosteel,2023,Complexity and uncertainty of transitioning to low-carbon production processes.,0
+16,Baosteel,2023,Limited availability and high costs of low-carbon raw materials.,2
+16,Baosteel,2023,Dependence on fossil fuels for certain production processes.,4
+16,Baosteel,2023,Technical challenges in implementing carbon capture and storage (CCS) technologies.,8
+16,Baosteel,2023,Regulatory and policy uncertainty affecting the transition to a low-carbon economy.,0
+16,Baosteel,2023,Limited public acceptance of new low-carbon technologies and infrastructure.,15
+16,Baosteel,2023,High upfront costs of investing in renewable energy and low-carbon technologies.,0
+16,Baosteel,2023,Complexity of integrating low-carbon technologies into existing production processes.,0
+16,Baosteel,2023,Limited availability of skilled workers with expertise in low-carbon technologies.,10
+16,Baosteel,2023,High costs of decommissioning and repurposing existing fossil fuel-based infrastructure.,0
+16,Baosteel,2023,Limited availability of low-carbon transportation options for raw materials and products.,2
+16,Baosteel,2023,Complexity of managing supply chain emissions and transitioning suppliers to low-carbon practices.,1
+16,Baosteel,2023,Limited availability of low-carbon energy sources in certain regions.,4
+16,Baosteel,2023,High costs of implementing and maintaining a low-carbon supply chain.,-1
+16,Baosteel,2023,Complexity of measuring and reporting on Scope 3 emissions.,16
+16,Baosteel,2023,Limited availability of low-carbon technologies for certain industrial processes.,5
+16,Baosteel,2023,High costs of implementing and maintaining carbon offsetting programs.,14
+16,Baosteel,2023,Complexity of managing carbon credits and offsetting schemes.,14
+16,Baosteel,2023,Limited availability of low-carbon financing options for industrial projects.,1
+16,Baosteel,2023,Complexity of integrating low-carbon technologies into existing business models.,0
+16,Baosteel,2023,Limited availability of low-carbon data and analytics tools for decision-making.,1
+16,Baosteel,2023,High costs of implementing and maintaining a low-carbon data management system.,1
+16,Baosteel,2023,Complexity of managing low-carbon data and analytics across the supply chain.,1
+16,Baosteel,2023,Limited availability of low-carbon standards and certifications for products and services.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon standards and certifications.,7
+16,Baosteel,2023,Limited availability of low-carbon training and education programs for workers.,10
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon training and education programs.,10
+16,Baosteel,2023,Limited availability of low-carbon research and development funding for industrial projects.,1
+16,Baosteel,2023,Complexity of managing low-carbon research and development partnerships with academia and industry.,1
+16,Baosteel,2023,Limited availability of low-carbon policy and regulatory frameworks for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon policy and regulatory frameworks.,1
+16,Baosteel,2023,Limited availability of low-carbon public awareness and education campaigns.,11
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon public awareness and education campaigns.,11
+16,Baosteel,2023,Limited availability of low-carbon community engagement and outreach programs.,11
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon community engagement and outreach programs.,11
+16,Baosteel,2023,Limited availability of low-carbon stakeholder engagement and consultation processes.,11
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon stakeholder engagement and consultation processes.,11
+16,Baosteel,2023,Limited availability of low-carbon reporting and disclosure frameworks for industrial projects.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon reporting and disclosure frameworks.,7
+16,Baosteel,2023,Limited availability of low-carbon certification and labeling schemes for products and services.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon certification and labeling schemes.,7
+16,Baosteel,2023,Limited availability of low-carbon industry standards and best practices for industrial projects.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon industry standards and best practices.,7
+16,Baosteel,2023,Limited availability of low-carbon technology transfer and collaboration mechanisms for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon technology transfer and collaboration mechanisms.,1
+16,Baosteel,2023,Limited availability of low-carbon intellectual property protection mechanisms for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon intellectual property protection mechanisms.,1
+16,Baosteel,2023,Limited availability of low-carbon trade policies and agreements for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon trade policies and agreements.,1
+16,Baosteel,2023,Limited availability of low-carbon international cooperation and collaboration mechanisms for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon international cooperation and collaboration mechanisms.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change adaptation and resilience financing options for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change adaptation and resilience financing options.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change mitigation financing options for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change mitigation financing options.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change research and development funding for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change research and development funding.,-1
+16,Baosteel,2023,Limited availability of low-carbon climate change policy and regulatory frameworks for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change policy and regulatory frameworks.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change public awareness and education campaigns for industrial projects.,11
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change public awareness and education campaigns.,11
+16,Baosteel,2023,Limited availability of low-carbon climate change community engagement and outreach programs for industrial projects.,11
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change community engagement and outreach programs.,11
+16,Baosteel,2023,Limited availability of low-carbon climate change stakeholder engagement and consultation processes for industrial projects.,11
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change stakeholder engagement and consultation processes.,11
+16,Baosteel,2023,Limited availability of low-carbon climate change reporting and disclosure frameworks for industrial projects.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change reporting and disclosure frameworks.,7
+16,Baosteel,2023,Limited availability of low-carbon climate change certification and labeling schemes for industrial projects.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change certification and labeling schemes.,7
+16,Baosteel,2023,Limited availability of low-carbon climate change industry standards and best practices for industrial projects.,7
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change industry standards and best practices.,7
+16,Baosteel,2023,Limited availability of low-carbon climate change technology transfer and collaboration mechanisms for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change technology transfer and collaboration mechanisms.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change intellectual property protection mechanisms for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change intellectual property protection mechanisms.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change trade policies and agreements for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change trade policies and agreements.,1
+16,Baosteel,2023,Limited availability of low-carbon climate change international cooperation and collaboration mechanisms for industrial projects.,1
+16,Baosteel,2023,Complexity of implementing and maintaining low-carbon climate change international cooperation and collaboration mechanisms.,1
+16,Baosteel,2023,Complexity of implementing and maintaining,0
+2,Acerinox,2022,Amount of provisions and guarantees for environmental risks,1
+2,Acerinox,2022,Application of the precautionary principle,1
+2,Acerinox,2022,Pollution,0
+2,Acerinox,2022,Resources allocated to preventing environmental risks,1
+2,Acerinox,2022,Supplier environmental assessment,0
+2,Acerinox,2023,Decrease in demand,1
+2,Acerinox,2023,Transition - market,1
+2,Acerinox,2023,Low and moderate 2030 and 2050 Changes in customer preferences,1
+2,Acerinox,2023,Physical risks include the highest level identified at any of our facilities,1
+2,Acerinox,2023,Costs of measures associated with climate risks,1
+2,Acerinox,2024,Risk associated with the introduction of mechanisms or levies that tax carbon emissions,14
+2,Acerinox,2024,"Indirect impact on supply chains, implying potential additional operating costs in inputs and energy prices",6
+2,Acerinox,2024,Transition risks related to carbon taxation mechanisms,14
+2,Acerinox,2024,Physical risks related to water stress at the Acerinox Europa and Columbus Stainless factories,0
+2,Acerinox,2024,Decrease in demand,1
+2,Acerinox,2024,Changes in customer preferences,1
+2,Acerinox,2024,Setting of 2030 sustainability targets,-1
+2,Acerinox,2024,Transition - market,1
+2,Acerinox,2024,Transition - political or legal,1
+2,Acerinox,2024,Limited water supply or interruption of water supply for extended periods of time,0
+2,Acerinox,2024,Increased water treatment costs due to the low quality of the resource,0
+8,Voestalpine,2013,High costs of low-carbon technologies and infrastructure.,0
+8,Voestalpine,2013,Limited availability of low-carbon technologies and infrastructure.,5
+8,Voestalpine,2013,High upfront investment costs for decarbonisation projects.,0
+8,Voestalpine,2013,Complexity of integrating low-carbon technologies into existing systems.,0
+8,Voestalpine,2013,Limited public acceptance of new low-carbon technologies and infrastructure.,15
+8,Voestalpine,2013,Regulatory and policy uncertainty affecting decarbonisation investments.,0
+8,Voestalpine,2013,Limited availability of low-carbon energy sources in certain regions.,4
+8,Voestalpine,2013,High costs of carbon capture and storage technologies.,8
+8,Voestalpine,2013,Limited availability of skilled workforce for decarbonisation projects.,10
+8,Voestalpine,2013,Complexity of measuring and verifying GHG emissions reductions.,16
+8,Voestalpine,2013,Limited availability of low-carbon materials and supply chain options.,2
+8,Voestalpine,2013,High costs of low-carbon transportation and logistics.,-1
+8,Voestalpine,2013,Limited availability of low-carbon fuels and energy sources.,4
+8,Voestalpine,2013,Complexity of integrating low-carbon materials into existing supply chains.,0
+8,Voestalpine,2013,Limited public awareness and education on the importance of decarbonisation.,15
+8,Voestalpine,2013,Regulatory and policy barriers to the adoption of low-carbon technologies.,-1
+8,Voestalpine,2013,Limited availability of low-carbon financing options and incentives.,1
+8,Voestalpine,2013,Complexity of assessing and managing decarbonisation-related risks.,0
+8,Voestalpine,2013,Limited availability of low-carbon data and monitoring systems.,1
+8,Voestalpine,2013,High costs of low-carbon research and development.,0
+8,Voestalpine,2013,Limited availability of low-carbon standards and certifications.,7
+8,Voestalpine,2013,Complexity of integrating low-carbon technologies into existing business models.,0
+8,Voestalpine,2013,Limited public support for decarbonisation policies and regulations.,15
+8,Voestalpine,2013,Regulatory and policy barriers to the adoption of low-carbon energy sources.,-1
+8,Voestalpine,2013,Limited availability of low-carbon storage and grid infrastructure.,4
+8,Voestalpine,2013,Complexity of managing decarbonisation-related supply chain risks.,0
+8,Voestalpine,2013,Limited availability of low-carbon materials and products.,2
+8,Voestalpine,2013,High costs of low-carbon certification and labeling.,7
+8,Voestalpine,2013,Limited availability of low-carbon education and training programs.,10
+8,Voestalpine,2013,Complexity of integrating low-carbon technologies into existing manufacturing processes.,0
+8,Voestalpine,2013,Limited public awareness of the benefits of decarbonisation.,15
+8,Voestalpine,2013,Regulatory and policy barriers to the adoption of low-carbon transportation options.,-1
+8,Voestalpine,2013,Limited availability of low-carbon fuels and energy sources for transportation.,4
+8,Voestalpine,2013,Complexity of managing decarbonisation-related risks in global supply chains.,0
+8,Voestalpine,2013,Limited availability of low-carbon data and monitoring systems for supply chains.,1
+8,Voestalpine,2013,High costs of low-carbon research and development for new technologies.,-1
+8,Voestalpine,2013,Limited availability of low-carbon standards and certifications for products.,7
+8,Voestalpine,2013,Complexity of integrating low-carbon technologies into existing product design.,0
+8,Voestalpine,2013,Limited public support for low-carbon policies and regulations.,15
+8,Voestalpine,2013,Regulatory and policy barriers to the adoption of low-carbon materials and products.,-1
+8,Voestalpine,2013,Limited availability of low-carbon financing options and incentives for small and medium-sized enterprises.,1
+8,Voestalpine,2013,Complexity of managing decarbonisation-related risks in small and medium-sized enterprises.,0
+8,Voestalpine,2013,Limited availability of low-carbon education and training programs for small and medium-sized enterprises.,10
+8,Voestalpine,2013,High costs of low-carbon certification and labeling for small and medium-sized enterprises.,7
+8,Voestalpine,2013,Limited availability of low-carbon data and monitoring systems for small and medium-sized enterprises.,1
+8,Voestalpine,2013,Complexity of integrating low-carbon technologies into existing business models for small and medium-sized enterprises.,0
+8,Voestalpine,2013,Limited public awareness of the benefits of low-carbon technologies and practices.,15
+8,Voestalpine,2013,Regulatory and policy barriers to the adoption of low-carbon practices and technologies in small and medium-sized enterprises.,-1
+8,Voestalpine,2013,Regulatory and policy barriers to the adoption of low-carbon practices and technologies.,-1
+8,Voestalpine,2013,Complexity of managing decarbonisation-related risks.,0
+8,Voestalpine,2013,Regulatory and,1
+8,Voestalpine,2018,High costs associated with the transition to low-carbon technologies.,0
+8,Voestalpine,2018,Complexity of integrating new low-carbon technologies into existing production processes.,0
+8,Voestalpine,2018,Limited availability and high costs of low-carbon raw materials.,2
+8,Voestalpine,2018,Uncertainty and volatility of carbon pricing mechanisms.,14
+8,Voestalpine,2018,Limited availability of low-carbon energy sources in certain regions.,4
+8,Voestalpine,2018,High upfront costs of investing in low-carbon infrastructure.,0
+8,Voestalpine,2018,Complexity of managing the carbon footprint of global supply chains.,1
+8,Voestalpine,2018,Limited availability of low-carbon transportation options.,2
+8,Voestalpine,2018,Regulatory uncertainty and conflicting policies hindering the transition to low-carbon technologies.,-1
+8,Voestalpine,2018,Limited public acceptance of new low-carbon technologies and infrastructure.,15
+8,Voestalpine,2018,High costs of decommissioning and disposing of fossil fuel-based infrastructure.,0
+8,Voestalpine,2018,Limited availability of low-carbon skills and workforce.,10
+8,Voestalpine,2018,Complexity of managing the carbon footprint of business travel and transportation.,1
+8,Voestalpine,2018,Limited availability of low-carbon fuels for industrial processes.,4
+8,Voestalpine,2018,High costs of carbon capture and storage technologies.,8
+8,Voestalpine,2018,Limited availability of low-carbon materials for construction and manufacturing.,2
+8,Voestalpine,2018,Complexity of managing the carbon footprint of product lifecycle.,1
+8,Voestalpine,2018,Limited availability of low-carbon energy storage solutions.,4
+8,Voestalpine,2018,High costs of low-carbon energy production in certain regions.,4
+8,Voestalpine,2018,Limited public awareness and education on the importance of decarbonization.,15
+8,Voestalpine,2018,Complexity of managing the carbon footprint of international trade and logistics.,1
+8,Voestalpine,2018,Limited availability of low-carbon technologies for certain industrial processes.,5
+8,Voestalpine,2018,High costs of low-carbon technologies for small and medium-sized enterprises.,12
+8,Voestalpine,2018,Limited availability of low-carbon financing options for businesses.,1
+8,Voestalpine,2018,Complexity of managing the carbon footprint of data centers and IT infrastructure.,1
+8,Voestalpine,2018,Limited availability of low-carbon materials for packaging and consumer goods.,2
+8,Voestalpine,2018,High costs of low-carbon technologies for remote and isolated communities.,12
+8,Voestalpine,2018,Limited public acceptance of low-carbon technologies and infrastructure in certain regions.,15
+8,Voestalpine,2018,Complexity of managing the carbon footprint of agriculture and land use.,1
+8,Voestalpine,2018,Limited availability of low-carbon fuels for aviation and maritime transportation.,4
+8,Voestalpine,2018,High costs of low-carbon technologies for heavy industry and manufacturing.,12
+8,Voestalpine,2018,Limited availability of low-carbon energy sources for off-grid communities.,4
+8,Voestalpine,2018,Complexity of managing the carbon footprint of waste management and recycling.,1
+8,Voestalpine,2018,Limited availability of low-carbon technologies for certain industrial processes in developing countries.,5
+8,Voestalpine,2018,High costs of low-carbon technologies for small-scale industries and entrepreneurs.,12
+8,Voestalpine,2018,Limited public awareness and education on the importance of low-carbon technologies.,15
+8,Voestalpine,2018,Complexity of managing the carbon footprint of international trade and commerce.,1
+8,Voestalpine,2018,Limited availability of low-carbon materials for construction and building materials.,2
+8,Voestalpine,2018,High costs of low-carbon technologies for certain industrial processes in emerging markets.,12
+8,Voestalpine,2018,Limited availability of low-carbon energy storage solutions for off-grid communities.,4
+8,Voestalpine,2018,Complexity of managing the carbon footprint of product design and development.,1
+8,Voestalpine,2018,Limited availability of low-carbon fuels for industrial processes in certain regions.,4
+8,Voestalpine,2018,High costs of low-carbon technologies for remote and isolated communities in developing countries.,12
+8,Voestalpine,2018,Limited public acceptance of low-carbon technologies and infrastructure in emerging markets.,15
+8,Voestalpine,2018,Complexity of managing the carbon footprint of global value chains.,1
+8,Voestalpine,2018,Limited availability of low-carbon materials for packaging and consumer goods in emerging markets.,2
+8,Voestalpine,2018,High costs of low-carbon technologies for small and medium-sized enterprises in emerging markets.,12
+8,Voestalpine,2018,Limited availability of low-carbon financing options for businesses in emerging markets.,1
+8,Voestalpine,2018,Complexity of managing the carbon footprint of data centers and IT infrastructure in emerging markets.,1
+8,Voestalpine,2018,Limited availability of low-carbon materials for construction and building materials in emerging markets.,2
+8,Voestalpine,2018,High costs of low-carbon technologies for heavy industry and manufacturing in emerging markets.,12
+8,Voestalpine,2018,Limited availability of low-carbon energy sources for off-grid communities in emerging markets.,4
+8,Voestalpine,2018,Complexity of managing the carbon footprint of waste management and recycling in emerging markets.,1
+8,Voestalpine,2018,Limited availability of low-carbon technologies for certain industrial processes in emerging markets.,5
+8,Voestalpine,2018,High costs of low-carbon technologies for small-scale industries and entrepreneurs in emerging markets.,12
+8,Voestalpine,2018,Limited public awareness and education on the importance of low-carbon technologies in emerging markets.,15
+8,Voestalpine,2018,Complexity of managing the carbon footprint of international trade and commerce in emerging markets.,1
+8,Voestalpine,2018,Limited availability of low-carbon energy storage solutions for off-grid communities in emerging markets.,4
+8,Voestalpine,2018,Complexity of managing the carbon footprint of product design and development in emerging markets.,1
+8,Voestalpine,2018,Limited availability of low-carbon fuels for industrial processes in emerging markets.,4
+8,Voestalpine,2018,High costs of low-carbon technologies for remote and isolated communities in emerging markets.,12
+8,Voestalpine,2018,Complexity of managing the carbon footprint of global value chains in emerging markets.,1
+8,Voestalpine,2018,Limited public awareness and education on the importance of low-carbon technologies in,15
+8,Voestalpine,2019,Lack of access to low-carbon technologies and infrastructure.,5
+8,Voestalpine,2019,High upfront costs of transitioning to low-carbon technologies.,0
+8,Voestalpine,2019,Limited availability of low-carbon materials and feedstocks.,2
+8,Voestalpine,2019,Complexity of integrating low-carbon technologies into existing production processes.,0
+8,Voestalpine,2019,Limited availability of skilled workforce with expertise in low-carbon technologies.,10
+8,Voestalpine,2019,High energy intensity of steel production.,0
+8,Voestalpine,2019,Limited availability of renewable energy sources in certain regions.,4
+8,Voestalpine,2019,High costs of carbon capture and storage technologies.,8
+8,Voestalpine,2019,Limited availability of low-carbon transportation options.,2
+8,Voestalpine,2019,Complexity of managing supply chain emissions.,1
+8,Voestalpine,2019,Limited availability of low-carbon materials for certain applications.,2
+8,Voestalpine,2019,High costs of recycling and reusing materials.,0
+8,Voestalpine,2019,Limited availability of low-carbon fuels for industrial processes.,4
+8,Voestalpine,2019,Complexity of managing indirect emissions from Scope 3 sources.,16
+8,Voestalpine,2019,Limited availability of low-carbon technologies for certain industrial processes.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in existing infrastructure.,0
+8,Voestalpine,2019,Limited availability of low-carbon materials for construction and infrastructure projects.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for transportation and logistics.,2
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in emerging markets.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for packaging and consumer goods.,2
+8,Voestalpine,2019,Complexity of managing emissions from supply chain partners.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for data centers and IT infrastructure.,1
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in remote or hard-to-reach areas.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for textiles and apparel.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in emerging markets.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for agriculture and forestry.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in small and medium-sized enterprises.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for building insulation and construction.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in developing countries.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for waste management and recycling.,-1
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high energy intensity.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for automotive and aerospace industries.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with complex supply chains.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for oil and gas production.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high capital intensity.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for chemical and petrochemical industries.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with high energy consumption.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for cement and concrete production.,-1
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high emissions intensity.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for glass and ceramics production.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with complex production processes.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for aluminum and steel production.,0
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high energy consumption and emissions.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for paper and pulp production.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with high capital intensity and energy consumption.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for mining and quarrying.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high emissions intensity and energy consumption.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for construction and infrastructure projects in emerging markets.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with complex supply chains and high energy consumption.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for industrial processes in developing countries.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high energy intensity and emissions.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for textiles and apparel in emerging markets.,2
+8,Voestalpine,2019,Limited availability of low-carbon technologies for agriculture and forestry in developing countries.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in small and medium-sized enterprises in emerging markets.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for building insulation and construction in emerging markets.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with complex production processes and high energy consumption.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for waste management and recycling in emerging markets.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high energy intensity and emissions in emerging markets.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for automotive and aerospace industries in emerging markets.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with high capital intensity and energy consumption in emerging markets.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for oil and gas production in emerging markets.,5
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high emissions intensity and energy consumption in emerging markets.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for chemical and petrochemical industries in emerging markets.,2
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with high energy consumption and emissions in emerging markets.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for cement and concrete production in emerging markets.,-1
+8,Voestalpine,2019,High costs of implementing low-carbon technologies in industries with high energy consumption and emissions in emerging markets.,12
+8,Voestalpine,2019,Limited availability of low-carbon materials for glass and ceramics production in emerging markets.,2
+8,Voestalpine,2019,Limited availability of low-carbon technologies for aluminum and steel production in emerging markets.,0
+8,Voestalpine,2019,Limited availability of low-carbon materials for paper and pulp production in emerging markets.,2
+8,Voestalpine,2019,Limited availability of low-carbon technologies for mining and quarrying in emerging markets.,5
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with complex supply chains and high energy consumption in emerging markets.,1
+8,Voestalpine,2019,Limited availability of low-carbon technologies for industrial processes in emerging markets.,5
+8,Voestalpine,2019,Limited availability of low-carbon technologies for agriculture and forestry in emerging markets.,5
+8,Voestalpine,2019,Complexity of managing emissions from industrial processes in industries with complex production processes and high energy consumption in emerging markets.,1
+8,Voestalpine,2019,High costs of implementing,12
+8,Voestalpine,2020,High costs of low-carbon technologies,0
+8,Voestalpine,2020,Limited availability of low-carbon technologies,5
+8,Voestalpine,2020,Complexity of carbon pricing mechanisms,14
+8,Voestalpine,2020,Uncertainty around future climate policies,0
+8,Voestalpine,2020,Limited availability of low-carbon raw materials,2
+8,Voestalpine,2020,High costs of carbon capture and storage,8
+8,Voestalpine,2020,Limited availability of low-carbon energy sources,4
+8,Voestalpine,2020,Complexity of supply chain emissions management,1
+8,Voestalpine,2020,Limited availability of low-carbon transportation options,2
+8,Voestalpine,2020,High costs of electrification of industrial processes,1
+8,Voestalpine,2020,Complexity of hydrogen production and storage,1
+8,Voestalpine,2020,Limited availability of low-carbon steel production technologies,0
+8,Voestalpine,2020,High costs of carbon offsetting,14
+8,Voestalpine,2020,Complexity of carbon footprint calculation and reporting,1
+8,Voestalpine,2020,Limited availability of low-carbon construction materials,2
+8,Voestalpine,2020,High costs of energy storage technologies,-1
+8,Voestalpine,2020,Complexity of grid integration of renewable energy sources,6
+8,Voestalpine,2020,Limited availability of low-carbon industrial processes,5
+8,Voestalpine,2020,High costs of carbon capture and utilization,8
+8,Voestalpine,2020,Complexity of climate change adaptation and resilience,1
+8,Voestalpine,2020,Limited availability of low-carbon transportation infrastructure,2
+8,Voestalpine,2020,High costs of green financing,0
+8,Voestalpine,2020,Complexity of climate change mitigation and adaptation finance,1
+8,Voestalpine,2020,Limited availability of low-carbon industrial technologies,5
+8,Voestalpine,2020,High costs of climate change research and development,0
+8,Voestalpine,2020,Complexity of climate change policy and regulation,1
+8,Voestalpine,2020,Limited availability of low-carbon energy storage technologies,4
+8,Voestalpine,2020,High costs of climate change awareness and education,10
+8,Voestalpine,2020,Complexity of climate change communication and engagement,11
+8,Voestalpine,2020,Limited availability of low-carbon industrial processes and technologies,5
+8,Voestalpine,2020,High costs of climate change risk management and insurance,1
+8,Voestalpine,2020,Complexity of climate change scenario planning and analysis,1
+8,Voestalpine,2020,Limited availability of low-carbon transportation systems,2
+8,Voestalpine,2020,High costs of climate change technology deployment and scaling,0
+8,Voestalpine,2020,Complexity of climate change policy and regulatory frameworks,1
+8,Voestalpine,2020,Limited availability of low-carbon industrial production technologies,5
+8,Voestalpine,2020,High costs of climate change research and development funding,0
+8,Voestalpine,2020,Complexity of climate change data collection and analysis,1
+8,Voestalpine,2020,Limited availability of low-carbon industrial processes and equipment,5
+8,Voestalpine,2020,High costs of climate change awareness and education programs,10
+8,Voestalpine,2020,Complexity of climate change communication and stakeholder engagement,11
+8,Voestalpine,2020,Limited availability of low-carbon industrial production methods,5
+8,Voestalpine,2020,High costs of climate change risk management and insurance products,1
+8,Voestalpine,2020,Complexity of climate change scenario planning and analysis tools,1
+8,Voestalpine,2020,Limited availability of low-carbon industrial production technologies and equipment,5
+8,Voestalpine,2020,High costs of climate change technology deployment and scaling up,0
+8,Voestalpine,2020,Complexity of climate change policy and regulatory frameworks development,1
+8,Voestalpine,2020,Limited availability of low-carbon industrial production methods and equipment,5
+8,Voestalpine,2020,High costs of climate change research and development funding and resources,0
+8,Voestalpine,2020,Complexity of climate change data collection and analysis methods,1
+8,Voestalpine,2020,Limited availability of low-carbon industrial production technologies and methods,5
+8,Voestalpine,2020,High costs of climate change awareness and education programs and resources,10
+8,Voestalpine,2020,Complexity of climate change communication and stakeholder engagement strategies,11
+8,Voestalpine,2020,Limited availability of low-carbon industrial production equipment and technologies,5
+8,Voestalpine,2020,High costs of climate change risk management and insurance products and services,1
+8,Voestalpine,2020,Complexity of climate change scenario planning and analysis tools and methods,1
+8,Voestalpine,2020,High costs of climate change technology deployment and scaling up efforts,0
+8,Voestalpine,2020,Complexity of climate change policy and regulatory frameworks development and implementation,1
+8,Voestalpine,2020,Complexity of climate change data collection and analysis methods and tools,1
+8,Voestalpine,2020,Complexity of climate change communication and stakeholder engagement strategies and methods,11
+8,Voestalpine,2020,Complexity of climate change policy and regulatory frameworks development and,1
+8,Voestalpine,2021,Process-related emissions cannot be completely avoided due to chemical-physical specificities of existing manufacturing processes.,1
+8,Voestalpine,2022,High production costs associated with low-carbon technologies,0
+8,Voestalpine,2022,Limited availability and high costs of low-carbon raw materials,2
+8,Voestalpine,2022,Complexity of integrating low-carbon technologies into existing production processes,0
+8,Voestalpine,2022,Limited scalability of low-carbon technologies,5
+8,Voestalpine,2022,High energy consumption in steel production,0
+8,Voestalpine,2022,Limited availability of low-carbon energy sources,4
+8,Voestalpine,2022,High costs of carbon capture and storage,8
+8,Voestalpine,2022,Complexity of implementing carbon pricing mechanisms,14
+8,Voestalpine,2022,Limited public acceptance of low-carbon technologies,15
+8,Voestalpine,2022,High costs of recycling and reusing steel products,0
+8,Voestalpine,2022,Complexity of designing and implementing circular economy business models,0
+8,Voestalpine,2022,Limited availability of low-carbon steel products,0
+8,Voestalpine,2022,High costs of developing and implementing new low-carbon technologies,0
+8,Voestalpine,2022,Complexity of integrating low-carbon technologies with existing supply chains,0
+8,Voestalpine,2022,Limited availability of low-carbon transportation options,2
+8,Voestalpine,2022,High costs of implementing low-carbon logistics and supply chain management systems,-1
+8,Voestalpine,2022,Complexity of designing and implementing low-carbon product design and development processes,0
+8,Voestalpine,2022,Limited availability of low-carbon materials and products,2
+8,Voestalpine,2022,High costs of implementing low-carbon manufacturing processes,-1
+8,Voestalpine,2022,Complexity of integrating low-carbon technologies with existing production systems,0
+8,Voestalpine,2022,Limited availability of low-carbon energy storage solutions,4
+8,Voestalpine,2022,High costs of implementing low-carbon energy management systems,12
+8,Voestalpine,2022,Complexity of designing and implementing low-carbon energy efficiency measures,-1
+8,Voestalpine,2022,Limited availability of low-carbon steel production technologies,0
+8,Voestalpine,2022,High costs of implementing low-carbon steel production processes,0
+8,Voestalpine,2022,Complexity of integrating low-carbon technologies with existing steel production systems,0
+8,Voestalpine,2022,Limited availability of low-carbon steel products and materials,0
+8,Voestalpine,2022,High costs of developing and implementing new low-carbon steel production technologies,0
+8,Voestalpine,2022,Complexity of designing and implementing low-carbon steel production processes,0
+8,Voestalpine,2022,Limited availability of low-carbon steel recycling and reusing technologies,0
+8,Voestalpine,2022,High costs of implementing low-carbon steel recycling and reusing processes,0
+8,Voestalpine,2022,Complexity of integrating low-carbon steel recycling and reusing technologies with existing steel production systems,0
+8,Voestalpine,2022,Limited availability of low-carbon steel product design and development processes,0
+8,Voestalpine,2022,High costs of implementing low-carbon steel product design and development processes,0
+8,Voestalpine,2022,Complexity of designing and implementing low-carbon steel product design and development processes,0
+8,Voestalpine,2022,Limited availability of low-carbon steel manufacturing processes,0
+8,Voestalpine,2022,High costs of implementing low-carbon steel manufacturing processes,0
+8,Voestalpine,2022,Complexity of integrating low-carbon steel manufacturing processes with existing steel production systems,0
+8,Voestalpine,2022,High costs of implementing low-carbon steel production technologies,0
+8,Voestalpine,2022,Complexity of designing and implementing low-carbon steel production technologies,0
+8,Voestalpine,2022,High costs of implementing low-carbon steel recycling and reusing technologies,0
+8,Voestalpine,2023,High costs associated with the transition to low-carbon technologies,0
+8,Voestalpine,2023,Complexity of integrating new low-carbon technologies into existing production processes,0
+8,Voestalpine,2023,Limited availability and high costs of low-carbon raw materials,2
+8,Voestalpine,2023,Technical challenges in reducing emissions from certain industrial processes,1
+8,Voestalpine,2023,Uncertainty and volatility of carbon pricing mechanisms,14
+8,Voestalpine,2023,Limited availability of low-carbon energy sources in certain regions,4
+8,Voestalpine,2023,High upfront investment costs for decarbonization projects,0
+8,Voestalpine,2023,Complexity of measuring and reporting emissions from complex supply chains,1
+8,Voestalpine,2023,Limited availability of skilled workers with expertise in low-carbon technologies,10
+8,Voestalpine,2023,Regulatory uncertainty and conflicting policies that hinder decarbonization efforts,0
+8,Voestalpine,2023,Limited availability of low-carbon transportation options for goods and services,2
+8,Voestalpine,2023,High costs associated with carbon capture and storage technologies,8
+8,Voestalpine,2023,Limited availability of low-carbon fuels for industrial processes,4
+8,Voestalpine,2023,Complexity of integrating renewable energy sources into existing energy systems,6
+8,Voestalpine,2023,High costs associated with energy storage technologies,-1
+8,Voestalpine,2023,Limited availability of low-carbon materials for construction and infrastructure projects,2
+8,Voestalpine,2023,Complexity of reducing emissions from industrial processes that are difficult to decarbonize,1
+8,Voestalpine,2023,Limited availability of low-carbon technologies for certain industrial processes,5
+8,Voestalpine,2023,High costs associated with reducing emissions from industrial processes that are energy-intensive,1
+8,Voestalpine,2023,Complexity of reducing emissions from industrial processes that have complex supply chains,1
+8,Voestalpine,2023,Limited availability of low-carbon technologies for certain industrial processes that are capital-intensive,5
+8,Voestalpine,2023,High costs associated with reducing emissions from industrial processes that have long lifetimes,1
+8,Voestalpine,2023,Complexity of reducing emissions from industrial processes that have complex interactions with other systems,1
+8,Voestalpine,2023,Limited availability of low-carbon technologies for certain industrial processes that are highly customized,5
+8,Voestalpine,2023,High costs associated with reducing emissions from industrial processes that have high energy requirements,1
+8,Voestalpine,2023,Limited availability of low-carbon technologies for certain industrial processes that are highly specialized,5
+8,Voestalpine,2023,High costs associated with reducing emissions from industrial processes that have high material requirements,1
+8,Voestalpine,2023,Limited availability of low-carbon technologies for certain industrial processes that are highly complex,5
+8,Voestalpine,2023,Limited availability of low-carbon technologies for,5
+8,Voestalpine,2024,High costs associated with new technologies in steel production,0
+8,Voestalpine,2024,Complexity of implementing new technologies in steel production,0
+8,Voestalpine,2024,Limited availability of new technologies in steel production,0
+8,Voestalpine,2024,High upfront investment costs for decarbonisation,0
+8,Voestalpine,2024,Complexity of integrating new technologies into existing production processes,0
+8,Voestalpine,2024,Limited scalability of new technologies in steel production,0
+8,Voestalpine,2024,High costs associated with sustainable products and services,0
+8,Voestalpine,2024,Complexity of implementing sustainable products and services,0
+8,Voestalpine,2024,Limited availability of sustainable products and services,0
+8,Voestalpine,2024,High upfront investment costs for sustainable products and services,0
+8,Voestalpine,2024,Complexity of integrating sustainable products and services into existing supply chains,0
+8,Voestalpine,2024,Limited scalability of sustainable products and services,0
+8,Voestalpine,2024,High costs associated with research and development for decarbonisation,0
+8,Voestalpine,2024,Complexity of implementing research and development for decarbonisation,0
+8,Voestalpine,2024,Limited availability of research and development for decarbonisation,0
+8,Voestalpine,2024,High upfront investment costs for research and development for decarbonisation,0
+8,Voestalpine,2024,Complexity of integrating research and development for decarbonisation into existing production processes,-1
+8,Voestalpine,2024,Limited scalability of research and development for decarbonisation,0
+8,Voestalpine,2024,Complexity of implementing new technologies in the supply chain,0
+8,Voestalpine,2024,Limited availability of new technologies in the supply chain,0
+8,Voestalpine,2024,High upfront investment costs for new technologies in the supply chain,0
+8,Voestalpine,2024,Complexity of integrating new technologies into existing supply chains,0
+8,Voestalpine,2024,Limited scalability of new technologies in the supply chain,0
+8,Voestalpine,2024,Complexity of implementing sustainable supply chain practices,0
+8,Voestalpine,2024,Limited availability of sustainable supply chain practices,0
+8,Voestalpine,2024,High upfront investment costs for sustainable supply chain practices,0
+8,Voestalpine,2024,Complexity of integrating sustainable supply chain practices into existing supply chains,0
+8,Voestalpine,2024,Limited scalability of sustainable supply chain practices,0
+8,Voestalpine,2024,Complexity of implementing climate and environmental protection measures,-1
+8,Voestalpine,2024,Limited availability of climate and environmental protection measures,13
+8,Voestalpine,2024,High upfront investment costs for climate and environmental protection measures,0
+8,Voestalpine,2024,Complexity of integrating climate and environmental protection measures into existing production processes,0
+8,Voestalpine,2024,Limited scalability of climate and environmental protection measures,-1
+8,Voestalpine,2024,Complexity of implementing net-zero targets,0
+8,Voestalpine,2024,Limited availability of net-zero targets,0
+8,Voestalpine,2024,High upfront investment costs for net-zero targets,0
+8,Voestalpine,2024,Complexity of integrating net-zero targets into existing production processes,0
+8,Voestalpine,2024,Limited scalability of net-zero targets,0
+8,Voestalpine,2024,Complexity of implementing fossil fuel transition,-1
+8,Voestalpine,2024,Limited availability of fossil fuel transition options,4
+8,Voestalpine,2024,High upfront investment costs for fossil fuel transition,0
+8,Voestalpine,2024,Complexity of integrating fossil fuel transition into existing production processes,-1
+8,Voestalpine,2024,Limited scalability of fossil fuel transition,-1
+9,AcciaieriedItalia,2021,Production costs of hydrogen,1
+9,AcciaieriedItalia,2021,Need for large-scale development of hydrogen technology to be economically competitive,1
+9,AcciaieriedItalia,2021,Gap between hydrogen technology and traditional fuels,1
+9,AcciaieriedItalia,2021,Limited funding sources for hydrogen development,1
+9,AcciaieriedItalia,2021,Limited collaboration among enterprises to make hydrogen production more efficient and automated,1
+12,Dillinger,2019,Development and testing of new technologies on an industrial scale is required before they can be used for noticeable reductions in emissions.,1
+12,Dillinger,2022,Uncertainty in prevailing conditions over the entire transformation period.,0
+12,Dillinger,2022,Shifts in individual subprojects on the timeline.,-1
+12,Dillinger,2022,Tightening (reduction) of the allocation of free allowances on the blast furnace converter route.,0
+12,Dillinger,2022,Uncertainty in policy framework for decarbonisation on competitive terms.,0
+12,Dillinger,2022,Technological capability limitations in providing solutions for decarbonisation.,0
+12,Dillinger,2022,Dependence on EU Commission's Green Deal and carbon border adjustment mechanism (CBAM) for decarbonisation targets.,0
+12,Dillinger,2024,Expected cost increase for the expansion of the electricity and natural gas networks,6
+12,Dillinger,2024,Decisive or even sole cost transfer to the transforming industry,-1
+12,Dillinger,2024,"Risks associated with the implementation of ""green electricity"" and hydrogen",1
+12,Dillinger,2024,"Risks associated with the enforcement of a ""green steel premium""",0
+4,Salzgitter,2017,Cost-effectiveness of decarbonisation measures,0
+4,Salzgitter,2017,Preservation of jobs in the transition to a low-carbon economy,-1
+4,Salzgitter,2017,Limited influence of companies on global frameworks for climate protection,0
+4,Salzgitter,2017,Global yardstick for CSR issues may not align with European or German views,-1
+4,Salzgitter,2017,Politicians' responsibility for creating a global framework for climate protection,0
+4,Salzgitter,2018,Economic viability of production with high environmental standards,-1
+4,Salzgitter,2018,Preservation of jobs in the company,-1
+4,Salzgitter,2018,Limited role of companies in shaping global frameworks for climate protection and human rights,0
+4,Salzgitter,2018,Global framework required for addressing climate protection and human rights issues,0
+4,Salzgitter,2018,Politicians' responsibility for shaping global frameworks for climate protection and human rights,0
+4,Salzgitter,2019,"Unilateral burdens from energy and climate policies that already exist today, and to which our competitors outside the EU are not exposed, are set to increase substantially.",0
+4,Salzgitter,2019,Investments in the billion range envisaged for achieving the CO 2 reduction targets compound this scenario.,0
+4,Salzgitter,2019,Cheaper but more CO 2 -intensive steel imports would inevitably crowd out our domestic industry.,0
+4,Salzgitter,2019,A legal and economic environment that enables the viable operation of new plants and bolsters the competitiveness of low CO 2 products is needed.,5
+4,Salzgitter,2019,Deindustrialization with all its ensuing fallout is a potential consequence of not meeting climate targets.,0
+4,Salzgitter,2019,The economic viability and preservation of jobs must be ensured in order to guarantee production with the highest environmental standards.,-1
+4,Salzgitter,2019,A global framework is required to actively and productively shape the future on issues like climate protection or respect for human rights.,0
+4,Salzgitter,2019,The onus lies with the politicians to create a framework for global issues.,0
+4,Salzgitter,2019,The transition away from coal to other sources of energy in steel production requires specific framework conditions to be created by politicians.,0
+4,Salzgitter,2020,Economic viability of production,-1
+4,Salzgitter,2020,Preservation of jobs,-1
+4,Salzgitter,2020,Global framework for climate protection,0
+4,Salzgitter,2020,Limited role of companies in shaping global climate protection frameworks,0
+4,Salzgitter,2020,Politicians' responsibility for climate protection frameworks,0
+4,Salzgitter,2020,European and German views of CSR topics not universally accepted,0
+4,Salzgitter,2020,Emissions trading amendments,13
+4,Salzgitter,2020,European Green New Deal specification,0
+4,Salzgitter,2020,Steel imports to the EU regulations,0
+4,Salzgitter,2020,Limited influence of companies on global climate protection frameworks,0
+4,Salzgitter,2024,Economic fluctuations of the markets,1
+4,Salzgitter,2024,Unpredictable development of energy costs,6
+4,Salzgitter,2024,Availability and cost of renewable energy sources,4
+4,Salzgitter,2024,Detecting and meeting specific market requirements for hydrogen and carbon dioxide transportation and storage,1
+4,Salzgitter,2024,Technological transformation in terms of the SALCOS program,-1
+4,Salzgitter,2024,Physical connection to the planned hydrogen grid,1
+4,Salzgitter,2024,Use of finite fossil fuels (coking coal) in steel production,0
+13,SIDENOR,2022,Lack of available data for 2020/2021,1
+13,SIDENOR,2022,High energy consumption in production process,6
+13,SIDENOR,2022,Limited ability to minimize carbon emissions,13
+13,SIDENOR,2022,High carbon footprint due to energy usage,6
+13,SIDENOR,2022,Difficulty in reducing energy consumption,6
+13,SIDENOR,2022,Limited transparency in energy management,6
+13,SIDENOR,2022,Limited quality in energy management system application,6
+13,SIDENOR,2022,Limited ability to mitigate climate change,13
+13,SIDENOR,2022,Limited compliance with energy management system ISO 50001,6
+13,SIDENOR,2022,Limited ability to reduce GHG emissions along the value chain,13
+13,SIDENOR,2022,Limited ability to address and mitigate the climate challenge,13
+13,SIDENOR,2022,Limited ability to minimize carbon emissions along the value chain,13
+13,SIDENOR,2022,Limited ability to ensure transparency in energy management system application,6
+13,SIDENOR,2022,Limited ability to ensure quality in energy management system application,6
+13,SIDENOR,2022,Limited ability to reduce energy consumption along the value chain,13
+13,SIDENOR,2022,Limited ability to reduce carbon emissions along the value chain,13
+13,SIDENOR,2022,Limited ability to address the climate challenge,13
+13,SIDENOR,2024,High upfront costs of transitioning to renewable energy sources.,0
+13,SIDENOR,2024,Complexity of implementing and integrating renewable energy into existing infrastructure.,6
+13,SIDENOR,2024,Limited availability and accessibility of renewable energy technologies in certain regions.,4
+13,SIDENOR,2024,Dependence on fossil fuels for certain industrial processes.,4
+13,SIDENOR,2024,Residual maturity of existing fossil fuel-based assets.,0
+13,SIDENOR,2024,"Credit quality of exposures by sector, emissions, and residual maturity.",16
+13,SIDENOR,2024,High climate impact sectors' energy consumption from fossil sources.,6
+13,SIDENOR,2024,High upfront costs of implementing energy efficiency solutions.,6
+13,SIDENOR,2024,Complexity of implementing and integrating energy efficiency measures into existing infrastructure.,6
+13,SIDENOR,2024,Limited availability and accessibility of energy efficiency technologies in certain regions.,4
+13,SIDENOR,2024,Dependence on virgin natural resources for certain industrial processes.,4
+13,SIDENOR,2024,Complexity of implementing and integrating circular economy practices into existing production processes.,0
+13,SIDENOR,2024,Limited availability and accessibility of secondary materials for certain industrial processes.,2
+13,SIDENOR,2024,Dependence on non-renewable energy sources for certain industrial processes.,4
+13,SIDENOR,2024,Complexity of implementing and integrating GHG emission reduction targets into existing operations.,-1
+13,SIDENOR,2024,Limited availability and accessibility of technologies to reduce GHG emissions in certain regions.,4
+13,SIDENOR,2024,Complexity of implementing and integrating energy management systems into existing infrastructure.,6
+13,SIDENOR,2024,Limited availability and accessibility of energy management technologies in certain regions.,4
+13,SIDENOR,2024,Complexity of implementing and integrating energy intensity reduction measures into existing operations.,6
+13,SIDENOR,2024,Limited availability and accessibility of technologies to reduce energy intensity in certain regions.,4
+13,SIDENOR,2024,Dependence on non-renewable energy sources,4
+7,Celsa,2020,Use and pollution of the soil,0
+7,Celsa,2020,Optimization of production,-1
+7,Celsa,2020,Responsible use of water,0
+7,Celsa,2020,Management of business,0
+7,Celsa,2020,Innovation for sustainability,0
+7,Celsa,2020,Capacity of sale,13
+7,Celsa,2020,Application of Best Available Techniques (BAT),-1
+7,Celsa,2020,Investment in innovation,0
+7,Celsa,2020,Risk management,1
+7,Celsa,2020,Compliance with regulations,1
+7,Celsa,2020,Fraud prevention,0
+7,Celsa,2020,Development of the local economy,1
+7,Celsa,2020,Ethics in business/Code of conduct,0
+7,Celsa,2020,Reputation and image of the group,-1
+7,Celsa,2020,Corporate governance and transparency,0
+15,NipponSteel,2018,Global economic uncertainty and protectionism,0
+15,NipponSteel,2018,Shift towards self-sufficient steel markets in emerging countries,0
+15,NipponSteel,2018,"Rapid innovation in IT (notably, AI) affecting the steel industry",0
+15,NipponSteel,2018,Growing need for lighter and stronger vehicles in the automotive sector,0
+15,NipponSteel,2018,Shift to electric and other new energy vehicles,-1
+15,NipponSteel,2018,Development of self-driving vehicles,1
+15,NipponSteel,2018,Wider acceptance of a sharing economy,1
+15,NipponSteel,2018,"Increasing needs for lightweight, high-strength automobiles",0
+15,NipponSteel,2018,Development of electric vehicles,-1
+15,NipponSteel,2018,Diffusion of renewable energy,4
+15,NipponSteel,2018,"Establishment of safe, resilient urban infrastructure",0
+15,NipponSteel,2018,"IT innovations, including AI, IoT, and big data",-1
+15,NipponSteel,2018,Maintenance and improvement of good living environments,-1
+15,NipponSteel,2018,Development of hydrogen-oriented society,1
+15,NipponSteel,2018,Establishment of hydrogen stations and fuel cell vehicles,1
+15,NipponSteel,2018,Increasing demand for high-pressure hydrogen,1
+15,NipponSteel,2018,Development of ultra-high-tensile steel sheets for automobiles,0
+15,NipponSteel,2018,Growing demand for high-strength cables,0
+15,NipponSteel,2018,Construction of long bridges,0
+15,NipponSteel,2018,"Development of safe, resilient urban infrastructure",0
+15,NipponSteel,2019,Changes in global population and economy.,1
+15,NipponSteel,2019,Expected growth in global population and economy.,-1
+15,NipponSteel,2019,Long-term changes in needs and how we respond to them.,1
+15,NipponSteel,2019,Risks of demand shifts to other products and services.,1
+15,NipponSteel,2019,"Second, on possible changes in steel demand/supply structure.",0
+15,NipponSteel,2019,Decline in steel demand in Japan over the long term.,0
+15,NipponSteel,2019,Changes in the demand for steel due to the emergence of electric vehicles and other vehicles with a new energy source.,0
+15,NipponSteel,2019,"Changes in the demand for steel due to the rapid advance in IT, automakers’ growing needs for lighter vehicles, and autonomous driving.",0
+15,NipponSteel,2019,Changes in the demand for steel due to the pursuit of sustainable development goals.,0
+15,NipponSteel,2019,"Changes in the demand for steel due to the need to ""make cities and human settlements inclusive, safe, resilient and sustainable.""",0
+15,NipponSteel,2019,"Changes in the demand for steel due to the need to ""prevent or mitigate escalated severe natural disasters.""",0
+15,NipponSteel,2019,Changes in the demand for steel due to the emergence of new energy and human settlements.,0
+15,NipponSteel,2020,High cost of hydrogen reduction technologies,1
+15,NipponSteel,2020,Stringent requirements for individual companies' scenarios for Zero Carbon formulation,0
+15,NipponSteel,2020,Limited availability of low-cost CO2 separation and collection technologies,5
+15,NipponSteel,2020,Need for drastic measures to achieve zero-carbon steel production,0
+15,NipponSteel,2020,Complexity of establishing hydrogen infrastructure,1
+15,NipponSteel,2020,Difficulty in recycling waste plastics efficiently,-1
+15,NipponSteel,2020,High cost of establishing manufacturing method of dimethyl carbonate (DMC) from CO2,8
+15,NipponSteel,2020,Technical challenges in zero-emission hydrogen manufacturing via artificial photosynthesis,1
+15,NipponSteel,2020,Limited scalability of Blue Carbon technology for CO2 fixation,5
+15,NipponSteel,2020,Need for innovative energy-saving technologies to contribute to significant GHG reduction,0
+15,NipponSteel,2020,Technical challenges in developing technologies for adaptation to climate change,0
+15,NipponSteel,2020,"Complexity of providing ""National Resilience"" solutions toward adapting to climate change",1
+15,NipponSteel,2020,High cost of developing and diffusing Eco Products that help reduce CO2 emission when final products are used,-1
+15,NipponSteel,2020,Difficulty in establishing a manufacturing method of dimethyl carbonate (DMC) from CO2,8
+15,NipponSteel,2020,Technical challenges in developing chemical absorption method technology that enables separation and collection of CO2 at low cost,8
+15,NipponSteel,2020,Complexity of establishing a manufacturing method of dimethyl carbonate (DMC) from CO2,8
+15,NipponSteel,2020,Technical challenges in developing zero-emission hydrogen manufacturing technology via artificial photosynthesis,1
+15,NipponSteel,2020,High cost of establishing manufacturing method of dimethyl carbonate,8
+15,NipponSteel,2021,High-grade electrical steel sheets for drive motors are greatly increasing in demand due to batteries.,0
+15,NipponSteel,2021,Development of a new production process that will promote CO2 emission reduction in manufacturing processes.,0
+15,NipponSteel,2021,"Breakthrough technology development, including development in unexplored areas, is needed for the establishment of zero-carbon steel technology.",0
+15,NipponSteel,2021,"Installation of a new next-generation hot strip mill for stable, economical mass production of high-grade steel.",0
+15,NipponSteel,2021,Development of materials that contribute to weight reduction due to batteries.,-1
+15,NipponSteel,2021,High-pressure hydrogen environments pose a challenge for steel production.,1
+15,NipponSteel,2021,"Hydrogen brittleness, which occurs in high-pressure hydrogen gas environments, is a challenge for steel production.",1
+15,NipponSteel,2021,Development of a new production process that will promote CO2 emission reduction in manufacturing processes is needed.,-1
+15,NipponSteel,2021,High-grade electrical steel sheets for electrical power saving are essential.,0
+15,NipponSteel,2021,"Development of zero-carbon steel technology, ahead of other countries, will be a key to determine competitiveness, profitability, and brand strength in the future steel industry.",0
+15,NipponSteel,2021,The need for high-grade electrical steel sheets for drive motors is greatly increasing.,0
+15,NipponSteel,2021,The realization of carbon neutrality will be expressed in an all-out battle involving public and private sectors of various nations.,0
+15,NipponSteel,2022,High cost of hydrogen,1
+15,NipponSteel,2022,Enormous costs associated with carbon neutrality,0
+15,NipponSteel,2022,Need to realize a lower hydrogen price than other industries,1
+15,NipponSteel,2022,Potential for hydrogen to be more expensive than other power sources,1
+15,NipponSteel,2022,Limited infrastructure for hydrogen supply,1
+15,NipponSteel,2022,"High cost of CCUS (Carbon Capture, Utilization and Storage)",8
+15,NipponSteel,2022,Complexity of CCUS technology,8
+15,NipponSteel,2022,Limited availability of non-fossil fuels for external auxiliary fuels,4
+15,NipponSteel,2022,High cost of green power,-1
+15,NipponSteel,2022,Limited availability of green power,4
+15,NipponSteel,2022,High cost of advanced ICT and AI technologies,0
+15,NipponSteel,2022,Complexity of advanced ICT and AI technologies,0
+15,NipponSteel,2022,Limited availability of high-function products and related design and processing technology,-1
+15,NipponSteel,2022,Complexity of innovative process development,0
+15,NipponSteel,2022,Limited availability of high-alloy seamless steel pipes with high corrosion resistance,0
+15,NipponSteel,2022,Complexity of CCS (Carbon Capture and Storage) project in the European North Sea,8
+15,NipponSteel,2022,Complexity of CO2-based technologies for crude oil recovery,8
+15,NipponSteel,2022,"Limited availability of zero-emission fuels such as biomass, ammonia, and hydrogen",4
+15,NipponSteel,2022,"Complexity of transition to a low-cost, abundant carbon-free power source",4
+15,NipponSteel,2022,"Limited availability of infrastructure for a low-cost, abundant carbon-free power source",4
+15,NipponSteel,2022,"Complexity of establishing a system for a low-cost, abundant carbon-free power source",4
+15,NipponSteel,2022,Limited availability of diverse values and human rights issues,0
+15,NipponSteel,2022,Complexity of respect for human rights,0
+15,NipponSteel,2022,Limited availability of infrastructure for hydrogen infrastructure,1
+15,NipponSteel,2022,Complexity of establishing a system for hydrogen infrastructure,1
+15,NipponSteel,2022,Limited availability of steel for hydrogen infrastructure,1
+15,NipponSteel,2022,Complexity of transition to a hydrogen-oriented society,1
+15,NipponSteel,2022,Limited availability of high-performance steel products and solutions that contribute to reducing CO2 emissions,0
+15,NipponSteel,2022,Complexity of designing the future of automobiles,0
+15,NipponSteel,2022,Limited availability of products and solutions that contribute to reducing CO2 emissions in society as a whole,5
+15,NipponSteel,2022,Complexity of achieving carbon neutrality by 2050,0
+15,NipponSteel,2022,Limited availability of breakthrough technologies aimed at carbon neutral,5
+15,NipponSteel,2022,Complexity of tackling development of breakthrough technologies aimed at carbon neutral,0
+15,NipponSteel,2023,Improving the predictability of investment decisions for CO2 reduction.,0
+15,NipponSteel,2023,"Robust and comprehensive government support measures comparable to those in Europe, the U.S. and China.",0
+15,NipponSteel,2023,Need to develop a roadmap to realize CCUS implementation.,8
+15,NipponSteel,2023,"Measures to ensure equal footing to deal with increases in the operating costs of hydrogen, electricity, and raw materials.",1
+15,NipponSteel,2023,Transition from research and development to equipment implementation for decarbonization.,0
+15,NipponSteel,2023,Development of a direct hydrogen reduction reactor using low-grade iron ore from Australia and other countries as feedstock.,1
+15,NipponSteel,2023,Utilization of low-grade iron ore.,2
+15,NipponSteel,2023,Conversion of reduction material from natural gas to hydrogen.,1
+15,NipponSteel,2023,"High cost of hydrogen, electricity, and raw materials.",1
+15,NipponSteel,2023,Limited availability of low-grade iron ore.,2
+15,NipponSteel,2023,Complexity of CCUS implementation.,8
+15,NipponSteel,2023,Need for robust and continuous measures to promote public and private investment across all stages of the decarbonization transition.,0
+15,NipponSteel,2023,Limited predictability of investment decisions for CO2 reduction.,0
+15,NipponSteel,2023,"Limited availability of government support measures comparable to those in Europe, the U.S. and China.",0
+15,NipponSteel,2024,Potential decline in domestic demand,1
+15,NipponSteel,2024,"Expansion of local production by customers, qualitative improvement, and quantitative expansion of China and other competitors",-1
+15,NipponSteel,2024,Fluctuations in resource and energy prices and exchange rates affected by economic policies in various countries to address geopolitical and inflationary risks,6
+15,NipponSteel,2024,"Burden on our costs due to the CP system design cost and the movement of passing the burden of CP on to electricity charges, etc.",8
+15,NipponSteel,2024,Rise in energy costs,6
+15,NipponSteel,2024,Limited options for decarbonization in heavy emission-producing industries,5
+15,NipponSteel,2024,Product price increases due to the rise in energy costs,6
+15,NipponSteel,2024,"Excessively abnormal weather may result in suspension of operation, etc.",1
+15,NipponSteel,2024,Limited assumed risk in securing stable procurement of raw materials by taking the following measures: Diversity & Inclusion Material sourcing from multiple regions in the world Keeping raw material inventories in steelworks and ships,0
+15,NipponSteel,2025,Predictability of investment returns for carbon neutrality investments,0
+15,NipponSteel,2025,Societal consensus on cost-sharing for carbon neutrality investments,0
+15,NipponSteel,2025,Government support for carbon neutrality investments,0
+15,NipponSteel,2025,Development of a GX Steel market,0
+15,NipponSteel,2025,Institutional designs and regulations that hinder carbon neutrality initiatives,0
+15,NipponSteel,2025,Complexity of decarbonizing steel production processes,0
+15,NipponSteel,2025,High costs associated with decarbonizing steel production processes,0
+15,NipponSteel,2025,Limited availability of low-carbon fuels such as hydrogen and biomass,4
+15,NipponSteel,2025,Technical challenges in implementing hydrogen injection into blast furnaces,1
+15,NipponSteel,2025,Need for significant investments in research and development to achieve carbon neutrality,0
+15,NipponSteel,2025,Difficulty in scaling up decarbonization technologies to meet global demand,0
+15,NipponSteel,2025,Limited predictability of future carbon pricing and regulations,14
+15,NipponSteel,2025,Uncertainty around the development of a global carbon market,14
+15,NipponSteel,2025,"Complexity of integrating carbon capture, utilization, and storage (CCUS) technologies into steel production processes",0
+15,NipponSteel,2025,Limited availability of CCUS technologies and expertise,8
+15,NipponSteel,2025,High costs associated with CCUS technologies and implementation,8
+15,NipponSteel,2025,Difficulty in achieving economies of scale with CCUS technologies,8
+15,NipponSteel,2025,Limited availability of low-carbon electricity for power generation,4
+15,NipponSteel,2025,High costs associated with purchasing decarbonized electric power from external sources,0
+15,NipponSteel,2025,Difficulty in achieving stable and reliable supply of low-carbon fuels,4
+15,NipponSteel,2025,Limited availability of digital transformation technologies and expertise,-1
+15,NipponSteel,2025,High costs associated with implementing digital transformation strategies,-1
+15,NipponSteel,2025,Difficulty in achieving efficiency enhancements through digital transformation,-1
+15,NipponSteel,2025,Limited availability of data and analytics to support digital transformation,-1
+15,NipponSteel,2025,Difficulty in achieving cultural and organizational changes to support digital transformation,-1
+15,NipponSteel,2025,Limited availability of talent and skills to support digital transformation,-1
+15,NipponSteel,2025,High costs associated with training and developing talent and skills,10
+15,NipponSteel,2025,Difficulty in achieving business model changes to support digital transformation,-1
+15,NipponSteel,2025,Limited availability of low-carbon materials and technologies,2
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon materials and technologies,0
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon materials and technologies,-1
+15,NipponSteel,2025,Limited availability of low-carbon supply chain options,2
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon supply chain options,-1
+15,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon supply chains,-1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon products,1
+15,NipponSteel,2025,Limited availability of low-carbon product design and development expertise,10
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon product design and development,-1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon product design and development,-1
+15,NipponSteel,2025,Limited availability of low-carbon manufacturing and production expertise,10
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon manufacturing and production,-1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon manufacturing and production,-1
+15,NipponSteel,2025,Limited availability of low-carbon logistics and transportation options,2
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon logistics and transportation,-1
+15,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon logistics and transportation,-1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for logistics and transportation,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for logistics and transportation,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon logistics and transportation services,1
+15,NipponSteel,2025,Limited availability of low-carbon product take-back and recycling options,2
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon product take-back and recycling,-1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon product take-back and recycling,-1
+15,NipponSteel,2025,Limited availability of low-carbon waste management and disposal options,-1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon waste management and disposal,-1
+15,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon waste management and disposal,-1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for waste management and disposal,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for waste management and disposal,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon waste management and disposal services,1
+15,NipponSteel,2025,Limited availability of low-carbon research and development funding,-1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon research and development projects,0
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon research and development,-1
+15,NipponSteel,2025,Limited availability of low-carbon talent and skills,10
+15,NipponSteel,2025,High costs associated with training and developing low-carbon talent and skills,10
+15,NipponSteel,2025,Difficulty in achieving business model changes to support low-carbon research and development,0
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for research and development,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for research and development,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon research and development services,1
+15,NipponSteel,2025,Limited availability of low-carbon policy and regulatory frameworks,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon policy and regulatory frameworks,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon policy and regulatory frameworks,-1
+15,NipponSteel,2025,Limited availability of low-carbon international cooperation and collaboration,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon international cooperation and collaboration,1
+15,NipponSteel,2025,Difficulty in achieving transparency and accountability in low-carbon international cooperation and collaboration,-1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for international cooperation and collaboration,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for international cooperation and collaboration,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon international cooperation and collaboration services,1
+15,NipponSteel,2025,Limited availability of low-carbon education and training programs,10
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon education and training programs,10
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon education and training programs,10
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for education and training,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for education and training,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon education and training services,1
+15,NipponSteel,2025,Limited availability of low-carbon public awareness and engagement programs,11
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon public awareness and engagement programs,11
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon public awareness and engagement programs,11
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for public awareness and engagement,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for public awareness and engagement,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon public awareness and engagement services,1
+15,NipponSteel,2025,Limited availability of low-carbon media and communication channels,-1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon media and communication channels,-1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon media and communication channels,-1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for media and communication,7
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for media and communication,7
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon media and communication services,1
+15,NipponSteel,2025,Limited availability of low-carbon data and analytics tools,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon data and analytics tools,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon data and analytics tools,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for data and analytics,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for data and analytics,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon data and analytics services,1
+15,NipponSteel,2025,Limited availability of low-carbon artificial intelligence and machine learning expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon artificial intelligence and machine learning,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon artificial intelligence and machine learning,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for artificial intelligence and machine learning,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for artificial intelligence and machine learning,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon artificial intelligence and machine learning services,1
+15,NipponSteel,2025,Limited availability of low-carbon blockchain and distributed ledger technology expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon blockchain and distributed ledger technology,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon blockchain and distributed ledger technology,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for blockchain and distributed ledger technology,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for blockchain and distributed ledger technology,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon blockchain and distributed ledger technology services,1
+15,NipponSteel,2025,Limited availability of low-carbon cybersecurity expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon cybersecurity,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cybersecurity,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cybersecurity,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cybersecurity,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cybersecurity services,1
+15,NipponSteel,2025,Limited availability of low-carbon digital identity and authentication expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon digital identity and authentication,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon digital identity and authentication,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for digital identity and authentication,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for digital identity and authentication,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon digital identity and authentication services,1
+15,NipponSteel,2025,Limited availability of low-carbon IoT and sensor expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon IoT and sensor technology,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon IoT and sensor technology,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for IoT and sensor technology,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for IoT and sensor technology,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon IoT and sensor services,1
+15,NipponSteel,2025,Limited availability of low-carbon robotics and automation expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon robotics and automation,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon robotics and automation,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for robotics and automation,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for robotics and automation,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon robotics and automation services,1
+15,NipponSteel,2025,Limited availability of low-carbon 5G and telecommunications expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon 5G and telecommunications,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon 5G and telecommunications,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for 5G and telecommunications,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for 5G and telecommunications,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon 5G and telecommunications services,1
+15,NipponSteel,2025,Limited availability of low-carbon cloud computing expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon cloud computing,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cloud computing,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cloud computing,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cloud computing,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cloud computing services,1
+15,NipponSteel,2025,Limited availability of low-carbon data centers and infrastructure expertise,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon cybersecurity for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon cybersecurity for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cybersecurity for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cybersecurity for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon digital identity and authentication for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon digital identity and authentication for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon digital identity and authentication for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon digital identity and authentication for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon IoT and sensor technology for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon IoT and sensor technology for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon IoT and sensor technology for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon IoT and sensor technology for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon robotics and automation for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon robotics and automation for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon robotics and automation for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon robotics and automation for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon 5G and telecommunications for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon 5G and telecommunications for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon 5G and telecommunications for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon 5G and telecommunications for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon cloud computing for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon cloud computing for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cloud computing for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cloud computing for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cloud computing for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cloud computing for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon data centers and infrastructure for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for cybersecurity for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon cybersecurity for data centers and infrastructure for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for digital identity and authentication for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon digital identity and authentication for data centers and infrastructure for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for IoT and sensor technology for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon IoT and sensor technology for data centers and infrastructure for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for robotics and automation for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon robotics and automation for data centers and infrastructure for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon certification and labeling schemes for 5G and telecommunications for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving consumer awareness and demand for low-carbon 5G and telecommunications for data centers and infrastructure for data centers and infrastructure services,1
+15,NipponSteel,2025,Limited availability of low-carbon cloud computing for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,High costs associated with developing and implementing low-carbon cloud computing for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Difficulty in achieving economies of scale with low-carbon cloud computing for data centers and infrastructure for data centers and infrastructure,1
+15,NipponSteel,2025,Limited availability of low-carbon certification and labeling schemes for,7
+3,Outokumpu,2013,Climate change risks (SR p. 23–24),1
+3,Outokumpu,2013,Sustainable supply chain (SR p. 32),0
+3,Outokumpu,2013,Material balance (SR p. 18),6
+3,Outokumpu,2013,Energy efficiency (SR p. 19),6
+3,Outokumpu,2013,Risks and uncertainties (AR p. 121–124),1
+3,Outokumpu,2013,"Corporate Governance statement (AR, p. 117–118)",0
+3,Outokumpu,2013,"Operational risks (AR, p. 124)",1
+3,Outokumpu,2013,Training and development (SR p. 40),10
+3,Outokumpu,2013,Local communities (SR p. 51-53),-1
+3,Outokumpu,2013,"Emissions, effluents and waste (SR p. 28)",16
+3,Outokumpu,2013,Review by the Board of Directors 2013 (AR p. 16),0
+3,Outokumpu,2013,CEO's review (AR p. 1),0
+3,Outokumpu,2013,Management approach to product responsibility,0
+3,Outokumpu,2013,Management approach to labor practices and decent work,0
+3,Outokumpu,2013,Management approach to human rights,0
+3,Outokumpu,2013,Management approach to society,0
+3,Outokumpu,2013,Management approach to environmental responsibility,0
+3,Outokumpu,2013,Management approach to economic responsibility,0
+3,Outokumpu,2013,Climate change (SR p. 22),1
+3,Outokumpu,2013,Biodiversity (SR p. 30),-1
+3,Outokumpu,2014,"Risk management (AR p. 110), Climate change risks (SR p. 26–28)",1
+3,Outokumpu,2014,Voluntary charters and other initiatives,11
+3,Outokumpu,2014,Associations and federations (SR p. 56),-1
+3,Outokumpu,2014,"Material balance (SR p. 21), Energy efficiency (SR p. 22)",6
+3,Outokumpu,2014,Indirect energy consumption,6
+3,Outokumpu,2014,Identification and selection of stakeholders,11
+3,Outokumpu,2014,Approaches to stakeholder engagement,11
+3,Outokumpu,2014,Initiatives to provide energy-efficient or renewable energy based products and services,6
+3,Outokumpu,2014,Initiatives to reduce indirect energy consumption,6
+3,Outokumpu,2014,Sustainable supply chain (SR p. 36),0
+3,Outokumpu,2014,Total water withdrawal,0
+3,Outokumpu,2014,Key topics raised through stakeholder engagement,11
+3,Outokumpu,2014,Water sources significantly affected by withdrawal of water,0
+3,Outokumpu,2014,Percentage and total volume of water recycled and reused,0
+3,Outokumpu,2014,Location and size of land holdings in areas of high biodiversity,-1
+3,Outokumpu,2014,"Description of significant impact of activities, products, and services on biodiversity",-1
+3,Outokumpu,2014,Habitats protected or restored,-1
+3,Outokumpu,2014,Managing impacts on biodiversity,-1
+3,Outokumpu,2014,Species with extinction risk with habitats in areas affected by operations,-1
+3,Outokumpu,2014,Total direct and indirect greenhouse gas emissions,16
+3,Outokumpu,2014,Other relevant indirect greenhouse gas emissions,16
+3,Outokumpu,2014,Initiatives to reduce greenhouse gas emissions,16
+3,Outokumpu,2014,Emissions of ozone-depleting substances,16
+3,Outokumpu,2014,"NOx, SOx, and other significant air emissions",16
+3,Outokumpu,2014,Total water discharge,0
+3,Outokumpu,2014,Total amount of waste,0
+3,Outokumpu,2014,Significant spills,1
+3,Outokumpu,2023,Decarbonizing across the value chain due to SR 40-46 limitations.,13
+3,Outokumpu,2023,Decarbonizing across the value chain due to SR 40-46 limitations for 305-2 Energy indirect (Scope 2 ) GHG emissions.,13
+3,Outokumpu,2023,Decarbonizing across the value chain due to SR 40-46 limitations for 305-3 Other indirect (Scope 33 ) GHG emissions.,13
+3,Outokumpu,2023,Decarbonizing across the value chain due to SR 40-46 limitations for 305-4 GHG emissions intensity.,13
+3,Outokumpu,2023,"Decarbonizing across the value chain due to SR 40-46 limitations for 305-7 Nitrogen oxides (NOx), sulfur oxides (SOx), and other significant air emissions.",13
+3,Outokumpu,2023,Accelerating the circular economy due to SR 50-52 limitations for 306-3 Waste generated.,-1
+3,Outokumpu,2023,Accelerating the circular economy due to SR 50-52 limitations for 306-4 Waste diverted from disposal.,-1
+3,Outokumpu,2023,Accelerating the circular economy due to SR 50-52 limitations for 306-5 Waste directed to disposal.,-1
+3,Outokumpu,2023,Fostering a sustainable supply chain due to SR 59-63 limitations for 308-1 New suppliers that were screened using environmental criteria.,0
+3,Outokumpu,2023,Fostering a sustainable supply chain due to SR 59-63 limitations for 308-2 Negative environmental impacts in the supply chain and actions taken.,0
+3,Outokumpu,2023,Always working safely due to SR 68-70 limitations for 403-9 Work related injuries.,-1
+3,Outokumpu,2023,Team work towards our targets due to SR 71-79 limitations for 404-2 Programs for upgrading employee skills and transition assitance programs.,10
+3,Outokumpu,2023,Team work towards our targets due to SR 71-79 limitations for 404-3 Percentage of employees receiving regular performance and career development reviews.,-1
+3,Outokumpu,2024,Energy-intensive nature of stainless steel production,0
+3,Outokumpu,2024,High energy requirements for key activity,6
+3,Outokumpu,2024,Limited options for reducing energy intensity in stainless steel production,0
+3,Outokumpu,2024,Complexity of transitioning to low-carbon stainless steel production,0
+3,Outokumpu,2024,High costs associated with decarbonizing stainless steel production,0
+3,Outokumpu,2024,Limited availability of low-carbon energy sources for stainless steel production,0
+3,Outokumpu,2024,Technical challenges in reducing GHG emissions from stainless steel production,0
+3,Outokumpu,2024,Limited scalability of low-carbon stainless steel production technologies,0
+3,Outokumpu,2024,High capital expenditures required for decarbonizing stainless steel production,0
+3,Outokumpu,2024,Complexity of integrating low-carbon energy sources into existing stainless steel production processes,0
+3,Outokumpu,2024,Limited expertise in low-carbon stainless steel production technologies,0
+3,Outokumpu,2024,High costs of low-carbon stainless steel production compared to traditional methods,0
+3,Outokumpu,2024,Limited availability of low-carbon raw materials for stainless steel production,0
+3,Outokumpu,2024,Complexity of reducing GHG emissions from stainless steel production supply chain,0
+3,Outokumpu,2024,Limited options for carbon capture and storage in stainless steel production,0
+3,Outokumpu,2024,High costs of carbon capture and storage technologies for stainless steel production,0
+3,Outokumpu,2024,Complexity of integrating carbon capture and storage into existing stainless steel production processes,0
+3,Outokumpu,2024,Limited scalability of carbon capture and storage technologies for stainless steel production,0
+3,Outokumpu,2024,High capital expenditures required for carbon capture and storage in stainless steel production,0
+3,Outokumpu,2024,Complexity of reducing GHG emissions from stainless steel production transportation,0
+3,Outokumpu,2024,Limited options for low-carbon transportation of stainless steel products,0
+3,Outokumpu,2024,High costs of low-carbon transportation of stainless steel products,0
+3,Outokumpu,2024,Complexity of integrating low-carbon transportation into existing stainless steel production supply chain,0
+3,Outokumpu,2024,Limited expertise in low-carbon transportation of stainless steel products,0
+3,Outokumpu,2024,Complexity of reducing GHG emissions from stainless steel production end-of-life,0
+3,Outokumpu,2024,Limited options for recycling low-carbon stainless steel products,0
+3,Outokumpu,2024,High costs of recycling low-carbon stainless steel products,0
+3,Outokumpu,2024,Complexity of integrating recycling into existing stainless steel production supply chain,0
+3,Outokumpu,2024,Limited scalability of recycling technologies for low-carbon stainless steel products,0
+3,Outokumpu,2024,High capital expenditures required for recycling low-carbon stainless steel products,0
+3,Outokumpu,2024,Complexity of reducing GHG emissions from stainless steel production end-of-life supply chain,0
+3,Outokumpu,2024,Limited options for low-carbon end-of-life management of stainless steel products,0
+3,Outokumpu,2024,High costs of low-carbon end-of-life management of stainless steel products,0
+3,Outokumpu,2024,Complexity of integrating low-carbon end-of-life management into existing stainless steel production supply chain,0
+3,Outokumpu,2024,Limited expertise in low-carbon end-of-life management of stainless steel products,0
+3,Outokumpu,2024,Limited options for reducing GHG emissions from stainless steel production supply chain,0
+3,Outokumpu,2024,High costs of reducing GHG emissions from stainless steel production supply chain,0
+3,Outokumpu,2024,Complexity of integrating low-carbon energy sources into existing stainless steel production supply chain,0
+3,Outokumpu,2024,High capital expenditures required for decarbonizing stainless steel production supply chain,0
+3,Outokumpu,2024,Limited options for low-carbon stainless steel production technologies,0
+3,Outokumpu,2024,High costs of low-carbon stainless steel production technologies,0
+3,Outokumpu,2024,Complexity of integrating low-carbon stainless steel production technologies into existing production processes,0
+3,Outokumpu,2024,High capital expenditures required for low-carbon stainless steel production technologies,0
+3,Outokumpu,2024,Complexity of integrating low-carbon energy sources into existing stainless steel production supply,0
+6,TataSteelNederland,2021,"New infrastructure for sufficient electricity, hydrogen and natural gas and the connection of the steel company to these networks before 2030.",1
+6,TataSteelNederland,2021,Timely and prudent issuing of permits.,-1
+6,TataSteelNederland,2021,Scaling up the production or import of green hydrogen to at least 100 kilotons of hydrogen per year.,1
+6,TataSteelNederland,2021,Financial support to make the necessary investments.,0
+6,TataSteelNederland,2021,Financial support mechanisms and a level playing field (fair competition) to make the operational costs of green steel production economically feasible in the future.,0
+6,TataSteelNederland,2022,High upfront costs of transitioning to green hydrogen production,1
+6,TataSteelNederland,2022,Complexity of modelling processes in new installations,0
+6,TataSteelNederland,2022,Limited availability of European subsidies for decarbonisation projects,-1
+6,TataSteelNederland,2022,Difficulty in achieving significant CO2 reduction in existing installations,-1
+6,TataSteelNederland,2022,Limited efficiency in existing installations,0
+6,TataSteelNederland,2022,High gas consumption in continuous annealing lines,6
+6,TataSteelNederland,2022,Complexity of implementing process control improvements,0
+6,TataSteelNederland,2022,Limited availability of skilled personnel for R&D in decarbonisation projects,10
+6,TataSteelNederland,2022,High costs of implementing new production methods (DRI/electric furnaces),-1
+6,TataSteelNederland,2023,High upfront costs of new technologies and infrastructure for decarbonisation,0
+6,TataSteelNederland,2023,Limited availability and high costs of low-carbon energy sources,4
+6,TataSteelNederland,2023,Complexity and uncertainty of carbon pricing mechanisms,14
+6,TataSteelNederland,2023,Difficulty in measuring and reporting Scope 3 emissions,16
+6,TataSteelNederland,2023,Limited availability of low-carbon steel production technologies,0
+6,TataSteelNederland,2023,High costs and complexity of carbon capture and storage (CCS) technologies,8
+6,TataSteelNederland,2023,Limited availability of low-carbon raw materials,2
+6,TataSteelNederland,2023,Difficulty in balancing decarbonisation with long-term profitability,0
+6,TataSteelNederland,2023,Limited availability of skilled workforce for decarbonisation projects,10
+6,TataSteelNederland,2023,Complexity and uncertainty of regulatory frameworks for decarbonisation,0
+6,TataSteelNederland,2023,Difficulty in engaging customers and suppliers in decarbonisation efforts,0
+6,TataSteelNederland,2023,Limited availability of data and analytics for decarbonisation decision-making,1
+6,TataSteelNederland,2023,High costs and complexity of electrification of industrial processes,1
+6,TataSteelNederland,2023,Difficulty in integrating decarbonisation with existing business operations,0
+6,TataSteelNederland,2023,Limited availability of low-carbon transportation options for raw materials and products,2
+6,TataSteelNederland,2023,Complexity and uncertainty of international cooperation for decarbonisation,0
+6,TataSteelNederland,2023,Difficulty in managing the transition to a low-carbon economy while maintaining competitiveness,-1
+6,TataSteelNederland,2023,Limited availability of low-carbon steel products for customers,0
+6,TataSteelNederland,2023,Difficulty in communicating the benefits of decarbonisation to stakeholders,-1
+6,TataSteelNederland,2023,Limited availability of low-carbon energy storage technologies,4
+6,TataSteelNederland,2023,Complexity and uncertainty of supply chain decarbonisation,0
+6,TataSteelNederland,2023,Difficulty in managing the risks associated with decarbonisation investments,0
+6,TataSteelNederland,2023,Limited availability of low-carbon industrial processes,5
+6,TataSteelNederland,2023,Difficulty in balancing decarbonisation with social and economic considerations,0
+6,TataSteelNederland,2024,Lack of guaranteed demand for low-CO 2 steel products,0
+6,TataSteelNederland,2024,Market for low-CO 2 steel not yet mature,0
+6,TataSteelNederland,2024,"Challenges in the EU and Dutch grid infrastructure posing additional risks for reliable, affordable, low-CO 2 electricity",4
+6,TataSteelNederland,2024,Uncertainty about the availability and affordability of hydrogen,1
+6,TataSteelNederland,2024,"Dependence on energy infrastructure, including specific demands for natural gas during the transition phase",4
+6,TataSteelNederland,2024,Risk that suppliers might opt to serve other countries instead of adhering to emerging and evolving European regulatory requirements,1
+6,TataSteelNederland,2024,Uncertainty about the feasibility of carbon capture and storage (CCS) technology,8
+6,TataSteelNederland,2024,Blast furnace closures in the UK affecting TSN’s sourcing of iron ore and coal,0
+6,TataSteelNederland,2024,Less flexibility in the supply chain in case of disruption,0
+6,TataSteelNederland,2024,Specific ore or coal grades supplied in bigger parcels or shipped in smaller vessels with higher transport costs,2
+6,TataSteelNederland,2024,Higher stocks and/or working capital due to blast furnace closures in the UK,0
+6,TataSteelNederland,2024,Traditional efficiency improvements cannot achieve sufficient CO 2 reduction in steelmaking,0
+6,TataSteelNederland,2024,"Complete process transformations, including new reductors (such as natural gas and hydrogen), are required for sufficient CO 2 reduction",-1
+14,Feralpi,2018,High costs associated with transitioning to low-carbon technologies,0
+14,Feralpi,2018,Complexity of integrating renewable energy sources into existing infrastructure,6
+14,Feralpi,2018,Limited availability and high costs of low-carbon materials and technologies,2
+14,Feralpi,2018,Regulatory uncertainty and lack of clear policies supporting decarbonisation,0
+14,Feralpi,2018,Public acceptance and resistance to changes in energy production and consumption,15
+14,Feralpi,2018,Technical challenges in reducing emissions from industrial processes,1
+14,Feralpi,2018,Limited availability of low-carbon fuels and energy sources,4
+14,Feralpi,2018,High upfront costs of investing in low-carbon infrastructure,0
+14,Feralpi,2018,Complexity of managing supply chain emissions and reducing Scope 3 emissions,1
+14,Feralpi,2018,Limited availability of low-carbon technologies and solutions for specific industries,5
+14,Feralpi,2018,High costs of carbon capture and storage technologies,8
+14,Feralpi,2018,Limited availability of low-carbon materials and resources for construction and manufacturing,2
+14,Feralpi,2018,Complexity of reducing emissions from transportation and logistics,1
+14,Feralpi,2018,Limited availability of low-carbon fuels and energy sources for transportation,4
+14,Feralpi,2018,High costs of electrifying transportation and logistics systems,-1
+14,Feralpi,2018,Complexity of managing emissions from international trade and supply chains,1
+14,Feralpi,2018,Limited availability of low-carbon technologies and solutions for specific industries and sectors,5
+14,Feralpi,2018,High costs of reducing emissions from industrial processes and manufacturing,1
+14,Feralpi,2018,Complexity of managing emissions from agriculture and land use changes,1
+14,Feralpi,2018,Limited availability of low-carbon fuels and energy sources for agriculture and land use,4
+14,Feralpi,2018,High costs of reducing emissions from agriculture and land use changes,1
+14,Feralpi,2018,Complexity of managing emissions from international aviation and shipping,1
+14,Feralpi,2018,Limited availability of low-carbon fuels and energy sources for international aviation and shipping,4
+14,Feralpi,2018,High costs of reducing emissions from international aviation and shipping,1
+14,Feralpi,2021,High upfront costs of decarbonisation technologies,0
+14,Feralpi,2021,Complexity of integrating new technologies into existing infrastructure,0
+14,Feralpi,2021,Limited availability of skilled workforce for decarbonisation projects,10
+14,Feralpi,2021,Difficulty in measuring and verifying the effectiveness of decarbonisation efforts,0
+14,Feralpi,2021,Limited availability of low-carbon energy sources,4
+14,Feralpi,2021,High costs of carbon capture and storage technologies,8
+14,Feralpi,2021,Complexity of transitioning to a low-carbon economy,-1
+14,Feralpi,2021,Limited public acceptance of new decarbonisation technologies,15
+14,Feralpi,2021,High costs of battery storage for renewable energy,-1
+14,Feralpi,2021,Complexity of integrating renewable energy sources into the grid,6
+14,Feralpi,2021,Limited availability of low-carbon materials for production,2
+14,Feralpi,2021,Difficulty in reducing emissions from hard-to-abate sectors,-1
+14,Feralpi,2021,Complexity of implementing carbon pricing mechanisms,14
+14,Feralpi,2021,Limited availability of low-carbon transportation options,2
+14,Feralpi,2021,High costs of hydrogen production and storage,1
+14,Feralpi,2021,Complexity of transitioning to a circular economy,0
+14,Feralpi,2021,Limited availability of low-carbon fuels for industrial processes,4
+14,Feralpi,2021,Difficulty in reducing emissions from supply chains,1
+14,Feralpi,2021,Complexity of implementing net-zero targets across global operations,0
+14,Feralpi,2021,Limited availability of low-carbon technologies for heavy industry,5
+14,Feralpi,2023,"Regulatory risks: arising from evolving regulatory actions to limit negative impacts or promote adaptation to climate change, including potential litigation;",1
+14,Feralpi,2023,"Technological risks: related to the introduction of new technologies that support the transition to a low-carbon economy, with possible interference on existing business systems;",0
+14,Feralpi,2023,Market risks: related to possible changes in the demand for products and services by the Group’s customers;,1
+14,Feralpi,2023,Complexity of production processes in the steel sector that require high amounts of energy at high temperatures;,0
+14,Feralpi,2023,"Difficulty in reducing greenhouse gas emissions in the steel sector due to its ""hard-to-abate"" nature;",0
+14,Feralpi,2023,"Existing infrastructures that take time to replace or upgrade, making it difficult to avoid emissions in the short term;",0
+14,Feralpi,2023,Locked-in emissions generated today due to long-term investments in existing infrastructures.,0
+14,Feralpi,2024,High energy consumption within the organisation (302-1 Energy consumption within the organisation),6
+14,Feralpi,2024,High energy consumption outside the organisation (302-2 Energy consumption outside the organisation),6
+14,Feralpi,2024,High energy intensity (302-3 Energy intensity),6
+14,Feralpi,2024,"Regionalisation processes that have distanced the Western bloc from the Eastern one, potentially hindering global cooperation on decarbonisation efforts",0
+14,Feralpi,2024,"Economic dynamics incorporating tensions and uncertainties, which may hinder investment in decarbonisation technologies and practices",0
+14,Feralpi,2024,"Ongoing military conflicts, which may divert resources away from decarbonisation efforts and hinder global cooperation on climate change",0
+14,Feralpi,2024,"Uncertainty and instability in the global political landscape, which may hinder the implementation of decarbonisation policies and regulations",0
+14,Feralpi,2024,"Need for a more cohesive and responsive Europe to effectively address global challenges, including decarbonisation.",0
