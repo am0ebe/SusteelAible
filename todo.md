@@ -66,3 +66,7 @@
 ## explain / reason / find solution
 - think about new failure mode: Failure = retrieval failure OR extraction failure ? suggest solutions or explain
 - explain difference when using exhaustive llm approach vs RAG
+
+## results/
+- Ausblick
+- lessons learned

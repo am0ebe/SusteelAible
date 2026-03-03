@@ -1,6 +1,6 @@
 [project]
 name = "susteelaible"
-version = "0.5"
+version = "0.6"
 description = "EDA of EU steel emission data and NLP pipeline analyzing sustainability reports to extract decarbonization barriers and motivators"
 readme = "README.md"
 requires-python = ">=3.11"
