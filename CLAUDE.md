@@ -61,6 +61,24 @@ pipeline.extract_all_companies()
 **Batching**: `batch_size` auto-calculated from `ctx` if not set (capped at 32k for batch calc). Larger context window = bigger batches = fewer LLM calls.
 
 
+## Data Volumes (verified from cache)
+
+| Stage | Count |
+|---|---|
+| PDFs | 180 unique files across 197 company-year reports |
+| Companies | 15 EU steel producers (IDs 001–016, no 011) |
+| Year range | 2013–2025 |
+| Chunks after preprocessing | 36 444 |
+| Chunks after BERT climate filter (detector ≥ 0.70) | 14 545 (39.9 %) |
+| Barriers extracted (RAG) | 1 698 |
+| Motivators extracted (RAG) | 1 255 |
+| Barrier topics (after merging) | 16 |
+| Motivator topics (after merging) | 6 |
+
+Chunk sizes are configured in **chars** (`PreprocessingConfig.min_chunk_chars`, `max_chunk_chars`), not tokens. Target: 600–1 400 chars ≈ 150–350 tokens (≈ 4 chars/token rule of thumb).
+
+**BERT scores usage**: only `detector_score` is used as a pipeline filter (threshold 0.70). `specificity`, `commitment`, `sentiment`, `netzero` scores are stored in `cache/*_bert.json` as metadata but are not used to filter chunks fed to RAG.
+
 ## Cache & Data Flow
 
 ```
@@ -145,6 +163,8 @@ gpu.emergency_cleanup(models={'model': model})
 **BERT filtering before LLM** (`min_detector_score=0.7`): keeps only climate-relevant chunks, cutting the corpus significantly before hitting the LLM. Threshold of 0.7 is the ClimateBERT default — not tuned here. Going higher (0.8–0.9) removes very few additional chunks so wasn't pursued. Some non-decarbonization climate chunks slip through; accepted as good-enough pre-filter. Other BERT scores (specificity, commitment) could further filter but haven't been applied yet.
 
 **RAG template extraction and topic modeling**: RAG LLM outputs near-identical sentence shells varying only one slot word (e.g. "Complexity of integrating [biomass/MSW/industrial waste] with existing energy systems"). Because sentence transformers encode full sentence meaning, template structure dominates over the slot word — embeddings cluster correctly by theme but appear as artificial density. Result: BERTopic may split one real topic into several near-duplicate fragments. Mitigation: merge these post-hoc. Not a modeling bug — the sentences genuinely mean the same thing.
+
+**Documentation artifacts**: `results/workflow.md` contains full pipeline technical specs in tables (corpus, preprocessing, BERT, RAG, topic modeling). `results/workflow.drawio` is a draw.io diagram mimicking the bla.png academic style (colored dashed section borders, numbered badges, parallelogram data nodes). Open at app.diagrams.net.
 
 **Topic labeling flow**: BERTopic c-TF-IDF produces keywords (statistical, no LLM). Keywords are fed to LLM in one batched call → LLM returns "N: Label" lines → labels stored in `labels.csv`. The `keywords` column in the CSV is the raw pre-filter keywords; `KEYWORD_STOPWORDS` filters them before the LLM sees them (and also removes them from the CountVectorizer vocabulary).
 
