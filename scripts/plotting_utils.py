@@ -616,7 +616,7 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
         ax.set_xlabel('ACTION SCORE (Operational Progress)', 
                      fontsize=18,
                      fontweight='bold')
-        ax.set_ylabel('CLIMATE DISCUSSION (% of Report)', 
+        ax.set_ylabel('CLIMATE COMMUNICATION (% of Report)', 
                      fontsize=18,
                      fontweight='bold')
         
