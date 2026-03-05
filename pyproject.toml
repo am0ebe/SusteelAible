@@ -13,6 +13,7 @@ dependencies = [
     "matplotlib>=3.10",
     "seaborn>=0.12",
     "statsmodels>=0.14",
+    "linearmodels>=6.0",
     "plotly>=6.3",
     "datamapplot==0.6.4",
     "umap-learn>=0.5.11",
