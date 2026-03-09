@@ -325,6 +325,9 @@ def prepare_animation_data(action_scores_df, talk_scores_df):
 
 def create_animated_talk_action_matrix(action_scores_df, talk_scores_df, 
                                        technology_map, output_path='talk_vs_action.mp4',
+                                       talk_column='climate_pct_mean',
+                                       y_label='CLIMATE COMMUNICATION (% of Report)',
+                                       title='Talk vs Action',
                                        total_frames=200, fps=15,
                                        pause_start=20, pause_end=100):
     """
@@ -340,7 +343,7 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
         Action scores with columns: company, period, total_score
         Must have 'pre2020' and 'post2020' periods
     talk_scores_df : pd.DataFrame
-        Talk scores (from ClimateBERT) with columns: company, period, climate_pct_mean
+        Talk scores (from ClimateBERT) with columns: company, period, and talk_column
         Must have 'pre2020' and 'post2020' periods
     technology_map : dict
         Mapping of company names to technology types
@@ -348,6 +351,16 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
     output_path : str, optional
         Path to save the MP4 file
         Default: 'talk_vs_action.mp4'
+    talk_column : str, optional
+        Column name in talk_scores_df to use for y-axis values
+        Default: 'climate_pct_mean' (for general climate communication)
+        Alternative: 'netzero_pct_mean' (for net-zero specific communication)
+    y_label : str, optional
+        Y-axis label text
+        Default: 'CLIMATE COMMUNICATION (% of Report)'
+    title : str, optional
+        Base title for the animation
+        Default: 'Talk vs Action'
     total_frames : int, optional
         Total number of animation frames
         Default: 200 (~13 seconds at 15 FPS)
@@ -368,16 +381,24 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
     
     Examples
     --------
-    >>> # Basic usage
-    >>> tech_map = {
-    ...     'Celsa Group': 'EAF',
-    ...     'SSAB': 'BF-BOF',
-    ...     'Outokumpu': 'EAF'
-    ... }
+    >>> # Climate communication (general)
     >>> create_animated_talk_action_matrix(
     ...     action_scores_df=action_scores,
-    ...     talk_scores_df=climate_bert_scores,
-    ...     technology_map=tech_map
+    ...     talk_scores_df=climate_data,
+    ...     technology_map=tech_map,
+    ...     output_path='climate_vs_action.mp4'
+    ... )
+    
+    >>> # Net-zero communication (specific)
+    >>> create_animated_talk_action_matrix(
+    ...     action_scores_df=action_scores,
+    ...     talk_scores_df=climate_data,
+    ...     technology_map=tech_map,
+    ...     output_path='netzero_vs_action.mp4',
+    ...     talk_column='netzero_pct_mean',
+    ...     y_label='NET-ZERO COMMUNICATION (% of Report)',
+    ...     title='Net-Zero vs Action'
+    ... )
     ... )
     'talk_vs_action.mp4'
     
@@ -464,7 +485,7 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
                 'company': company,
                 'year': 2019,
                 'action_score': action_pre['total_score'].values[0],
-                'talk_score': climate_pre['climate_pct_mean'].values[0],
+                'talk_score': climate_pre[talk_column].values[0],
                 'technology': tech_simplified,
                 'color': tech_colors.get(tech_simplified, 'gray')
             })
@@ -476,7 +497,7 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
                 'company': company,
                 'year': 2024,
                 'action_score': action_post['total_score'].values[0],
-                'talk_score': climate_post['climate_pct_mean'].values[0],
+                'talk_score': climate_post[talk_column].values[0],
                 'technology': tech_simplified,
                 'color': tech_colors.get(tech_simplified, 'gray'),
                 'is_new': not has_2019
@@ -616,15 +637,15 @@ def create_animated_talk_action_matrix(action_scores_df, talk_scores_df,
         ax.set_xlabel('ACTION SCORE (Operational Progress)', 
                      fontsize=18,
                      fontweight='bold')
-        ax.set_ylabel('CLIMATE COMMUNICATION (% of Report)', 
+        ax.set_ylabel(y_label, 
                      fontsize=18,
                      fontweight='bold')
         
         # Title
         if period_label:
-            title_text = f'Talk vs Action — {period_label}'
+            title_text = f'{title} — {period_label}'
         else:
-            title_text = 'Talk vs Action'
+            title_text = title
         
         ax.set_title(title_text,
                     fontsize=22,
