@@ -1,30 +1,62 @@
 # SuSteelAible
 
-Analyzing decarbonization pathways in the EU steel industry through emissions data and corporate sustainability report analysis.
+Analyzing decarbonization pathways in the European steel industry through emissions data and corporate sustainability reports.
 
 ---
 
 ## Overview
 
-**SuSteelAible** combines **quantitative emissions analysis** with **NLP analysis of ~200 corporate sustainability reports** (2013–2025) to understand technology lock-in, climate commitments, and decarbonization barriers in European steel.
+SuSteelAible combines **quantitative emissions analysis** with **natural language processing (NLP) of ~200 corporate sustainability and annual reports (2013–2025)** to investigate technology lock-in, climate commitments, and decarbonization barriers in the European steel sector.
 
-**Three-part analysis:**
-1. **Emissions EDA** — Technology gap, carbon price paradox, Scope 2 trends
-2. **Modeling** — Technology baseline, panel econometrics, action score framework
-3. **NLP Pipeline** — ClimateBERT classification, RAG extraction, BERTopic clustering
+The project integrates firm-level emissions data with large-scale text analysis to understand how **technology, policy signals, and corporate narratives interact in shaping industrial decarbonization trajectories.**
 
-## → [Results & Key Findings](results/RESULTS.md)
+➡️ A detailed explanation of the research design, dataset construction, and full analytical results is available in **`project_overview.md`**.
 
-Full findings are in **[results/RESULTS.md](results/RESULTS.md)**. Key takeaways:
+## Analytical Framework
 
-- Technology choice (BF-BOF vs EAF) explains ~80% of emission intensity variance — the dominant driver
-- Carbon prices rose 17× (€5 → €85+) while sector intensity stayed flat — structural lock-in, not incentive failure
-- ETS, CBAM, and the Green Deal show no statistically significant within-firm intensity reductions
-- Action scores split entirely by technology: EAF firms score 50–93 pts, BF-BOF firms 12–40 pts
-- Top barrier: limited availability of low-carbon steel inputs and certification costs
-- Top motivator: internal emission targets, ahead of regulatory compliance
+The analysis is structured in three main components:
 
-> Interactive topic visualizations: `results/topics2/` (open HTML locally). Presentation: `results/final_presentation.pdf`. Talk vs Action animation: `results/models/talk_vs_action.mp4`.
+**1. Emissions Analysis** 
+- Technology gap between **BF–BOF** and **EAF** production routes
+- The **carbon price paradox** in the EU ETS
+- Scope 2 electricity trends and energy-system exposure
+
+**2. Econometric Modeling** 
+- Technology baseline models explaining emission intensity
+- Panel regressions evaluating policy sensitivity
+- **Action Score framework** for measuring operational decarbonization readiness
+
+**3. NLP Pipeline** 
+- **ClimateBERT** classification of climate-related disclosures
+- **RAG (Retrieval-Augmented Generation)** for extracting barriers and motivators
+- **BERTopic** clustering to map decarbonization discourse
+
+## → [Key Findings](results/RESULTS.md)
+
+Full results are available in **[results/RESULTS.md](results/RESULTS.md)**. The most important findings include:
+
+- **Technology dominates emissions outcomes:**
+Production technology (BF–BOF vs EAF) explains ~80% of variation in emissions intensity.
+- **Carbon price escalation without intensity reduction:**
+EU ETS prices increased roughly 17× (€5 → €85+), while sectoral emissions intensity remained largely unchanged—suggesting **structural technology lock-in rather than incentive failure.**
+- **Limited measurable policy effects:**
+ETS reforms, CBAM, and the EU Green Deal show **no statistically significant within-firm emissions reductions** during the study period.
+- **Action scores split along technological lines:**
+EAF producers: 50–93 points
+BF–BOF producers: 12–40 points
+- **Top reported barrier:**
+Limited availability of **low-carbon steel inputs and certification costs.**
+- **Top reported motivator:**
+**Internal emissions targets**, often adopted ahead of regulatory requirements.
+
+## Results and Visualization
+Additional outputs and interactive materials:
+- **Topic visualizations:**
+`results/topics2/` (open HTML locally). 
+- **Project Presentation:** 
+`results/final_presentation.pdf`. 
+- **Transition Tracker animation (Action vs Communication):** 
+`results/models/talk_vs_action.mp4`.
 
 ---
 
