@@ -33,7 +33,7 @@ The analysis is structured in three main components:
 
 ##  [🔗 Project Overview](results/project_overview.md)
 
-A detailed explanation of the research design, dataset construction, and full analytical results is available in [project overview](project_overview.md).
+A detailed explanation of the research design, dataset construction, and full analytical results is available in [project overview](results/project_overview.md).
 
 
 ## Results and Visualization
