@@ -1,4 +1,5 @@
 # SuSteelAible
+![Steel Overview](./images/steel2.png "Steel Overview")
 
 Analyzing decarbonization pathways in the European steel industry through emissions data and corporate sustainability reports.
 
@@ -149,6 +150,6 @@ pip install -e ".[gpu]"   # GPU-accelerated FAISS (NVIDIA only)
 
 **SuSteelAible** — March 2026
 
-[@am0ebe](https://github.com/am0ebe) · [@calluna-borealis](https://github.com/calluna-borealis) · [@dzyen](https://github.com/dzyen) · [@aposkoub92](https://github.com/aposkoub92) · [@MJR-data](https://github.com/MJR-data)
+[@MJR-data](https://github.com/MJR-data) · [@am0ebe](https://github.com/am0ebe) · [@calluna-borealis](https://github.com/calluna-borealis) · [@aposkoub92](https://github.com/aposkoub92) · [@dzyen](https://github.com/dzyen)
 
 Questions or bugs? [Open an issue](https://github.com/am0ebe/SusteelAible/issues).
