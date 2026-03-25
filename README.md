@@ -1,5 +1,5 @@
 # SuSteelAible
-![Steel Overview](../images/steel2.png "Steel Overview")
+![Steel Overview](./images/steel2.png "Steel Overview")
 
 Analyzing decarbonization pathways in the European steel industry through emissions data and corporate sustainability reports.
 
