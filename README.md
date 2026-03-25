@@ -10,52 +10,38 @@ SuSteelAible combines **quantitative emissions analysis** with **natural languag
 
 The project integrates firm-level emissions data with large-scale text analysis to understand how **technology, policy signals, and corporate narratives interact in shaping industrial decarbonization trajectories.**
 
-➡️ A detailed explanation of the research design, dataset construction, and full analytical results is available in **`project_overview.md`**.
 
 ## Analytical Framework
 
 The analysis is structured in three main components:
 
-**1. Emissions Analysis** 
+**1. Emissions Analysis**
 - Technology gap between **BF–BOF** and **EAF** production routes
 - The **carbon price paradox** in the EU ETS
 - Scope 2 electricity trends and energy-system exposure
 
-**2. Econometric Modeling** 
+**2. Econometric Modeling**
 - Technology baseline models explaining emission intensity
 - Panel regressions evaluating policy sensitivity
 - **Action Score framework** for measuring operational decarbonization readiness
 
-**3. NLP Pipeline** 
+**3. NLP Pipeline**
 - **ClimateBERT** classification of climate-related disclosures
 - **RAG (Retrieval-Augmented Generation)** for extracting barriers and motivators
 - **BERTopic** clustering to map decarbonization discourse
 
-## → [Key Findings](results/RESULTS.md)
+##  [🔗 Project Overview](results/project_overview.md)
 
-Full results are available in **[results/RESULTS.md](results/RESULTS.md)**. The most important findings include:
+A detailed explanation of the research design, dataset construction, and full analytical results is available in [project overview](project_overview.md).
 
-- **Technology dominates emissions outcomes:**
-Production technology (BF–BOF vs EAF) explains ~80% of variation in emissions intensity.
-- **Carbon price escalation without intensity reduction:**
-EU ETS prices increased roughly 17× (€5 → €85+), while sectoral emissions intensity remained largely unchanged—suggesting **structural technology lock-in rather than incentive failure.**
-- **Limited measurable policy effects:**
-ETS reforms, CBAM, and the EU Green Deal show **no statistically significant within-firm emissions reductions** during the study period.
-- **Action scores split along technological lines:**
-EAF producers: 50–93 points
-BF–BOF producers: 12–40 points
-- **Top reported barrier:**
-Limited availability of **low-carbon steel inputs and certification costs.**
-- **Top reported motivator:**
-**Internal emissions targets**, often adopted ahead of regulatory requirements.
 
 ## Results and Visualization
 Additional outputs and interactive materials:
 - **Topic visualizations:**
-`results/topics2/` (open HTML locally). 
-- **Project Presentation:** 
-`results/final_presentation.pdf`. 
-- **Transition Tracker animation (Action vs Communication):** 
+`results/topics2/` (open HTML locally).
+- **Project Presentation:**
+`results/final_presentation.pdf`.
+- **Transition Tracker animation (Action vs Communication):**
 `results/models/talk_vs_action.mp4`.
 
 ---
