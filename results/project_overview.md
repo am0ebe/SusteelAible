@@ -19,7 +19,7 @@ To examine how and why decarbonization is progressing in the European steel sect
 First, the project analyzes **what companies do**. Emissions trajectories are examined using ordinary least squares (OLS) and panel regression techniques applied to company-level data over time. Panel regression is central to the approach, as it allows multiple companies to be analyzed simultaneously while controlling for unobserved, time-invariant company characteristics. This framework enables systematic assessment of how emissions evolve and how these trajectories correlate with external conditions such as carbon pricing, policy changes, and market dynamics, without presupposing which drivers dominate.
 
 ![Analytical Approach](../images/appoach_white_bg.png "Figure 1: Analytical Approach")
-Figure 1: Analytical Approach
+<p align="center"><em>Figure 1: Analytical Approach</em></p>
 
 
 Second, the project analyzes **what companies say**. Corporate reports and disclosures are evaluated using ClimateBERT, a language model trained specifically on climate-related texts. This project filters a subset of climate-related texts to assess the strength, specificity, and consistency of decarbonization commitments. To move beyond sentiment and capture substance, Retrieval-Augmented Generation (RAG) is used to extract and structure reported barriers and motivators to decarbonization, including references to capital availability, technology readiness, and infrastructure dependencies. OPUS-MT is employed to ensure consistent analysis across multiple European languages.
@@ -36,7 +36,7 @@ The analysis focuses on **15 European steel producers** due to the limited avail
 The core quantitative metric is **emissions intensity per ton of steel produced**, enabling comparison across companies and over time while accounting for differences in production scale. This company-level emissions data is complemented with external contextual variables, including carbon prices, electricity costs, and major policy developments, to capture the broader operating environment in which decarbonization decisions occur.
 
 ![Figure 2: Data Landscape](../images/data.png "Figure 2: Data Landscape")
-Figure 2: Data Landscape
+<p align="center"><em>Figure 2: Data Landscape</em></p>
 
 In parallel, the project assembles a comprehensive corpus of publicly available corporate documents - primarily sustainability reports and annual reports - which form the basis for the narrative and text-based analysis. Linking emissions trajectories with structured analysis of corporate disclosures allows SuSteelAible to jointly examine observed outcomes and stated strategies within a unified analytical framework.
 
@@ -46,7 +46,7 @@ In parallel, the project assembles a comprehensive corpus of publicly available 
 Figure 3 shows the evolution of **Scope 1 emissions intensity (tCO₂ per ton of steel)** across European steel producers between 2013 and 2024. Emissions intensities vary substantially across companies, indicating persistent structural differences. For most companies, emissions intensity remains relatively stable over time, with only modest declines or temporary fluctuations rather than sustained downward trends. A small number of companies operate at consistently lower emissions intensity levels, while others remain clustered at the higher end of the distribution. Overall, the data does not indicate significant progress in reducing emissions intensity at the company level, underscoring the challenge of achieving decarbonization through marginal changes alone.
 
 ![Figure 3: Emissions Intensity of Selected European Producers 2013-24](EDA/02_scope1_timeseries_european.png)
-Figure 3: Emissions Intensity of Selected European Producers 2013-24
+<p align="center"><em>Figure 3: Emissions Intensity of Selected European Producers 2013-24</em></p>
 
 
 ### What explains the different sets of intensity levels?
@@ -62,7 +62,7 @@ Taken together, the results suggest that decarbonization in the steel industry r
 To assess how emissions intensity may evolve under different external conditions, the analysis combines panel-based econometric modeling with machine-learning-based prediction. Panel OLS is used to estimate the sensitivity of emissions intensity to key external drivers, including carbon pricing and policy stringency, capturing average responses across companies over time. In parallel, a random forest model is applied to account for nonlinearities and heterogeneous company-level behavior that may not be fully captured by linear specifications. These models are then used to generate forward-looking scenarios reflecting alternative policy and technology pathways.
 
 ![Figure 4: Projected Changes in Emissions Driven by External Drivers](models/bf-bof_change_in_emission_intensity.png)
-Figure 4: Projected Changes in Emissions Driven by External Drivers
+<p align="center"><em>Figure 4: Projected Changes in Emissions Driven by External Drivers</em></p>
 
 
 Figure 4 illustrates projected changes in emissions intensity for BF-BOF producers relative to 2025 under three scenarios. Under **business as usual**, emissions intensity declines modestly before stabilizing, reflecting incremental efficiency improvements under existing policy trends. **Policy tightening**, characterized by reduced free allowances and gradually increasing regulatory pressure, leads to slightly stronger but still limited reductions over time. In contrast, the **technology transition** scenario - representing strict carbon regulation combined with a shift toward hydrogen-compatible production - produces a markedly steeper decline, particularly in the later years of the projection. Together, the scenarios highlight how external drivers shape near- and medium-term emissions trajectories, while underscoring the difference between incremental adjustment and structural change.
@@ -71,27 +71,27 @@ Figure 4 illustrates projected changes in emissions intensity for BF-BOF produce
 
 To complement the analysis of operational emissions, the second part of the project systematically examines how steel producers communicate about climate and decarbonization in their public reports. In total, **197 annual and sustainability reports from 15 companies** were collected and pre-processed to create a structured text corpus covering the period 2013–2024. The documents were converted into machine-readable format, cleaned, standardized, translated and segmented into paragraph-level text units to ensure comparability across companies, reporting formats, and years.
 
-![Figure X: NLP workflow](workflow.drawio.png "")
-Figure X: NLP workflow
+![Figure 5: NLP workflow](workflow.drawio.png "Figure 5: NLP workflow")
+<p align="center"><em>Figure 5: NLP workflow</em></p>
 
 To systematically analyze corporate climate communication, the project uses **ClimateBERT**, a transformer-based language model specifically fine-tuned on climate-related text corpora. ClimateBERT identifies and classifies passages related to climate topics within corporate reports and assigns multiple analytical scores that capture how companies communicate about the transition. In particular, the model evaluates **sentiment framing** (opportunity, neutral, or risk), **linguistic specificity** (the degree to which statements contain concrete operational or technological detail), and **commitment intensity** (the strength of forward-looking language related to targets, pledges, or planned actions). These dimensions are particularly relevant for the present study because they distinguish between general sustainability rhetoric and more operationally meaningful descriptions of decarbonization strategies. In this way, ClimateBERT enables the transformation of qualitative corporate reports into measurable indicators of transition discourse.
 
 Within the ClimateBERT analysis, **net-zero classifications** serve as a signal of transition-oriented climate discourse. Because references to net-zero commitments typically contain the most concrete descriptions of decarbonization pathways - including technology choices, investment plans, and emissions targets - they provide an indicator of how explicitly companies articulate their decarbonization strategies within broader climate reporting.
 
-Figure 5 illustrates the structural evolution of corporate climate communication. The left panel presents a content “funnel”, showing total report volume, the subset classified as climate-related, and the further subset focused explicitly on net-zero themes. Over time, both the absolute number and the relative share of climate-related text increase substantially, particularly after 2018. The right panel shows focus ratios: the share of total reporting devoted to climate topics rises from roughly one-third of report content in the early years to more than half by 2024. At the same time, net-zero–specific content grows both as a share of total reporting and as a share of climate-related discussion, indicating increasing strategic centrality of long-term decarbonization language.
+Figure 6 illustrates the structural evolution of corporate climate communication. The left panel presents a content “funnel”, showing total report volume, the subset classified as climate-related, and the further subset focused explicitly on net-zero themes. Over time, both the absolute number and the relative share of climate-related text increase substantially, particularly after 2018. The right panel shows focus ratios: the share of total reporting devoted to climate topics rises from roughly one-third of report content in the early years to more than half by 2024. At the same time, net-zero–specific content grows both as a share of total reporting and as a share of climate-related discussion, indicating increasing strategic centrality of long-term decarbonization language.
 
-![Figure 5: Evolution of Climate Communication](bert/n0_funnel.png)
-Figure 5: Evolution of Climate Communication
+![Figure 6: Evolution of Climate Communication](bert/n0_funnel.png)
+<p align="center"><em>Figure 6: Evolution of Climate Communication</em></p>
 
 Finally, the extracted climate-related corpus was used as input for **Retrieval-Augmented Generation (RAG)** to systematically identify and structure reported motivators and barriers to decarbonization. By combining semantic retrieval with guided generation, RAG enables consistent extraction and categorization of transition-related mechanisms across companies and time. In addition, **topic modeling** was applied to the identified motivators and barriers to detect recurring thematic clusters and trace how the structure of reported transition challenges evolved throughout the sample period. This layered pipeline moves from unstructured text to structured, comparable insight into how companies frame and rationalize their decarbonization efforts.
 
 
 ### Trends in Climate-Related Sentiment
 
-To assess how the tone of corporate climate communication has evolved, the analysis uses **ClimateBERT** to classify climate-related statements in corporate reports into three categories: opportunity, neutral, and risk. Figure 6 shows the aggregate share of climate-related text assigned to each category over time, expressed as a percentage of total climate-relevant content.
+To assess how the tone of corporate climate communication has evolved, the analysis uses **ClimateBERT** to classify climate-related statements in corporate reports into three categories: opportunity, neutral, and risk. Figure 7 shows the aggregate share of climate-related text assigned to each category over time, expressed as a percentage of total climate-relevant content.
 
-![Figure 6: Sentiment Trend](bert/slide_sentiment_trend.png)
-Figure 6: Sentiment Trend
+![Figure 7: Sentiment Trend](bert/slide_sentiment_trend.png)
+<p align="center"><em>Figure 7: Sentiment Trend</em></p>
 
 
 In the early years (2013–2016), climate discourse is predominantly framed as a **business opportunity**, accounting for roughly 42–44% of climate-related text. Neutral reporting remains slightly below this level, while risk-oriented language represents a smaller share, typically between 15–18%. Beginning around 2018, a noticeable shift occurs: neutral communication increases sharply, peaking above 50% of climate-related content, while opportunity-oriented framing declines.
@@ -101,10 +101,10 @@ From 2020 onward, opportunity language partially recovers but never returns to i
 
 ### Lexical Structure of Climate Communication
 
-![Figure 7: Wordclouds](bert/wordclouds.png)
-Figure 7: Wordclouds
+![Figure 8: Wordclouds](bert/wordclouds.png)
+<p align="center"><em>Figure 8: Wordclouds</em></p>
 
-To complement the quantitative sentiment classification, Figure 7 visualizes the lexical composition of climate-related communication using word frequency distributions across sentiment categories. The upper-left panel shows all climate-related text, while the remaining panels isolate opportunity-, risk-, and commitment-oriented language as classified by ClimateBERT.
+To complement the quantitative sentiment classification, Figure 8 visualizes the lexical composition of climate-related communication using word frequency distributions across sentiment categories. The upper-left panel shows all climate-related text, while the remaining panels isolate opportunity-, risk-, and commitment-oriented language as classified by ClimateBERT.
 
 Across all climate content, dominant terms include sustainable, emission, production, and environment - reflecting the strong operational framing of climate issues within steelmaking. Opportunity-oriented language emphasizes terms such as development, energy, technology, and innovation, suggesting a strategic framing of decarbonization as modernization and growth. In contrast, risk-related discourse is heavily centered around financial, costs, price, and market - indicating that climate challenges are frequently articulated through economic exposure and competitiveness concerns. Commitment-oriented language clusters around reduction, target, and management - reflecting formalized transition planning and governance structures.
 
@@ -113,10 +113,10 @@ Together, these lexical patterns reinforce the quantitative findings: climate co
 
 ### Net-Zero as High-Signal Climate Communication
 
-To assess whether net-zero communication meaningfully differs from general climate communication, Figure 8 compares average **specificity and commitment intensity scores** for net-zero–classified text versus broader climate-related text over time.
+To assess whether net-zero communication meaningfully differs from general climate communication, Figure 9 compares average **specificity and commitment intensity scores** for net-zero–classified text versus broader climate-related text over time.
 
-![Figure 8: Specificity and Commitment Intensity Scores](bert/n0_quality_comparison.png)
-Figure 8: Specificity and Commitment Intensity Scores
+![Figure 9: Specificity and Commitment Intensity Scores](bert/n0_quality_comparison.png)
+<p align="center"><em>Figure 9: Specificity and Commitment Intensity Scores</em></p>
 
 The left panel shows that net-zero passages consistently exhibit higher or comparable levels of linguistic specificity relative to general climate content, particularly from 2018 onward. While general climate reporting remains relatively stable in specificity, net-zero language becomes more detailed and operationally explicit over time, indicating increasing precision in how companies describe transition pathways.
 
@@ -133,17 +133,17 @@ To examine how companies describe barriers and motivators to decarbonization, th
 
 **Motivators** refer to factors that encourage or enable firms to pursue decarbonization efforts. These include strategic, technological, regulatory, and market-related drivers that companies describe as supporting emissions reductions, investment in low-carbon technologies, or broader sustainability transformation.
 
-In a first analytical step, the extracted barrier statements were subjected to **unsupervised topic modeling** to identify latent thematic structures within the corpus. Figure 9 visualizes this initial topic landscape as a two-dimensional embedding of barrier statements. Each cluster represents semantically related passages, with proximity indicating thematic similarity. At this exploratory stage, clusters form around recurring concepts such as carbon pricing and implementation costs, low-carbon energy availability, hydrogen production constraints, carbon capture technologies, certification and carbon footprint labeling, and industrial process transformation. The dispersion of clusters highlights the diversity of reported obstacles and reveals that decarbonization challenges are not concentrated in a single domain but distributed across regulatory, technological, infrastructural, and market dimensions.
+In a first analytical step, the extracted barrier statements were subjected to **unsupervised topic modeling** to identify latent thematic structures within the corpus. Figure 10 visualizes this initial topic landscape as a two-dimensional embedding of barrier statements. Each cluster represents semantically related passages, with proximity indicating thematic similarity. At this exploratory stage, clusters form around recurring concepts such as carbon pricing and implementation costs, low-carbon energy availability, hydrogen production constraints, carbon capture technologies, certification and carbon footprint labeling, and industrial process transformation. The dispersion of clusters highlights the diversity of reported obstacles and reveals that decarbonization challenges are not concentrated in a single domain but distributed across regulatory, technological, infrastructural, and market dimensions.
 
 
-![Figure 9: Topic Landscape of Barriers](topics1/motivators_datamap.png)
-Figure 9: Topic Landscape of Barriers
+![Figure 10: Topic Landscape of Barriers](topics1/motivators_datamap.png)
+<p align="center"><em>Figure 10: Topic Landscape of Barriers</em></p>
 
 
-Building on this exploratory structure, a second modeling step consolidates and refines the topics into more interpretable and stable thematic groups. Figure 10 shows this structured barrier architecture with clearer labeling and reduced overlap between clusters. Key themes emerge more distinctly: carbon pricing and regulatory costs; energy intensity and electricity constraints; carbon capture and industrial process transformation; hydrogen infrastructure and resource availability; certification and carbon footprint reporting; and broader decarbonization policy frameworks. Compared to the first map, the refined clustering improves interpretability by aggregating closely related subtopics into coherent barrier categories while preserving semantic differentiation.
+Building on this exploratory structure, a second modeling step consolidates and refines the topics into more interpretable and stable thematic groups. Figure 11 shows this structured barrier architecture with clearer labeling and reduced overlap between clusters. Key themes emerge more distinctly: carbon pricing and regulatory costs; energy intensity and electricity constraints; carbon capture and industrial process transformation; hydrogen infrastructure and resource availability; certification and carbon footprint reporting; and broader decarbonization policy frameworks. Compared to the first map, the refined clustering improves interpretability by aggregating closely related subtopics into coherent barrier categories while preserving semantic differentiation.
 
-![Figure 10: Reduced Topic Landscape of Barriers](topics2/motivators_datamap.png)
-Figure 10: Reduced Topic Landscape of Barriers
+![Figure 11: Reduced Topic Landscape of Barriers](topics2/motivators_datamap.png)
+<p align="center"><em>Figure 11: Reduced Topic Landscape of Barriers</em></p>
 
 Substantively, the spatial separation of energy- and hydrogen-related clusters from carbon pricing and policy clusters suggests that companies distinguish between **regulatory exposure and technical feasibility constraints**. Similarly, certification and labeling topics form their own identifiable group, indicating that reporting and verification challenges constitute a distinct layer of transition complexity. Together, the two-step topic modeling process demonstrates that corporate narratives of decarbonization barriers are multidimensional, evolving from dispersed thematic fragments into a structured architecture of transition constraints.
 
@@ -154,15 +154,15 @@ This layered approach — RAG extraction followed by exploratory and then consol
 
 In parallel to the barrier analysis, the extracted climate-related corpus was analyzed to identify **reported motivators** for decarbonization. Using the same Retrieval-Augmented Generation (RAG) pipeline, passages explicitly referring to drivers, incentives, or enabling factors were systematically extracted and structured. This ensures methodological symmetry between constraints and enablers, allowing direct comparison of how companies narrate obstacles versus drivers of transition.
 
-As a first step, the extracted motivator statements were subjected to **unsupervised topic modeling** to uncover latent thematic structures. Figure 11 visualizes this initial motivator landscape as a two-dimensional semantic embedding. Distinct clusters emerge around themes such as emissions reduction targets, carbon neutrality commitments, low-carbon technologies, renewable energy investment, energy efficiency, circular economy practices, sustainability strategies, employee engagement, and community relations. The relative proximity of many clusters indicates that motivators are often framed as interconnected elements of a broader sustainability narrative rather than isolated drivers.
+As a first step, the extracted motivator statements were subjected to **unsupervised topic modeling** to uncover latent thematic structures. Figure 12 visualizes this initial motivator landscape as a two-dimensional semantic embedding. Distinct clusters emerge around themes such as emissions reduction targets, carbon neutrality commitments, low-carbon technologies, renewable energy investment, energy efficiency, circular economy practices, sustainability strategies, employee engagement, and community relations. The relative proximity of many clusters indicates that motivators are often framed as interconnected elements of a broader sustainability narrative rather than isolated drivers.
 
-![Figure 11: Topic Landscape of Motivators](topics1/barriers_datamap.png)
-Figure 11: Topic Landscape of Motivators
+![Figure 12: Topic Landscape of Motivators](topics1/barriers_datamap.png)
+<p align="center"><em>Figure 12: Topic Landscape of Motivators</em></p>
 
-In a second step, the topic model was refined to consolidate closely related clusters into more coherent and interpretable thematic groups. Figure 12 shows this structured motivator architecture with clearer separation between core themes. Prominent clusters include: emissions reduction and CO₂ targets; technological innovation and low-carbon steel processes; energy efficiency and management improvements; sustainability practices and corporate strategy; employee and organizational engagement; and community and stakeholder relations. Compared to the initial exploratory map, the refined structure reduces fragmentation and clarifies how companies organize enabling factors within their decarbonization communication.
+In a second step, the topic model was refined to consolidate closely related clusters into more coherent and interpretable thematic groups. Figure 13 shows this structured motivator architecture with clearer separation between core themes. Prominent clusters include: emissions reduction and CO₂ targets; technological innovation and low-carbon steel processes; energy efficiency and management improvements; sustainability practices and corporate strategy; employee and organizational engagement; and community and stakeholder relations. Compared to the initial exploratory map, the refined structure reduces fragmentation and clarifies how companies organize enabling factors within their decarbonization communication.
 
-![Figure 12: Reduced Topic Landscape of Motivators](topics2/barriers_datamap.png)
-Figure 12: Reduced Topic Landscape of Motivators
+![Figure 13: Reduced Topic Landscape of Motivators](topics2/barriers_datamap.png)
+<p align="center"><em>Figure 13: Reduced Topic Landscape of Motivators</em></p>
 
 Substantively, the spatial organization of motivator topics differs from the barrier map in an important way. While barriers tend to separate into clearly distinct regulatory, technological, and infrastructural domains, motivators cluster more centrally and densely, suggesting stronger conceptual integration. Emissions reduction goals, technological modernization, and sustainability strategy appear tightly linked, reflecting a narrative in which decarbonization is framed as a coordinated strategic transformation rather than a single policy response. The proximity of employee and community clusters further indicates that companies embed transition efforts within broader organizational and stakeholder frameworks.
 
@@ -171,15 +171,15 @@ Together, the two-step modeling process reveals that corporate narratives of dec
 
 ### Temporal Evolution of Barriers and Motivators
 
-To complement the structural topic maps presented above, the extracted barriers and motivators were also analyzed **over time** to identify how the emphasis of different themes evolved across the reporting period (2013–2024). Figures 13 and 14 track the annual frequency of the most prominent topics identified through topic modeling, allowing the analysis to move from a static topic structure to a dynamic view of how decarbonization narratives developed.
+To complement the structural topic maps presented above, the extracted barriers and motivators were also analyzed **over time** to identify how the emphasis of different themes evolved across the reporting period (2013–2024). Figures 14 and 15 track the annual frequency of the most prominent topics identified through topic modeling, allowing the analysis to move from a static topic structure to a dynamic view of how decarbonization narratives developed.
 
-![Figure 13: Stated Barriers Over Time](topics2/barriers_over_time.png)
-Figure 13: Stated Barriers Over Time
+![Figure 14: Stated Barriers Over Time](topics2/barriers_over_time.png)
+<p align="center"><em>Figure 14: Stated Barriers Over Time</em></p>
 
 For **barriers**, several themes emerge intermittently rather than following smooth trajectories. Early years show relatively low and fragmented reporting of transition constraints, reflecting the still limited prominence of decarbonization in corporate reporting. Beginning around **2019–2020**, however, barrier narratives intensify noticeably. Topics related to **steel production technologies and carbon-intensive processes** increase sharply, indicating growing awareness of the structural challenges associated with transforming BF–BOF production systems. At the same time, **carbon certification and labeling frameworks** gain importance, suggesting that companies increasingly anticipate future regulatory and reporting requirements. A pronounced spike around 2022 appears in topics associated with **energy systems and resource availability**, which aligns with the broader European energy crisis and the emerging recognition that low-carbon energy supply - particularly hydrogen and renewable electricity - constitutes a central constraint for industrial decarbonization.
 
-![Figure 14: Stated Motivators Over Time](topics2/motivators_over_time.png)
-Figure 14: Stated Motivators Over Time
+![Figure 15: Stated Motivators Over Time](topics2/motivators_over_time.png)
+<p align="center"><em>Figure 15: Stated Motivators Over Time</em></p>
 
 The temporal pattern of **motivators** shows a different dynamic. Rather than appearing sporadically, enabling factors gradually **intensify over time**, suggesting a progressive consolidation of transition narratives. Topics related to emissions reduction targets and **corporate decarbonization commitments** grow steadily and peak in the early 2020s, reflecting the increasing institutionalization of net-zero strategies following the Paris Agreement and the EU Green Deal. At the same time, themes related to **sustainability practices and corporate strategy** expand significantly after 2018, indicating that decarbonization becomes more deeply embedded in broader corporate transformation agendas. Technological innovation and energy efficiency improvements also gain prominence, reflecting companies’ efforts to frame decarbonization not only as a regulatory response but as an opportunity for industrial modernization.
 
@@ -219,7 +219,7 @@ In addition to measuring overall climate volume, the analysis also considers **n
 
 
 ![Animation 1: talk vs action ](models/talk_vs_action.gif)
-Animation 1: talk vs action
+<p align="center"><em>Animation 1: talk vs action</em></p>
 
 The Transition Tracker plots companies along the **ACTION** and **COMMUNICATION** dimensions for both time periods. The animation shows how companies moved between **2019 and 2024**, revealing heterogeneous transition trajectories across four distinct quadrants:
 
