@@ -217,11 +217,10 @@ In addition to measuring overall climate volume, the analysis also considers **n
 
 ### Mapping Companies in Action-Communication Space
 
-
-![Animation 1: talk vs action ](models/talk_vs_action.gif)
-<p align="center"><em>Animation 1: talk vs action</em></p>
-
 The Transition Tracker plots companies along the **ACTION** and **COMMUNICATION** dimensions for both time periods. The animation shows how companies moved between **2019 and 2024**, revealing heterogeneous transition trajectories across four distinct quadrants:
+
+![Animation 1: communication vs action ](models/climate_vs_action.gif)
+<p align="center"><em>Animation 1: communication vs action</em></p>
 
 **Upper Right (High Communication, High Action)**
 Primarily EAF companies throughout both periods. By 2024, this quadrant includes companies demonstrating alignment between climate communication volume and operational performance.
@@ -236,6 +235,10 @@ Occupied by Outokumpu in 2019, demonstrating high operational performance (actio
 In 2019, contains several BF-BOF companies (Salzgitter, SHS, SSAB) with both communication and action scores below 50. By 2024, while all companies increased climate communication (moving upward), several BF-BOF companies remain here despite the vertical shift - their action scores stay below 50 even as they discuss climate more extensively. This indicates increased narrative engagement without corresponding operational transformation.
 
 Importantly, the trajectory lines illustrate how individual firms **move across the Action–Communication space over time** rather than simply occupying static positions. Most companies gradually increase their ACTION scores while simultaneously expanding climate-related reporting. However, when comparing **general climate discourse** with **net-zero–specific language**, the overall volume differs substantially while the movement patterns are largely parallel. Both metrics show upward movement between 2019 and 2024, but net-zero content represents a smaller subset of overall climate communication - companies dedicate 10-20% of reports to net-zero topics compared to 40-70% for general climate content. This lower baseline reflects that net-zero language is more targeted, focusing specifically on long-term decarbonization commitments, technology pathways, and emissions targets rather than broader sustainability themes. The similar trajectory patterns suggest that climate communication expansion and net-zero articulation occur in tandem, though the latter remains more concentrated and specific.
+
+![Animation 2: netzero vs action ](models/netzero_vs_action.gif)
+<p align="center"><em>Animation 2: netzero vs action</em></p>
+
 #### **Key Patterns (2019 → 2024)**
 
 **The Technology Divide**
